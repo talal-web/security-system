@@ -4,6 +4,7 @@ import express from "express";
 import connectDB from "./config/db.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
 import cors from "cors";
+import morganMiddleware from "./middleware/morganMiddleware.js";
 
 const app = express();
 const PORT = 5000;
@@ -19,6 +20,7 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(morganMiddleware);
 
 // Routes
 app.use("/api/employees", employeeRoutes);
