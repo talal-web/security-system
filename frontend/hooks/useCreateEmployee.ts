@@ -1,11 +1,6 @@
-// src/hooks/useCreateEmployee.ts
-
 "use client";
 
 import { useState } from "react";
-
-import { Employee } from "@/types/employee";
-
 import { createEmployee } from "@/services/employeeService";
 
 export function useCreateEmployee() {
@@ -13,22 +8,36 @@ export function useCreateEmployee() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  const handleCreateEmployee = async (employeeData: Partial<Employee>) => {
+  // ======================================
+  // CREATE EMPLOYEE (FormData supported)
+  // ======================================
+
+  const handleCreateEmployee = async (employeeData: FormData) => {
     try {
       setLoading(true);
-
       setSuccess("");
       setError("");
 
-      const data = await createEmployee(employeeData);
+      const data = Object.fromEntries(
+        employeeData.entries(),
+      ) as Partial<Employee>;
+
+      const result = await createEmployee(data);
 
       setSuccess("Employee created successfully");
 
       return data;
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("HOOK ERROR:", err);
 
-      setError("Failed to create employee");
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Something went wrong while creating employee";
+
+      setError(message);
+
+      return null;
     } finally {
       setLoading(false);
     }
