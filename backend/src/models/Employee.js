@@ -20,11 +20,9 @@ const employeeSchema = new mongoose.Schema(
       trim: true,
     },
 
-    age: {
-      type: Number,
+    birthDate: {
+      type: Date,
       required: true,
-      min: 16,
-      max: 60,
     },
 
     cnic: {
@@ -74,14 +72,12 @@ const employeeSchema = new mongoose.Schema(
     // Education
     // =========================
 
-    // Education
     education: {
       type: String,
       enum: ["nil", "middle", "matric", "fsc", "intermediate", "bs", "master"],
       default: "nil",
     },
 
-    // Designation
     designation: {
       type: String,
       enum: [
@@ -96,7 +92,6 @@ const employeeSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Status
     status: {
       type: String,
       enum: ["active", "inactive"],
@@ -144,8 +139,31 @@ const employeeSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
+
+// ======================================
+// Virtual Field: Age (calculated)
+// ======================================
+
+employeeSchema.virtual("age").get(function () {
+  if (!this.birthDate) return null;
+
+  const today = new Date();
+  const birth = new Date(this.birthDate);
+
+  let age = today.getFullYear() - birth.getFullYear();
+
+  const m = today.getMonth() - birth.getMonth();
+
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+
+  return age;
+});
 
 const Employee =
   mongoose.models.Employee || mongoose.model("Employee", employeeSchema);
