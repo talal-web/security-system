@@ -1,9 +1,6 @@
-// src/components/employees/CreateEmployeeForm.tsx
-
 "use client";
 
 import { useState } from "react";
-
 import { useRouter } from "next/navigation";
 
 import {
@@ -14,14 +11,18 @@ import {
   CalendarDays,
   MapPin,
   CreditCard,
-  BriefcaseBusiness,
   Save,
   BadgeCheck,
+  Cake,
 } from "lucide-react";
 
 import { useCreateEmployee } from "@/hooks/useCreateEmployee";
 
 import { EmployeeDesignation, EducationLevel } from "@/types/employee";
+
+// ======================
+// Options
+// ======================
 
 const educationOptions: EducationLevel[] = [
   "nil",
@@ -43,23 +44,35 @@ const designationOptions: EmployeeDesignation[] = [
   "clerk",
 ];
 
+// ======================
+// Format
+// ======================
+
 function formatText(text: string) {
   return text
     .toLowerCase()
     .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
+
+// ======================
+// Component
+// ======================
 
 export default function CreateEmployeeForm() {
   const router = useRouter();
 
   const { handleCreateEmployee, loading, success, error } = useCreateEmployee();
 
+  // ======================
+  // Form Data
+  // ======================
+
   const [formData, setFormData] = useState({
     name: "",
     fatherName: "",
-    age: 18,
+    birthDate: "",
     cnic: "",
     address: "",
     phone1: "",
@@ -72,199 +85,236 @@ export default function CreateEmployeeForm() {
     exitDate: "",
   });
 
+  // ======================
+  // Profile Image
+  // ======================
+
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+
+  // ======================
+  // Change Handler
+  // ======================
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
+
+  // ======================
+  // Submit (FormData for Multer)
+  // ======================
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const data = await handleCreateEmployee(formData);
+    const form = new FormData();
+
+    // text fields
+    Object.entries(formData).forEach(([key, value]) => {
+      form.append(key, value);
+    });
+
+    // image
+    if (profileImage) {
+      form.append("profileImage", profileImage);
+    }
+
+    const data = await handleCreateEmployee(form);
 
     if (data) {
       router.push("/employees");
     }
   };
 
-  return (
-    <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-2xl">
-      {/* Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#dbeafe,transparent_30%)] opacity-60" />
+  // ======================
+  // UI
+  // ======================
 
-      {/* Header */}
-      <div className="relative border-b border-slate-100 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-6 py-10 sm:px-10">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-medium text-slate-200 backdrop-blur">
+  return (
+    <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
+      {/* ================= HEADER ================= */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          {/* LEFT */}
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-medium text-white backdrop-blur">
               <ShieldCheck className="h-4 w-4" />
-              Employee Management System
+              Employee Management
             </div>
 
-            <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+            <h1 className="text-3xl font-bold text-white lg:text-4xl">
               Create Employee
-            </h2>
+            </h1>
 
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-              Add employee information securely and maintain professional
-              workforce records.
+            <p className="text-sm text-orange-50 lg:text-base">
+              Add employee records securely and efficiently
             </p>
           </div>
 
-          <div className="hidden h-24 w-24 items-center justify-center rounded-3xl bg-white/10 backdrop-blur md:flex">
-            <User className="h-12 w-12 text-white" />
-          </div>
+          {/* RIGHT - PROFILE IMAGE UPLOAD */}
+          <label className="flex flex-col items-center gap-2 lg:items-end">
+            <div className="relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-3xl border-2 border-white/30 bg-white/10 backdrop-blur transition hover:bg-white/20 sm:h-32 sm:w-32">
+              {profileImage ? (
+                <img
+                  src={URL.createObjectURL(profileImage)}
+                  alt="preview"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center text-white">
+                  <User className="h-10 w-10" />
+                  <span className="text-[10px]">Upload</span>
+                </div>
+              )}
+
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setProfileImage(e.target.files?.[0] || null)}
+              />
+            </div>
+
+            <span className="text-xs text-orange-50">Profile Image</span>
+          </label>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="relative px-6 pt-6 sm:px-10">
+      {/* ================= MESSAGES ================= */}
+      <div className="px-5 pt-5 sm:px-8">
         {success && (
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 px-4 py-4 text-sm font-medium text-green-700">
-            <BadgeCheck className="h-5 w-5" />
+          <div className="mb-4 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
             {success}
           </div>
         )}
 
         {error && (
-          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm font-medium text-red-700">
+          <div className="mb-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
       </div>
 
-      {/* Form */}
+      {/* ================= FORM ================= */}
       <form
         onSubmit={handleSubmit}
-        className="relative grid gap-6 px-6 pb-8 sm:px-10 lg:grid-cols-2"
+        className="grid grid-cols-1 gap-5 px-5 pb-10 sm:px-8 md:grid-cols-2 lg:grid-cols-3"
       >
-        <InputField
-          icon={<User className="h-5 w-5" />}
-          label="Employee Name"
+        <Input
+          icon={<User />}
+          label="Name"
           name="name"
           value={formData.name}
           onChange={handleChange}
         />
 
-        <InputField
-          icon={<User className="h-5 w-5" />}
+        <Input
+          icon={<User />}
           label="Father Name"
           name="fatherName"
           value={formData.fatherName}
           onChange={handleChange}
         />
 
-        <InputField
-          icon={<BriefcaseBusiness className="h-5 w-5" />}
-          label="Age"
-          name="age"
-          type="number"
-          value={formData.age}
+        <Select
+          icon={<ShieldCheck />}
+          label="Designation"
+          name="designation"
+          value={formData.designation}
+          options={designationOptions}
           onChange={handleChange}
         />
 
-        <InputField
-          icon={<CreditCard className="h-5 w-5" />}
+        <Input
+          icon={<CreditCard />}
           label="CNIC"
           name="cnic"
           value={formData.cnic}
           onChange={handleChange}
         />
 
-        <InputField
-          icon={<Phone className="h-5 w-5" />}
-          label="Primary Phone"
-          name="phone1"
-          value={formData.phone1}
+        <Input
+          icon={<Cake />}
+          label="Birth Date"
+          type="date"
+          name="birthDate"
+          value={formData.birthDate}
           onChange={handleChange}
         />
 
-        <InputField
-          icon={<Phone className="h-5 w-5" />}
-          label="Secondary Phone"
-          name="phone2"
-          value={formData.phone2}
-          onChange={handleChange}
-        />
-
-        <InputField
-          icon={<User className="h-5 w-5" />}
-          label="Reference"
-          name="reference"
-          value={formData.reference}
-          onChange={handleChange}
-        />
-
-        <InputField
-          icon={<MapPin className="h-5 w-5" />}
+        <Input
+          icon={<MapPin />}
           label="Address"
           name="address"
           value={formData.address}
           onChange={handleChange}
         />
 
-        {/* Education */}
-        <SelectField
-          icon={<GraduationCap className="h-5 w-5" />}
+        <Input
+          icon={<Phone />}
+          label="Phone 1"
+          name="phone1"
+          value={formData.phone1}
+          onChange={handleChange}
+        />
+
+        <Input
+          icon={<Phone />}
+          label="Phone 2"
+          name="phone2"
+          value={formData.phone2}
+          onChange={handleChange}
+        />
+
+        <Select
+          icon={<GraduationCap />}
           label="Education"
           name="education"
           value={formData.education}
-          onChange={handleChange}
           options={educationOptions}
-        />
-
-        {/* Designation */}
-        <SelectField
-          icon={<ShieldCheck className="h-5 w-5" />}
-          label="Designation"
-          name="designation"
-          value={formData.designation}
           onChange={handleChange}
-          options={designationOptions}
         />
 
-        {/* Status */}
-        <SelectField
-          icon={<BadgeCheck className="h-5 w-5" />}
-          label="Status"
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          options={["active", "inactive"]}
-        />
-
-        <InputField
-          icon={<CalendarDays className="h-5 w-5" />}
+        <Input
+          icon={<CalendarDays />}
           label="Entry Date"
-          name="entryDate"
           type="date"
+          name="entryDate"
           value={formData.entryDate}
           onChange={handleChange}
         />
 
-        <InputField
-          icon={<CalendarDays className="h-5 w-5" />}
+        <Input
+          icon={<CalendarDays />}
           label="Exit Date"
-          name="exitDate"
           type="date"
+          name="exitDate"
           value={formData.exitDate}
           onChange={handleChange}
         />
 
-        {/* Submit */}
-        <div className="lg:col-span-2">
+        <Select
+          icon={<BadgeCheck />}
+          label="Status"
+          name="status"
+          value={formData.status}
+          options={["active", "inactive"]}
+          onChange={handleChange}
+        />
+
+        {/* SUBMIT */}
+        <div className="md:col-span-2 lg:col-span-3">
           <button
             type="submit"
             disabled={loading}
-            className="group flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-sm font-bold text-white shadow-xl shadow-blue-500/20 transition-all duration-300 hover:scale-[1.01] hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-orange-600 font-bold text-white transition hover:bg-orange-700 disabled:opacity-70"
           >
-            <Save className="h-5 w-5 transition-transform group-hover:rotate-6" />
-
-            {loading ? "Creating Employee..." : "Create Employee"}
+            <Save className="h-5 w-5" />
+            {loading ? "Creating..." : "Create Employee"}
           </button>
         </div>
       </form>
@@ -272,83 +322,46 @@ export default function CreateEmployeeForm() {
   );
 }
 
-type InputFieldProps = {
-  icon: React.ReactNode;
-  label: string;
-  name: string;
-  type?: string;
-  value: string | number;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-};
+// ======================
+// INPUT
+// ======================
 
-function InputField({
-  icon,
-  label,
-  name,
-  type = "text",
-  value,
-  onChange,
-}: InputFieldProps) {
+function Input({ icon, label, ...props }: any) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-semibold text-slate-700">
-        {label}
-      </label>
+      <label className="mb-2 block text-sm font-semibold">{label}</label>
 
-      <div className="group flex h-14 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 transition-all duration-300 focus-within:border-blue-500 focus-within:bg-white focus-within:shadow-lg">
-        <div className="text-slate-400 transition group-focus-within:text-blue-600">
-          {icon}
-        </div>
+      <div className="flex h-14 items-center gap-3 rounded-2xl border bg-slate-50 px-4 focus-within:border-orange-500">
+        <span className="text-slate-400">{icon}</span>
 
         <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          className="h-full w-full bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
+          {...props}
+          className="w-full bg-transparent text-sm outline-none"
         />
       </div>
     </div>
   );
 }
 
-type SelectFieldProps = {
-  icon: React.ReactNode;
-  label: string;
-  name: string;
-  value: string;
-  options: string[];
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-};
+// ======================
+// SELECT
+// ======================
 
-function SelectField({
-  icon,
-  label,
-  name,
-  value,
-  options,
-  onChange,
-}: SelectFieldProps) {
+function Select({ icon, label, options, ...props }: any) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-semibold text-slate-700">
-        {label}
-      </label>
+      <label className="mb-2 block text-sm font-semibold">{label}</label>
 
-      <div className="group flex h-14 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 transition-all duration-300 focus-within:border-blue-500 focus-within:bg-white focus-within:shadow-lg">
-        <div className="text-slate-400 transition group-focus-within:text-blue-600">
-          {icon}
-        </div>
+      <div className="flex h-14 items-center gap-3 rounded-2xl border bg-slate-50 px-4 focus-within:border-orange-500">
+        <span className="text-slate-400">{icon}</span>
 
         <select
-          name={name}
-          value={value}
-          onChange={onChange}
-          className="h-full w-full bg-transparent text-sm font-medium capitalize text-slate-900 outline-none"
+          {...props}
+          className="w-full bg-transparent text-sm capitalize outline-none"
         >
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {formatText(option)}
+          {options.map((opt: string) => (
+            <option key={opt} value={opt}>
+              {formatText(opt)}
             </option>
           ))}
         </select>

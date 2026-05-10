@@ -9,6 +9,10 @@ type EmployeeCardProps = {
   employee: Employee;
 };
 
+// ======================
+// Format Helper
+// ======================
+
 function formatText(text?: string) {
   if (!text) return "Not Available";
 
@@ -19,12 +23,30 @@ function formatText(text?: string) {
     .join(" ");
 }
 
+// ======================
+// Get Image URL (IMPORTANT for MULTER)
+// ======================
+
+function getImageUrl(path?: string) {
+  if (!path) return null;
+
+  // If already full URL
+  if (path.startsWith("http")) return path;
+
+  // Multer local server path
+  return `http://localhost:5000/${path}`;
+}
+
+// ======================
+// Component
+// ======================
+
 export default function EmployeeCard({ employee }: EmployeeCardProps) {
   return (
     <div className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-      {/* Top */}
+      {/* ================= TOP ================= */}
       <div className="relative h-28 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
-        {/* Status */}
+        {/* STATUS */}
         <div className="absolute right-4 top-4">
           <div
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
@@ -38,12 +60,12 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
           </div>
         </div>
 
-        {/* Profile */}
+        {/* PROFILE IMAGE */}
         <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
           <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border-4 border-white bg-slate-100 shadow-xl">
             {employee.profileImage ? (
               <Image
-                src={employee.profileImage}
+                src={getImageUrl(employee.profileImage)}
                 alt={employee.name}
                 width={96}
                 height={96}
@@ -58,31 +80,31 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
         </div>
       </div>
 
-      {/* Body */}
+      {/* ================= BODY ================= */}
       <div className="px-6 pb-6 pt-16 text-center">
-        {/* Name */}
+        {/* NAME */}
         <h2 className="line-clamp-1 text-xl font-bold tracking-tight text-slate-900">
           {formatText(employee.name)}
         </h2>
 
-        {/* Father Name */}
+        {/* FATHER NAME */}
         <p className="mt-1 line-clamp-1 text-sm text-slate-500">
           S/O {formatText(employee.fatherName)}
         </p>
 
-        {/* Designation */}
+        {/* DESIGNATION */}
         <div className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-800">
           <ShieldCheck className="h-4 w-4 text-slate-600" />
           {formatText(employee.designation)}
         </div>
 
-        {/* Phone */}
+        {/* PHONE */}
         <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-slate-600">
           <Phone className="h-4 w-4" />
           {employee.phone1}
         </div>
 
-        {/* Footer */}
+        {/* ================= FOOTER ================= */}
         <div className="mt-6 flex gap-3">
           <Link
             href={`/employees/${employee._id}`}
