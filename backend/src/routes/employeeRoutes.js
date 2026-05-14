@@ -12,15 +12,11 @@ import {
 
 import upload from "../middleware/uploadMiddleware.js";
 
+import { protect } from "../middleware/authMiddleware.js";
+
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
+
 const router = express.Router();
-
-/**
- * Employee Routes
- */
-
-// ======================================
-// Multer Fields
-// ======================================
 
 const employeeImageUpload = upload.fields([
   {
@@ -39,34 +35,46 @@ const employeeImageUpload = upload.fields([
   },
 ]);
 
-// ======================================
-// Create Employee
-// ======================================
+// CREATE
+router.post(
+  "/",
+  protect,
+  authorizeRoles("developer", "admin", "supervisor"),
+  employeeImageUpload,
+  createEmployee,
+);
 
-router.post("/", employeeImageUpload, createEmployee);
+// GET ALL
+router.get(
+  "/",
+  protect,
+  authorizeRoles("developer", "admin", "supervisor"),
+  getEmployees,
+);
 
-// ======================================
-// Get All Employees
-// ======================================
+// GET SINGLE
+router.get(
+  "/:id",
+  protect,
+  authorizeRoles("developer", "admin", "supervisor"),
+  getEmployeeById,
+);
 
-router.get("/", getEmployees);
+// UPDATE
+router.put(
+  "/:id",
+  protect,
+  authorizeRoles("developer", "admin", "supervisor"),
+  employeeImageUpload,
+  updateEmployee,
+);
 
-// ======================================
-// Get Single Employee
-// ======================================
-
-router.get("/:id", getEmployeeById);
-
-// ======================================
-// Update Employee
-// ======================================
-
-router.put("/:id", employeeImageUpload, updateEmployee);
-
-// ======================================
-// Delete Employee
-// ======================================
-
-router.delete("/:id", deleteEmployee);
+// DELETE (ONLY DEVELOPER + ADMIN)
+router.delete(
+  "/:id",
+  protect,
+  authorizeRoles("developer", "admin"),
+  deleteEmployee,
+);
 
 export default router;
