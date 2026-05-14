@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 
 import { useEmployeeById } from "@/hooks/useEmployeeById";
 
-import EmployeeDetail from "@/components/employees/detail/EmployeeDetail";
+import EmployeeDetail from "@/components/employees/EmployeeDetail";
 
 export default function EmployeeDetailPage() {
   const params = useParams();
