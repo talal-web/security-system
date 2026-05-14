@@ -1,10 +1,15 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
+
+import { Toaster } from "sonner";
+
 import "./globals.css";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+
+import QueryProvider from "@/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: "Baidar Security Service",
@@ -19,11 +24,27 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-slate-950 text-white antialiased">
-        <Navbar />
+        <QueryProvider>
+          {/* TOAST */}
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            duration={3000}
+            toastOptions={{
+              className: "!rounded-2xl !border !border-slate-800",
+            }}
+          />
 
-        <main className="pt-20">{children}</main>
+          {/* NAVBAR */}
+          <Navbar />
 
-        <Footer />
+          {/* PAGE CONTENT */}
+          <main className="min-h-screen pt-20">{children}</main>
+
+          {/* FOOTER */}
+          <Footer />
+        </QueryProvider>
       </body>
     </html>
   );
