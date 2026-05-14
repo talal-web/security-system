@@ -5,41 +5,11 @@ import { Phone, ShieldCheck, BadgeCheck, User, ArrowRight } from "lucide-react";
 
 import { Employee } from "@/types/employee";
 
+import { formatText } from "@/lib/employeeFormat";
+
 type EmployeeCardProps = {
   employee: Employee;
 };
-
-// ======================
-// Format Helper
-// ======================
-
-function formatText(text?: string) {
-  if (!text) return "Not Available";
-
-  return text
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-// ======================
-// Get Image URL (IMPORTANT for MULTER)
-// ======================
-
-function getImageUrl(path?: string) {
-  if (!path) return null;
-
-  // If already full URL
-  if (path.startsWith("http")) return path;
-
-  // Multer local server path
-  return `http://localhost:5000/${path}`;
-}
-
-// ======================
-// Component
-// ======================
 
 export default function EmployeeCard({ employee }: EmployeeCardProps) {
   return (
@@ -65,10 +35,11 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
           <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border-4 border-white bg-slate-100 shadow-xl">
             {employee.profileImage ? (
               <Image
-                src={getImageUrl(employee.profileImage)}
+                src={employee.profileImage}
                 alt={employee.name}
                 width={96}
                 height={96}
+                priority
                 className="h-full w-full object-cover"
               />
             ) : (

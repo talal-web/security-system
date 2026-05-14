@@ -1,26 +1,29 @@
-// src/components/employees/DeleteEmployeeButton.tsx
-
 "use client";
 
-import { Trash2, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { Loader2, Trash2 } from "lucide-react";
+
+import { toast } from "sonner";
 
 import { useDeleteEmployee } from "@/hooks/useDeleteEmployee";
 
 type Props = {
   employeeId: string;
-  onDeleted?: () => void;
 };
 
-export default function DeleteEmployeeButton({ employeeId, onDeleted }: Props) {
+export default function DeleteEmployeeButton({ employeeId }: Props) {
+  const router = useRouter();
+
   const { removeEmployee, isLoading } = useDeleteEmployee({
     onSuccess: () => {
-      alert("Employee deleted successfully");
+      toast.success("Employee deleted successfully");
 
-      onDeleted?.();
+      router.push("/employees");
     },
 
     onError: (message) => {
-      alert(message);
+      toast.error(message);
     },
   });
 
@@ -36,13 +39,16 @@ export default function DeleteEmployeeButton({ employeeId, onDeleted }: Props) {
 
   return (
     <button
+      type="button"
       onClick={handleDelete}
       disabled={isLoading}
       className="
-        inline-flex items-center gap-2
-        rounded-xl bg-red-600 px-4 py-2
-        text-sm font-medium text-white
-        transition hover:bg-red-700
+        inline-flex h-12 items-center justify-center gap-2
+        rounded-2xl bg-red-600 px-5
+        text-sm font-semibold text-white
+        shadow-lg shadow-red-600/30
+        transition-all duration-300
+        hover:scale-[1.02] hover:bg-red-700
         disabled:cursor-not-allowed
         disabled:opacity-70
       "
@@ -55,7 +61,7 @@ export default function DeleteEmployeeButton({ employeeId, onDeleted }: Props) {
       ) : (
         <>
           <Trash2 className="h-4 w-4" />
-          Delete
+          Delete Employee
         </>
       )}
     </button>
