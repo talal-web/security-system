@@ -1,37 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import { Employee } from "@/types/employee";
+import { useQuery } from "@tanstack/react-query";
 
 import { getEmployeeById } from "@/services/employeeService";
 
+import type { Employee } from "@/types/employee";
+
 export function useEmployeeById(id: string) {
-  const [employee, setEmployee] = useState<Employee | null>(null);
+  const {
+    data: employee,
+    isLoading: loading,
+    error,
+    isError,
+    refetch,
+  } = useQuery<Employee>({
+    queryKey: ["employee", id],
 
-  const [loading, setLoading] = useState(true);
+    queryFn: () => getEmployeeById(id),
 
-  const [error, setError] = useState<string | null>(null);
+    enabled: !!id,
 
-  useEffect(() => {
-    if (!id) return;
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-    const fetchEmployee = async () => {
-      try {
-        setLoading(true);
+  return {
+    employee: employee ?? null,
 
-        const data = await getEmployeeById(id);
+    loading,
 
-        setEmployee(data);
-      } catch (err) {
-        setError("Failed to load employee");
-      } finally {
-        setLoading(false);
-      }
-    };
+    error: isError ? "Failed to load employee" : null,
 
-    fetchEmployee();
-  }, [id]);
-
-  return { employee, loading, error };
+    refetch,
+  };
 }

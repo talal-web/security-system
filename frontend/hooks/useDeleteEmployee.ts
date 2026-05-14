@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { deleteEmployee } from "@/services/employeeService";
 
@@ -12,46 +12,39 @@ type Props = {
 };
 
 export function useDeleteEmployee({ onSuccess, onError }: Props = {}) {
-  const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const mutation = useMutation({
+    mutationFn: async (employeeId: string) => {
+      return await deleteEmployee(employeeId);
+    },
 
-  const [error, setError] = useState<string | null>(null);
+    onSuccess: () => {
+      // Refresh employee list
+      queryClient.invalidateQueries({
+        queryKey: ["employees"],
+      });
 
-  const removeEmployee = (id: string) => {
-    setEmployeeId(id);
-  };
+      onSuccess?.();
+    },
 
-  useEffect(() => {
-    if (!employeeId) return;
+    onError: (err) => {
+      const message =
+        err instanceof Error ? err.message : "Failed to delete employee";
 
-    const handleDelete = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        await deleteEmployee(employeeId);
-
-        onSuccess?.();
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to delete employee";
-
-        setError(message);
-
-        onError?.(message);
-      } finally {
-        setIsLoading(false);
-        setEmployeeId(null);
-      }
-    };
-
-    handleDelete();
-  }, [employeeId, onSuccess, onError]);
+      onError?.(message);
+    },
+  });
 
   return {
-    removeEmployee,
-    isLoading,
-    error,
+    removeEmployee: mutation.mutateAsync,
+
+    isLoading: mutation.isPending,
+
+    isError: mutation.isError,
+
+    isSuccess: mutation.isSuccess,
+
+    error: mutation.error instanceof Error ? mutation.error.message : null,
   };
 }

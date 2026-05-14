@@ -2,39 +2,27 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { Employee } from "@/types/employee";
 import { getEmployees } from "@/services/employeeService";
 
 export function useEmployees() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function fetchEmployees() {
-      try {
-        setLoading(true);
-
-        const data = await getEmployees();
-
-        setEmployees(data);
-      } catch (err) {
-        console.error("Fetch Employees Error:", err);
-
-        setError("Failed to fetch employees");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchEmployees();
-  }, []);
+  const {
+    data: employees = [],
+    isPending: loading,
+    error,
+    isError,
+    refetch,
+  } = useQuery<Employee[]>({
+    queryKey: ["employees"],
+    queryFn: getEmployees,
+  });
 
   return {
     employees,
     loading,
-    error,
+    error: isError ? "Failed to fetch employees" : "",
+    refetch,
   };
 }

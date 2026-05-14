@@ -2,50 +2,43 @@
 
 "use client";
 
-import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { updateEmployee } from "@/services/employeeService";
-
 import { Employee } from "@/types/employee";
 
+type UpdateEmployeeParams = {
+  id: string;
+  employeeData: FormData | Partial<Employee>;
+};
+
 export function useUpdateEmployee() {
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  const [success, setSuccess] = useState("");
+  const mutation = useMutation({
+    mutationFn: async ({ id, employeeData }: UpdateEmployeeParams) => {
+      return updateEmployee(id, employeeData);
+    },
 
-  const [error, setError] = useState("");
-
-  const handleUpdateEmployee = async (
-    id: string,
-    employeeData: Partial<Employee>,
-  ) => {
-    try {
-      setLoading(true);
-
-      setError("");
-
-      setSuccess("");
-
-      const data = await updateEmployee(id, employeeData);
-
-      setSuccess("Employee updated successfully.");
-
-      return data;
-    } catch (err) {
-      console.error(err);
-
-      setError("Failed to update employee.");
-
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
+    onSuccess: () => {
+      // refresh employee list after update
+      queryClient.invalidateQueries({
+        queryKey: ["employees"],
+      });
+    },
+  });
 
   return {
-    handleUpdateEmployee,
-    loading,
-    success,
-    error,
+    // main function (use this in form)
+    handleUpdateEmployee: mutation.mutateAsync,
+
+    // states
+    loading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+    isSuccess: mutation.isSuccess,
+
+    // optional helpers
+    reset: mutation.reset,
   };
 }

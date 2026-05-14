@@ -1,52 +1,60 @@
+// src/hooks/useCreateEmployee.ts
+
 "use client";
 
-import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { Employee } from "@/types/employee";
+
 import { createEmployee } from "@/services/employeeService";
 
-export function useCreateEmployee() {
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
+type Props = {
+  onSuccess?: () => void;
+  onError?: (message: string) => void;
+};
 
-  // ======================================
-  // CREATE EMPLOYEE (FormData supported)
-  // ======================================
+export function useCreateEmployee({ onSuccess, onError }: Props = {}) {
+  const queryClient = useQueryClient();
 
-  const handleCreateEmployee = async (employeeData: FormData) => {
-    try {
-      setLoading(true);
-      setSuccess("");
-      setError("");
-
+  const mutation = useMutation({
+    mutationFn: async (employeeData: FormData) => {
       const data = Object.fromEntries(
         employeeData.entries(),
       ) as Partial<Employee>;
 
-      const result = await createEmployee(data);
+      return await createEmployee(data);
+    },
 
-      setSuccess("Employee created successfully");
+    onSuccess: () => {
+      // Refresh employee list
+      queryClient.invalidateQueries({
+        queryKey: ["employees"],
+      });
 
-      return data;
-    } catch (err: any) {
-      console.error("HOOK ERROR:", err);
+      onSuccess?.();
+    },
 
+    onError: (err: any) => {
       const message =
         err?.response?.data?.message ||
         err?.message ||
         "Something went wrong while creating employee";
 
-      setError(message);
-
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
+      onError?.(message);
+    },
+  });
 
   return {
-    handleCreateEmployee,
-    loading,
-    success,
-    error,
+    handleCreateEmployee: mutation.mutateAsync,
+
+    loading: mutation.isPending,
+
+    isSuccess: mutation.isSuccess,
+
+    isError: mutation.isError,
+
+    success: mutation.isSuccess ? "Employee created successfully" : "",
+
+    error: mutation.error instanceof Error ? mutation.error.message : null,
   };
 }
