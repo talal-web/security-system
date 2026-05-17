@@ -4,7 +4,7 @@
 
 import EmployeeCard from "@/components/employees/EmployeeCard";
 
-import { useEmployees } from "@/hooks/useEmployees";
+import { useEmployees } from "@/hooks/employee/useEmployees";
 
 export default function EmployeesPage() {
   const { employees, loading, error } = useEmployees();

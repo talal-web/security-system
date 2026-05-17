@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 
-import { useEmployeeById } from "@/hooks/useEmployeeById";
+import { useEmployeeById } from "@/hooks/employee/useEmployeeById";
 
 import EmployeeDetail from "@/components/employees/EmployeeDetail";
 
