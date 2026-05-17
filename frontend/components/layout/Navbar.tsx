@@ -11,6 +11,7 @@ const navLinks = [
   { name: "Employees", href: "/employees" },
   { name: "Dashboard", href: "/dashboard" },
   { name: "Reports", href: "/reports" },
+  { name: "Login", href: "/login" },
 ];
 
 export default function Navbar() {
