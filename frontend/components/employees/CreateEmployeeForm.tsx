@@ -26,7 +26,7 @@ import {
   Cake,
 } from "lucide-react";
 
-import { useCreateEmployee } from "@/hooks/useCreateEmployee";
+import { useCreateEmployee } from "@/hooks/employee/useCreateEmployee";
 
 import { z } from "zod";
 

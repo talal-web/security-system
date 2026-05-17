@@ -6,7 +6,7 @@ import { Loader2, Trash2 } from "lucide-react";
 
 import { toast } from "sonner";
 
-import { useDeleteEmployee } from "@/hooks/useDeleteEmployee";
+import { useDeleteEmployee } from "@/hooks/employee/useDeleteEmployee";
 
 type Props = {
   employeeId: string;

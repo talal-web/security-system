@@ -21,7 +21,7 @@ import {
   Clock3,
 } from "lucide-react";
 
-import { useUpdateEmployee } from "@/hooks/useUpdateEmployee";
+import { useUpdateEmployee } from "@/hooks/employee/useUpdateEmployee";
 import Input from "@/components/Input";
 import Select from "@/components/Select";
 
