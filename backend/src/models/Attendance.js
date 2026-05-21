@@ -1,0 +1,60 @@
+// models/attendance.model.js
+
+import mongoose from "mongoose";
+
+const attendanceSchema = new mongoose.Schema(
+  {
+    // EMPLOYEE
+    employee: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      required: true,
+    },
+
+    // LOCATION
+    location: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Location",
+      required: true,
+    },
+
+    // DATE
+    date: {
+      type: Date,
+      required: true,
+    },
+
+    // SHIFT (optional but useful)
+    shift: {
+      type: String,
+      enum: ["day", "night"],
+      default: "day",
+    },
+
+    status: {
+      type: String,
+      enum: ["present", "absent", "leave"],
+      required: true,
+    },
+
+    remarks: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
+
+// INDEXES
+attendanceSchema.index({ employee: 1, date: 1, shift: 1 }, { unique: true });
+attendanceSchema.index({ employee: 1 });
+attendanceSchema.index({ date: 1 });
+attendanceSchema.index({ location: 1 });
+
+const Attendance =
+  mongoose.models.Attendance || mongoose.model("Attendance", attendanceSchema);
+
+export default Attendance;
