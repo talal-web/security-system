@@ -7,6 +7,8 @@ import path from "path";
 import connectDB from "./config/db.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import locationRoutes from "./routes/locationRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
 
 import morganMiddleware from "./middleware/morganMiddleware.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -42,6 +44,9 @@ app.use(morganMiddleware);
 
 app.use("/api/employees", employeeRoutes);
 app.use("/api/auth", authRoutes);
+
+app.use("/api/locations", locationRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 // ✅ NEW: Cloudinary upload routes
 app.use("/api/upload", uploadRoutes);
