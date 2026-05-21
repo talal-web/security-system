@@ -8,7 +8,7 @@ import EmployeeProfileCard from "@/components/employees/EmployeePrint";
 
 import { Employee } from "@/types/employee";
 
-import { getEmployeeById } from "@/services/employeeService";
+import { getEmployeeById } from "@/services/employee.service";
 
 export default function EmployeePrintPage() {
   const params = useParams();
