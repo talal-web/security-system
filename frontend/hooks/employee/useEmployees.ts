@@ -5,7 +5,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { Employee } from "@/types/employee";
-import { getEmployees } from "@/services/employeeService";
+import { getEmployees } from "@/services/employee.service";
 
 export function useEmployees() {
   const {

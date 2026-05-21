@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Employee } from "@/types/employee";
 
-import { createEmployee } from "@/services/employeeService";
+import { createEmployee } from "@/services/employee.service";
 
 type Props = {
   onSuccess?: () => void;

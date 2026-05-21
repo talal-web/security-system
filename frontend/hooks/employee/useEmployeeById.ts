@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getEmployeeById } from "@/services/employeeService";
+import { getEmployeeById } from "@/services/employee.service";
 
 import type { Employee } from "@/types/employee";
 
