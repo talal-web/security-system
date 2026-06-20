@@ -1,13 +1,13 @@
 // services/location.service.ts
 
 import api from "@/lib/axios";
-
 import { getApiErrorMessage } from "@/lib/apiError";
 
 import {
   ILocation,
   CreateLocationPayload,
   UpdateLocationPayload,
+  LocationSector,
 } from "@/types/location";
 
 // ================= CREATE LOCATION =================
@@ -24,9 +24,23 @@ export const createLocation = async (
 };
 
 // ================= GET ALL LOCATIONS =================
-export const getLocations = async (): Promise<ILocation[]> => {
+export const getLocations = async ({
+  search,
+  sector,
+  isActive,
+}: {
+  search?: string;
+  sector?: LocationSector;
+  isActive?: boolean;
+} = {}): Promise<ILocation[]> => {
   try {
-    const response = await api.get("/locations");
+    const response = await api.get("/locations", {
+      params: {
+        ...(search && { search }),
+        ...(sector && { sector }),
+        ...(isActive !== undefined && { isActive }),
+      },
+    });
 
     return response.data.data;
   } catch (error) {

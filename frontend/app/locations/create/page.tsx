@@ -1,12 +1,10 @@
-// app/dashboard/locations/page.tsx
+"use client";
 
 import CreateLocationForm from "@/components/locations/CreateLocationForm";
 
-import LocationList from "@/components/locations/LocationList";
-
-export default function LocationsPage() {
+export default function CreateLocationPage() {
   return (
-    <div className="space-y-6 p-6">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <CreateLocationForm />
     </div>
   );

@@ -1,21 +1,30 @@
-"use client";
-
 import { useState } from "react";
 
 import { useCreateLocation } from "@/hooks/location/useLocation";
 
+import { sectorOptions } from "@/constants/location";
+
+import { LocationSector } from "@/types/location";
+
 export default function CreateLocationForm() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [sector, setSector] = useState("");
+
+  const [sector, setSector] = useState<LocationSector | "">("");
 
   const { mutate, isPending, isError, error } = useCreateLocation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!sector) return;
+
     mutate(
-      { name, address, sector },
+      {
+        name: name.trim(),
+        address: address.trim(),
+        sector,
+      },
       {
         onSuccess: () => {
           setName("");
@@ -48,7 +57,6 @@ export default function CreateLocationForm() {
 
       {/* FORM */}
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* GRID */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* NAME */}
           <div className="md:col-span-2">
@@ -83,15 +91,24 @@ export default function CreateLocationForm() {
 
           {/* SECTOR */}
           <div>
-            <label className="text-sm font-medium text-slate-700">Sector</label>
+            <label className="text-sm font-medium text-slate-700">
+              Sector *
+            </label>
 
-            <input
-              type="text"
-              placeholder="A, B, C..."
+            <select
               value={sector}
-              onChange={(e) => setSector(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-300 p-3 outline-none transition focus:border-blue-500"
-            />
+              onChange={(e) => setSector(e.target.value as LocationSector)}
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 outline-none transition focus:border-blue-500"
+              required
+            >
+              <option value="">Select Sector</option>
+
+              {sectorOptions.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

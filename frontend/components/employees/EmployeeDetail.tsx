@@ -7,7 +7,6 @@ import {
   BadgeCheck,
   BriefcaseBusiness,
   Cake,
-  CalendarClock,
   CalendarDays,
   Clock3,
   CreditCard,
@@ -16,7 +15,7 @@ import {
   Pencil,
   Phone,
   ShieldCheck,
-  Trash2,
+  Banknote,
   User,
 } from "lucide-react";
 
@@ -37,7 +36,8 @@ export default function EmployeeDetail({ employee }: Props) {
         {/* =========================
             HEADER
         ========================= */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
+
+        <div className="relative overflow-hidden bg-linear-to-br from-slate-950 via-slate-900 to-slate-800">
           {/* Glow Effects */}
           <div className="absolute inset-0 opacity-20">
             <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-white blur-3xl" />
@@ -83,6 +83,24 @@ export default function EmployeeDetail({ employee }: Props) {
                   {/* TAGS */}
                   <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
                     <Tag
+                      icon={<User className="h-4 w-4" />}
+                      text={employee.empId}
+                    />
+                    <Tag
+                      icon={<Banknote className="h-4 w-4" />}
+                      text={`Rs. ${employee.basicSalary?.toLocaleString()}`}
+                    />
+
+                    <Tag
+                      icon={<MapPin className="h-4 w-4" />}
+                      text={
+                        typeof employee.currentLocation === "string"
+                          ? employee.currentLocation
+                          : employee.currentLocation?.name
+                      }
+                    />
+
+                    <Tag
                       icon={<BriefcaseBusiness className="h-4 w-4" />}
                       text={formatText(employee.designation)}
                     />
@@ -101,46 +119,29 @@ export default function EmployeeDetail({ employee }: Props) {
                   </div>
                 </div>
               </div>
-
-              {/* STATS */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:w-[500px]">
-                <StatCard label="Age" value={`${age} Years`} />
-
-                <StatCard
-                  label="Education"
-                  value={formatText(employee.education)}
-                />
-
-                <StatCard
-                  label="Birth Date"
-                  value={formatDate(employee.birthDate)}
-                />
-
-                <StatCard
-                  label="Entry Date"
-                  value={formatDate(employee.entryDate)}
-                />
-              </div>
             </div>
 
             {/* ACTION BUTTONS */}
-            <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-6 sm:flex-row sm:justify-end">
+            <div className="mt-6 flex flex-col gap-2 border-t border-white/10 pt-5 sm:flex-row sm:justify-end sm:gap-3">
               <Link
                 href={`/employees/${employee._id}/edit`}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur transition-all duration-300 hover:scale-[1.02] hover:bg-white/20"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-xs font-semibold text-white backdrop-blur transition hover:bg-white/20 sm:h-12 sm:px-5 sm:text-sm"
               >
                 <Pencil className="h-4 w-4" />
-                Edit Employee
+                Edit
               </Link>
+
               <Link
                 href={`/employees/${employee._id}/print`}
-                className="inline-flex items-center gap-2 h-12 px-5 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 text-xs font-semibold text-white transition hover:bg-blue-700 sm:h-12 sm:px-5 sm:text-sm"
               >
                 <Printer className="h-4 w-4" />
                 Print
               </Link>
 
-              <DeleteEmployeeButton employeeId={employee._id} />
+              <div className="sm:flex">
+                <DeleteEmployeeButton employeeId={employee._id} />
+              </div>
             </div>
           </div>
         </div>
@@ -149,91 +150,152 @@ export default function EmployeeDetail({ employee }: Props) {
             DETAILS
         ========================= */}
         <div className="p-4 sm:p-6 lg:p-8">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
-            <InfoCard
-              icon={<CreditCard className="h-5 w-5" />}
-              label="CNIC Number"
-              value={employee.cnic}
-            />
-            <InfoCard
-              icon={<MapPin className="h-5 w-5" />}
-              label="Residential Address"
-              value={formatText(employee.address)}
-            />
+          <div className="space-y-8">
+            {/* ================= PERSONAL INFO ================= */}
+            <section>
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-8 w-1 rounded-full bg-orange-500" />
 
-            <InfoCard
-              icon={<Phone className="h-5 w-5" />}
-              label="Primary Phone"
-              value={employee.phone1}
-            />
-
-            <InfoCard
-              icon={<Phone className="h-5 w-5" />}
-              label="Secondary Phone"
-              value={employee.phone2 || "Not Available"}
-            />
-
-            <InfoCard
-              icon={<ShieldCheck className="h-5 w-5" />}
-              label="Designation"
-              value={formatText(employee.designation)}
-            />
-
-            <InfoCard
-              icon={<GraduationCap className="h-5 w-5" />}
-              label="Education"
-              value={formatText(employee.education)}
-            />
-
-            <InfoCard
-              icon={<Cake className="h-5 w-5" />}
-              label="Birth Date"
-              value={formatDate(employee.birthDate)}
-            />
-
-            <InfoCard
-              icon={<CalendarDays className="h-5 w-5" />}
-              label="Entry Date"
-              value={formatDate(employee.entryDate)}
-            />
-
-            <InfoCard
-              icon={<Clock3 className="h-5 w-5" />}
-              label="Exit Date"
-              value={
-                employee.exitDate
-                  ? formatDate(employee.exitDate)
-                  : "Currently Working"
-              }
-            />
-
-            <InfoCard
-              icon={<CalendarClock className="h-5 w-5" />}
-              label="Created At"
-              value={formatDate(employee.createdAt)}
-            />
-
-            <InfoCard
-              icon={<User className="h-5 w-5" />}
-              label="Reference"
-              value={formatText(employee.reference)}
-            />
-          </div>
-
-          {/* NOTES */}
-          {employee.notes && (
-            <div className="mt-6 border-t border-slate-200 pt-6">
-              <div className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm sm:p-6">
                 <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
-                  Additional Notes
+                  Personal Information
                 </h2>
-
-                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm leading-7 text-slate-700 sm:p-5 sm:text-[15px]">
-                  {employee.notes}
-                </div>
               </div>
-            </div>
-          )}
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <InfoCard
+                  icon={<CreditCard className="h-5 w-5" />}
+                  label="CNIC Number"
+                  value={employee.cnic}
+                />
+
+                <InfoCard
+                  icon={<Cake className="h-5 w-5" />}
+                  label="Birth Date"
+                  value={formatDate(employee.birthDate)}
+                />
+
+                <InfoCard
+                  icon={<User className="h-5 w-5" />}
+                  label="Reference"
+                  value={formatText(employee.reference)}
+                />
+              </div>
+            </section>
+
+            {/* ================= CONTACT INFO ================= */}
+            <section>
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-8 w-1 rounded-full bg-blue-500" />
+
+                <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+                  Contact Information
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {/* ADDRESS FULL WIDTH */}
+                <div className="md:col-span-2 xl:col-span-3">
+                  <InfoCard
+                    icon={<MapPin className="h-5 w-5" />}
+                    label="Residential Address"
+                    value={formatText(employee.address)}
+                    large
+                  />
+                </div>
+
+                <InfoCard
+                  icon={<Phone className="h-5 w-5" />}
+                  label="Primary Phone"
+                  value={employee.phone1}
+                />
+
+                <InfoCard
+                  icon={<Phone className="h-5 w-5" />}
+                  label="Secondary Phone"
+                  value={employee.phone2 || "Not Available"}
+                />
+              </div>
+            </section>
+
+            {/* ================= EMPLOYMENT INFO ================= */}
+            <section>
+              <SectionTitle
+                title="Employment Information"
+                color="bg-emerald-500"
+              />
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <InfoCard
+                  icon={<BriefcaseBusiness className="h-5 w-5" />}
+                  label="Designation"
+                  value={formatText(employee.designation)}
+                />
+
+                <InfoCard
+                  icon={<MapPin className="h-5 w-5" />}
+                  label="Current Location"
+                  value={
+                    typeof employee.currentLocation === "string"
+                      ? employee.currentLocation
+                      : employee.currentLocation?.name
+                  }
+                />
+
+                <InfoCard
+                  icon={<ShieldCheck className="h-5 w-5" />}
+                  label="Sector"
+                  value={formatText(employee.sector)}
+                />
+
+                <InfoCard
+                  icon={<Banknote className="h-5 w-5" />}
+                  label="Basic Salary"
+                  value={`Rs. ${employee.basicSalary?.toLocaleString()}`}
+                />
+
+                <InfoCard
+                  icon={<BadgeCheck className="h-5 w-5" />}
+                  label="Status"
+                  value={formatText(employee.status)}
+                />
+
+                <InfoCard
+                  icon={<CalendarDays className="h-5 w-5" />}
+                  label="Entry Date"
+                  value={formatDate(employee.entryDate)}
+                />
+
+                <InfoCard
+                  icon={<Clock3 className="h-5 w-5" />}
+                  label="Exit Date"
+                  value={
+                    employee.exitDate
+                      ? formatDate(employee.exitDate)
+                      : "Currently Working"
+                  }
+                />
+              </div>
+            </section>
+
+            {/* ================= NOTES ================= */}
+            {employee.notes && (
+              <section>
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="h-8 w-1 rounded-full bg-slate-900" />
+
+                  <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+                    Additional Notes
+                  </h2>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+                  <p className="whitespace-pre-line text-sm leading-7 text-slate-700 sm:text-[15px]">
+                    {employee.notes}
+                  </p>
+                </div>
+              </section>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -272,16 +334,13 @@ function StatusBadge({ status }: { status?: string }) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
+function SectionTitle({ title, color }: { title: string; color: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.14]">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-300 sm:text-xs">
-        {label}
-      </p>
-
-      <p className="mt-2 line-clamp-2 text-sm font-bold text-white sm:text-[15px]">
-        {value}
-      </p>
+    <div className="mb-6 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <div className={`h-8 w-1 rounded-full ${color}`} />
+        <h2 className="text-lg font-bold text-slate-900 sm:text-xl">{title}</h2>
+      </div>
     </div>
   );
 }
@@ -290,26 +349,35 @@ function InfoCard({
   icon,
   label,
   value,
+  large = false,
 }: {
   icon: React.ReactNode;
   label: string;
   value: React.ReactNode;
+  large?: boolean;
 }) {
   return (
-    <div className="group rounded-[28px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl">
+    <div className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md sm:p-5">
       {/* ICON */}
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-900/20 transition-transform duration-300 group-hover:scale-110">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white">
         {icon}
       </div>
 
-      {/* LABEL */}
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 sm:text-sm">
-        {label}
-      </p>
+      {/* CONTENT */}
+      <div className="min-w-0 flex-1">
+        {/* LABEL */}
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          {label}
+        </p>
 
-      {/* VALUE */}
-      <div className="mt-3 break-words text-sm font-bold leading-6 text-slate-900 sm:text-[15px]">
-        {value}
+        {/* VALUE */}
+        <div
+          className={`mt-1 text-sm font-semibold text-slate-900 ${
+            large ? "wrap-break-word leading-7" : "truncate"
+          }`}
+        >
+          {value}
+        </div>
       </div>
     </div>
   );

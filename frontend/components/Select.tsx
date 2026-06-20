@@ -1,9 +1,11 @@
 import React from "react";
 
+type SelectOption = string | { label: string; value: string };
+
 type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
   icon?: React.ReactNode;
   label: string;
-  options: string[];
+  options: SelectOption[];
   error?: string;
 };
 
@@ -13,6 +15,14 @@ function formatText(text: string) {
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+function getOptionLabel(option: SelectOption) {
+  return typeof option === "string" ? formatText(option) : option.label;
+}
+
+function getOptionValue(option: SelectOption) {
+  return typeof option === "string" ? option : option.value;
 }
 
 export default function Select({
@@ -30,11 +40,16 @@ export default function Select({
         {icon && <span className="text-gray-400">{icon}</span>}
 
         <select {...props} className="w-full bg-transparent outline-none">
-          {options.map((o) => (
-            <option key={o} value={o}>
-              {formatText(o)}
-            </option>
-          ))}
+          {options.map((option) => {
+            const value = getOptionValue(option);
+            const labelText = getOptionLabel(option);
+
+            return (
+              <option key={value} value={value}>
+                {labelText}
+              </option>
+            );
+          })}
         </select>
       </div>
 

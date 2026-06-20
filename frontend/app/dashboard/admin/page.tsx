@@ -1,182 +1,375 @@
-// app/dashboard/admin/page.tsx
 "use client";
 
+import Link from "next/link";
+
 import {
+  ArrowRight,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  Eye,
+  MapPin,
+  ShieldCheck,
   Users,
-  Shield,
-  Activity,
-  DollarSign,
-  UserPlus,
-  Settings,
-  UserCog,
 } from "lucide-react";
 
-import StatCard from "@/components/dashboard/admin/StatCard";
-import SectionCard from "@/components/dashboard/admin/SectionCard";
-import ActivityItem from "@/components/dashboard/admin/ActivityItem";
-import QuickActionButton from "@/components/dashboard/admin/QuickActionButton";
-import UserTable from "@/components/dashboard/admin/UserTable";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 
-const activities = [
+import { useMe } from "@/hooks/auth/useMe";
+
+const employeeActions = [
   {
-    title: "New employee registered",
-    time: "2 min ago",
+    title: "Add Employee",
+    href: "/employees/create",
+    icon: Users,
   },
+
   {
-    title: "Admin updated security settings",
-    time: "10 min ago",
+    title: "View Employees",
+    href: "/employees/view",
+    icon: Eye,
   },
+];
+
+const attendanceActions = [
   {
-    title: "Database backup completed",
-    time: "25 min ago",
+    title: "Mark Attendance",
+    href: "/attendance/mark",
+    icon: CheckCircle2,
   },
+
   {
-    title: "Supervisor assigned new task",
-    time: "1 hour ago",
+    title: "Monthly Reports",
+    href: "/attendance/date",
+    icon: CalendarDays,
+  },
+
+  {
+    title: "Employee Attendance",
+    href: "/attendance/employee",
+    icon: Clock3,
+  },
+];
+
+const locationActions = [
+  {
+    title: "Add Location",
+    href: "/locations/create",
+    icon: MapPin,
+  },
+
+  {
+    title: "View Locations",
+    href: "/locations/view",
+    icon: Building2,
   },
 ];
 
 export default function AdminDashboardPage() {
+  const { data, isLoading, isError } = useMe();
+
+  const userName = data?.user?.name || "Admin";
+
   return (
     <ProtectedRoute allowedRoles={["admin", "developer"]}>
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-                Admin Dashboard
-              </h1>
+      <main className="min-h-screen bg-gray-100 dark:bg-neutral-950">
+        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+          {/* ================= HERO ================= */}
 
-              <p className="mt-1 text-sm text-gray-500">
-                Manage users, monitor system activity and overview analytics
-              </p>
+          <section className="relative overflow-hidden rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 lg:p-8">
+            <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl" />
+
+            <div className="relative z-10 flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
+              {/* LEFT */}
+
+              <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-400">
+                  <ShieldCheck className="h-4 w-4" />
+                  Secure Admin Dashboard
+                </div>
+
+                <h1 className="mt-5 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+                  Welcome back,{" "}
+                  <span className="text-blue-600 dark:text-blue-400">
+                    {isLoading ? "Loading..." : isError ? "Admin" : userName}
+                  </span>
+                </h1>
+
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600 dark:text-neutral-400 sm:text-base">
+                  Manage employees, attendance operations, locations, and
+                  reports from one centralized platform.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <QuickBadge label="Employee Management" />
+                  <QuickBadge label="Attendance Monitoring" />
+                  <QuickBadge label="Location Tracking" />
+                </div>
+              </div>
+
+              {/* RIGHT STATS */}
+
+              <div className="grid grid-cols-2 gap-4 xl:w-[420px]">
+                <StatCard
+                  title="Employees"
+                  value="Management"
+                  icon={<Users className="h-5 w-5" />}
+                />
+
+                <StatCard
+                  title="Attendance"
+                  value="Tracking"
+                  icon={<CalendarDays className="h-5 w-5" />}
+                />
+
+                <StatCard
+                  title="Locations"
+                  value="Monitoring"
+                  icon={<MapPin className="h-5 w-5" />}
+                />
+
+                <StatCard
+                  title="Operations"
+                  value="Control"
+                  icon={<CheckCircle2 className="h-5 w-5" />}
+                />
+              </div>
             </div>
+          </section>
 
-            <button className="rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition-all hover:bg-gray-800">
-              Generate Report
-            </button>
-          </div>
+          {/* ================= MAIN GRID ================= */}
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              title="Total Users"
-              value="420"
-              description="Platform registered users"
-              icon={<Users size={22} />}
-              trend="+12% this month"
-            />
+          <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+            {/* ================= LEFT SIDE ================= */}
 
-            <StatCard
-              title="Admins"
-              value="3"
-              description="System administrators"
-              icon={<Shield size={22} />}
-              trend="+2 added"
-            />
+            <div className="space-y-6 xl:col-span-8">
+              {/* EMPLOYEE SECTION */}
 
-            <StatCard
-              title="System Uptime"
-              value="99.9%"
-              description="Stable server performance"
-              icon={<Activity size={22} />}
-              trend="Excellent"
-            />
-
-            <StatCard
-              title="Revenue"
-              value="Rs.2,40,500"
-              description="Monthly revenue"
-              icon={<DollarSign size={22} />}
-              trend="+18% growth"
-            />
-          </div>
-
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-            {/* Activity */}
-            <div className="xl:col-span-2">
-              <SectionCard
-                title="Recent Activity"
-                action={
-                  <button className="text-sm font-medium text-black">
-                    View All
-                  </button>
-                }
+              <DashboardSection
+                title="Employee Management"
+                description="Manage employee profiles and records."
               >
-                <div className="space-y-4">
-                  {activities.map((activity, index) => (
-                    <ActivityItem
-                      key={index}
-                      title={activity.title}
-                      time={activity.time}
-                    />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {employeeActions.map((item) => (
+                    <DashboardFeatureCard key={item.title} item={item} />
                   ))}
                 </div>
-              </SectionCard>
+              </DashboardSection>
+
+              {/* ATTENDANCE SECTION */}
+
+              <DashboardSection
+                title="Attendance Operations"
+                description="Manage daily attendance workflow and reports."
+              >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  {attendanceActions.map((item) => (
+                    <DashboardFeatureCard key={item.title} item={item} />
+                  ))}
+                </div>
+              </DashboardSection>
+
+              {/* LOCATION SECTION */}
+
+              <DashboardSection
+                title="Location & Sector Management"
+                description="Create and monitor all attendance locations."
+              >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {locationActions.map((item) => (
+                    <DashboardFeatureCard key={item.title} item={item} />
+                  ))}
+                </div>
+              </DashboardSection>
             </div>
 
-            {/* Quick Actions */}
-            <div>
-              <SectionCard title="Quick Actions">
-                <div className="grid gap-3">
-                  <QuickActionButton
-                    title="Add New User"
+            {/* ================= RIGHT SIDEBAR ================= */}
+
+            <div className="space-y-6 xl:col-span-4">
+              {/* QUICK PANEL */}
+
+              <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Quick Access
+                </h2>
+
+                <div className="mt-5 space-y-3">
+                  <SidebarLink
+                    href="/attendance/mark"
+                    label="Mark Attendance"
+                    icon={<CheckCircle2 className="h-5 w-5" />}
+                  />
+
+                  <SidebarLink
                     href="/employees/create"
-                    primary
+                    label="Add Employee"
+                    icon={<Users className="h-5 w-5" />}
                   />
 
-                  <QuickActionButton
-                    title="Manage Roles"
-                    href="/dashboard/roles"
-                  />
-
-                  <QuickActionButton
-                    title="System Settings"
-                    href="/dashboard/settings"
-                  />
-
-                  <QuickActionButton
-                    title="Manage Employees"
-                    href="/employees"
+                  <SidebarLink
+                    href="/locations/create"
+                    label="Add Location"
+                    icon={<MapPin className="h-5 w-5" />}
                   />
                 </div>
+              </div>
 
-                <div className="mt-6 grid grid-cols-3 gap-3">
-                  <div className="rounded-xl bg-gray-100 p-4 text-center">
-                    <UserPlus className="mx-auto mb-2" size={18} />
-                    <p className="text-xs text-gray-600">Add User</p>
-                  </div>
+              {/* SYSTEM STATUS */}
 
-                  <div className="rounded-xl bg-gray-100 p-4 text-center">
-                    <UserCog className="mx-auto mb-2" size={18} />
-                    <p className="text-xs text-gray-600">Roles</p>
-                  </div>
+              <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  System Status
+                </h2>
 
-                  <div className="rounded-xl bg-gray-100 p-4 text-center">
-                    <Settings className="mx-auto mb-2" size={18} />
-                    <p className="text-xs text-gray-600">Settings</p>
-                  </div>
+                <div className="mt-5 space-y-4">
+                  <StatusItem label="Attendance Module" status="Operational" />
+
+                  <StatusItem label="Employee Records" status="Updated" />
+
+                  <StatusItem label="Location Tracking" status="Active" />
                 </div>
-              </SectionCard>
+              </div>
             </div>
-          </div>
-
-          {/* Users Table */}
-          <SectionCard
-            title="Latest Users"
-            action={
-              <button className="text-sm font-medium text-black">
-                View Users
-              </button>
-            }
-          >
-            <UserTable />
-          </SectionCard>
+          </section>
         </div>
-      </div>
+      </main>
     </ProtectedRoute>
+  );
+}
+
+/* ================= SECTION ================= */
+
+function DashboardSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="mb-5">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          {title}
+        </h2>
+
+        <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
+          {description}
+        </p>
+      </div>
+
+      {children}
+    </section>
+  );
+}
+
+/* ================= FEATURE CARD ================= */
+
+function DashboardFeatureCard({ item }: any) {
+  const Icon = item.icon;
+
+  return (
+    <Link
+      href={item.href}
+      className="group rounded-3xl border border-gray-200 bg-gray-50 p-5 transition-all hover:border-blue-300 hover:bg-white hover:shadow-md dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-blue-900"
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+          <Icon className="h-5 w-5" />
+        </div>
+
+        <ArrowRight className="h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-1 dark:text-neutral-500" />
+      </div>
+
+      <h3 className="mt-5 text-lg font-semibold text-gray-900 dark:text-white">
+        {item.title}
+      </h3>
+    </Link>
+  );
+}
+
+/* ================= STAT CARD ================= */
+
+function StatCard({
+  title,
+  value,
+  icon,
+}: {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-3xl border border-gray-200 bg-gray-50 p-5 dark:border-neutral-800 dark:bg-neutral-950">
+      <div className="flex items-center justify-between">
+        <div className="text-blue-600 dark:text-blue-400">{icon}</div>
+
+        <span className="text-xs font-medium uppercase tracking-wider text-gray-400">
+          {value}
+        </span>
+      </div>
+
+      <h3 className="mt-6 text-lg font-bold text-gray-900 dark:text-white">
+        {title}
+      </h3>
+    </div>
+  );
+}
+
+/* ================= SIDEBAR LINK ================= */
+
+function SidebarLink({
+  href,
+  label,
+  icon,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4 transition-all hover:border-blue-300 hover:bg-blue-50 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-blue-900 dark:hover:bg-blue-950/20"
+    >
+      <div className="flex items-center gap-3">
+        <div className="text-blue-600 dark:text-blue-400">{icon}</div>
+
+        <span className="font-medium text-gray-800 dark:text-white">
+          {label}
+        </span>
+      </div>
+
+      <ArrowRight className="h-4 w-4 text-gray-400" />
+    </Link>
+  );
+}
+
+/* ================= STATUS ITEM ================= */
+
+function StatusItem({ label, status }: { label: string; status: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-gray-200 px-4 py-3 dark:border-neutral-800">
+      <span className="text-sm font-medium text-gray-700 dark:text-neutral-300">
+        {label}
+      </span>
+
+      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+        {status}
+      </span>
+    </div>
+  );
+}
+
+/* ================= QUICK BADGE ================= */
+
+function QuickBadge({ label }: { label: string }) {
+  return (
+    <div className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-medium text-gray-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
+      {label}
+    </div>
   );
 }

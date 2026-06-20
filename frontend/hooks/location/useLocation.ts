@@ -12,14 +12,34 @@ import {
   updateLocation,
 } from "@/services/location.service";
 
-import { CreateLocationPayload, UpdateLocationPayload } from "@/types/location";
+import {
+  CreateLocationPayload,
+  UpdateLocationPayload,
+  LocationSector,
+} from "@/types/location";
 
 // ================= GET ALL LOCATIONS =================
-export const useLocations = () => {
+export const useLocations = ({
+  search,
+  sector,
+  isActive,
+}: {
+  search?: string;
+  sector?: LocationSector;
+  isActive?: boolean;
+} = {}) => {
   return useQuery({
-    queryKey: ["locations"],
+    queryKey: ["locations", search, sector, isActive],
 
-    queryFn: getLocations,
+    queryFn: () =>
+      getLocations({
+        search,
+        sector,
+        isActive,
+      }),
+
+    staleTime: 60 * 1000,
+    placeholderData: (previousData) => previousData,
   });
 };
 

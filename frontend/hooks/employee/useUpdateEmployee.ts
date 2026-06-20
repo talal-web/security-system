@@ -9,7 +9,7 @@ import { Employee } from "@/types/employee";
 
 type UpdateEmployeeParams = {
   id: string;
-  employeeData: FormData | Partial<Employee>;
+  employeeData: FormData;
 };
 
 export function useUpdateEmployee() {

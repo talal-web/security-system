@@ -13,7 +13,7 @@ import QueryProvider from "@/providers/QueryProvider";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Baidar Security Service",
@@ -26,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body className="bg-slate-950 text-white antialiased">
+    <html lang="en" className={geist.variable}>
+      <body className="bg-slate-100 text-slate-900 font-sans antialiased">
         <QueryProvider>
           {/* TOAST */}
           <Toaster
