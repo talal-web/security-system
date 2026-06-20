@@ -1,30 +1,28 @@
-// routes/attendance.routes.js
-
 import express from "express";
 
 import {
-  markAttendance,
-  getAllAttendance,
-  getAttendanceByEmployee,
+  createAttendance,
+  getAttendances,
+  getAttendanceById,
   updateAttendance,
   deleteAttendance,
+  markBulkAttendance,
 } from "../controllers/attendanceController.js";
 
 const router = express.Router();
 
-// MARK ATTENDANCE
-router.post("/mark", markAttendance);
+// Bulk attendance (place before :id routes)
+router.post("/bulk", markBulkAttendance);
 
-// GET ALL ATTENDANCE
-router.get("/", getAllAttendance);
+// CRUD
+router.post("/", createAttendance);
 
-// GET EMPLOYEE ATTENDANCE
-router.get("/:employeeId", getAttendanceByEmployee);
+router.get("/sector", getAttendances);
 
-// UPDATE ATTENDANCE
-router.put("/:id", updateAttendance);
+router.get("/:id", getAttendanceById);
 
-// DELETE ATTENDANCE
+router.patch("/:id", updateAttendance);
+
 router.delete("/:id", deleteAttendance);
 
 export default router;

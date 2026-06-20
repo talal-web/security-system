@@ -27,8 +27,8 @@ const attendanceSchema = new mongoose.Schema(
     // SHIFT (optional but useful)
     shift: {
       type: String,
-      enum: ["day", "night"],
-      default: "day",
+      enum: ["nil", "day", "night"],
+      default: "nil",
     },
 
     status: {

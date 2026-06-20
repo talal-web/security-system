@@ -1,5 +1,6 @@
 import Employee from "../models/Employee.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
+import generateEmpId from "../utils/generateEmpId.js";
 
 // ======================================
 // CREATE EMPLOYEE
@@ -17,11 +18,14 @@ export const createEmployee = async (req, res, next) => {
       phone2,
       education,
       designation,
+      basicSalary,
       reference,
+      sector,
       status,
       entryDate,
       exitDate,
       notes,
+      currentLocation, // 🔥 ADD THIS
     } = req.body;
 
     if (
@@ -44,6 +48,11 @@ export const createEmployee = async (req, res, next) => {
       res.status(400);
       throw new Error("Employee with this CNIC already exists");
     }
+
+    // =========================
+    // Generate Employee ID
+    // =========================
+    const empId = await generateEmpId();
 
     // =========================
     // Upload Images
@@ -71,24 +80,42 @@ export const createEmployee = async (req, res, next) => {
       cnicBackImage = result.secure_url;
     }
 
+    // =========================
+    // CREATE EMPLOYEE
+    // =========================
     const employee = await Employee.create({
+      empId,
+
       name,
       fatherName,
       birthDate,
+
       cnic: cleanedCnic,
       address,
+
       phone1,
       phone2,
+
       education,
       designation,
+
+      basicSalary,
       reference,
+      sector,
+
       status: status || "active",
+
       entryDate,
       exitDate,
+
       notes,
+
       profileImage,
       cnicFrontImage,
       cnicBackImage,
+
+      // 🔥 IMPORTANT FIELD
+      currentLocation,
     });
 
     res.status(201).json({
@@ -101,15 +128,138 @@ export const createEmployee = async (req, res, next) => {
   }
 };
 
-// ======================================
-// GET ALL EMPLOYEES
-// ======================================
-
 export const getEmployees = async (req, res, next) => {
   try {
-    const employees = await Employee.find().sort({ createdAt: -1 });
+    const {
+      status,
+      designation,
+      sector,
+      education,
+      search,
+      entryFrom,
+      entryTo,
+      hasExited,
+      minAge,
+      maxAge,
+      minSalary,
+      maxSalary,
+      basicSalary,
+    } = req.query;
 
-    res.status(200).json({
+    const filter = {};
+
+    // ======================
+    // STATUS FILTER
+    // ======================
+    if (status) {
+      filter.status = status;
+    }
+
+    // ======================
+    // DESIGNATION FILTER
+    // ======================
+    if (designation) {
+      filter.designation = designation;
+    }
+
+    // ======================
+    // SECTOR FILTER
+    // ======================
+    if (sector) {
+      filter.sector = sector;
+    }
+
+    // ======================
+    // EDUCATION FILTER
+    // ======================
+    if (education) {
+      filter.education = education;
+    }
+
+    // ======================
+    // SEARCH FILTER
+    // ======================
+    if (search) {
+      filter.$or = [
+        { empId: { $regex: search, $options: "i" } },
+        { name: { $regex: search, $options: "i" } },
+        { fatherName: { $regex: search, $options: "i" } },
+        { cnic: { $regex: search, $options: "i" } },
+        { phone1: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // ======================
+    // ENTRY DATE RANGE
+    // ======================
+    if (entryFrom || entryTo) {
+      filter.entryDate = {};
+
+      if (entryFrom) {
+        filter.entryDate.$gte = new Date(entryFrom);
+      }
+
+      if (entryTo) {
+        filter.entryDate.$lte = new Date(entryTo);
+      }
+    }
+
+    // ======================
+    // EXIT FILTER
+    // ======================
+    if (hasExited === "true") {
+      filter.exitDate = { $ne: null };
+    }
+
+    if (hasExited === "false") {
+      filter.exitDate = null;
+    }
+
+    // ======================
+    // SALARY FILTER
+    // ======================
+    if (minSalary || maxSalary) {
+      filter.basicSalary = {};
+
+      if (minSalary) {
+        filter.basicSalary.$gte = Number(minSalary);
+      }
+
+      if (maxSalary) {
+        filter.basicSalary.$lte = Number(maxSalary);
+      }
+    }
+
+    // Exact Salary Match
+    if (basicSalary) {
+      filter.basicSalary = Number(basicSalary);
+    }
+
+    // ======================
+    // QUERY
+    // ======================
+    let employees = await Employee.find(filter)
+      .populate("currentLocation", "name")
+      .sort({ empId: 1 });
+
+    // ======================
+    // AGE FILTER
+    // ======================
+    if (minAge || maxAge) {
+      employees = employees.filter((emp) => {
+        const age = emp.age;
+
+        if (!age) return false;
+
+        if (minAge && age < Number(minAge)) return false;
+
+        if (maxAge && age > Number(maxAge)) return false;
+
+        return true;
+      });
+    }
+
+    return res.status(200).json({
       success: true,
       count: employees.length,
       data: employees,
@@ -125,7 +275,10 @@ export const getEmployees = async (req, res, next) => {
 
 export const getEmployeeById = async (req, res, next) => {
   try {
-    const employee = await Employee.findById(req.params.id);
+    const employee = await Employee.findById(req.params.id).populate(
+      "currentLocation",
+      "name",
+    );
 
     if (!employee) {
       res.status(404);
@@ -187,6 +340,9 @@ export const updateEmployee = async (req, res, next) => {
       "education",
       "designation",
       "reference",
+      "sector",
+      "currentLocation",
+      "basicSalary",
       "status",
       "entryDate",
       "exitDate",
