@@ -8,6 +8,13 @@ const employeeSchema = new mongoose.Schema(
     // Personal Information
     // =========================
 
+    empId: {
+      type: String,
+      unique: true,
+      required: true,
+      index: true,
+    },
+
     name: {
       type: String,
       required: true,
@@ -97,6 +104,10 @@ const employeeSchema = new mongoose.Schema(
       enum: ["active", "inactive"],
       default: "active",
     },
+    basicSalary: {
+      type: Number,
+      default: 0,
+    },
 
     // =========================
     // Reference
@@ -106,6 +117,17 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+    sector: {
+      type: String,
+      enum: ["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d"],
+      default: "nil",
+    },
+
+    currentLocation: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Location",
+      default: null,
     },
 
     // =========================
@@ -163,6 +185,9 @@ employeeSchema.virtual("age").get(function () {
   }
 
   return age;
+});
+employeeSchema.set("toJSON", {
+  virtuals: false,
 });
 
 const Employee =

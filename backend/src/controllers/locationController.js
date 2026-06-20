@@ -9,11 +9,15 @@ export const createLocation = async (req, res) => {
   try {
     const { name, address, sector } = req.body;
 
-    const existing = await Location.findOne({ name });
+    const existing = await Location.findOne({
+      name,
+      sector,
+    });
+
     if (existing) {
       return res.status(400).json({
         success: false,
-        message: "Location already exists",
+        message: "Location already exists in this sector",
       });
     }
 
@@ -41,10 +45,32 @@ export const createLocation = async (req, res) => {
  */
 export const getLocations = async (req, res) => {
   try {
-    const locations = await Location.find().sort({ createdAt: -1 });
+    const { search, sector, isActive } = req.query;
+
+    const query = {};
+
+    if (search) {
+      query.name = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    if (sector) {
+      query.sector = sector;
+    }
+
+    if (isActive !== undefined) {
+      query.isActive = isActive === "true";
+    }
+
+    const locations = await Location.find(query).sort({
+      createdAt: -1,
+    });
 
     return res.status(200).json({
       success: true,
+      count: locations.length,
       data: locations,
     });
   } catch (error) {
@@ -86,8 +112,25 @@ export const getLocationById = async (req, res) => {
  */
 export const updateLocation = async (req, res) => {
   try {
+    const { name, sector } = req.body;
+
+    // Check if another location already exists with same name and sector
+    const existing = await Location.findOne({
+      name,
+      sector,
+      _id: { $ne: req.params.id }, // exclude current record
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: "Location already exists in this sector",
+      });
+    }
+
     const location = await Location.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
+      runValidators: true,
     });
 
     if (!location) {
@@ -99,7 +142,7 @@ export const updateLocation = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Location updated",
+      message: "Location updated successfully",
       data: location,
     });
   } catch (error) {

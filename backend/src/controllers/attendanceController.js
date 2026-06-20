@@ -1,51 +1,19 @@
-// controllers/attendance.controller.js
-
 import Attendance from "../models/Attendance.js";
 import Employee from "../models/Employee.js";
 
-/**
- * MARK ATTENDANCE (Present / Absent / Leave)
- * Usually used by admin or supervisor
- */
-export const markAttendance = async (req, res) => {
+// POST /api/attendance
+
+export const createAttendance = async (req, res) => {
   try {
-    const { employeeId, date, status, shift, remarks } = req.body;
+    const { employeeId, locationId, date, shift, status, remarks } = req.body;
 
-    // validate employee
-    const employee = await Employee.findById(employeeId);
-    if (!employee) {
-      return res.status(404).json({
-        success: false,
-        message: "Employee not found",
-      });
-    }
-
-    // normalize date (remove time)
-    const attendanceDate = new Date(date);
-    attendanceDate.setHours(0, 0, 0, 0);
-
-    // check if already marked
-    const existing = await Attendance.findOne({
-      employee: employeeId,
-      date: attendanceDate,
-      shift,
-    });
-
-    if (existing) {
-      return res.status(400).json({
-        success: false,
-        message: "Attendance already marked for this date & shift",
-      });
-    }
-
-    // create attendance
     const attendance = await Attendance.create({
       employee: employeeId,
-      location: employee.location,
-      date: attendanceDate,
+      location: locationId,
+      date,
       shift,
       status,
-      remarks: remarks || "",
+      remarks,
     });
 
     return res.status(201).json({
@@ -61,16 +29,223 @@ export const markAttendance = async (req, res) => {
   }
 };
 
-export const getAllAttendance = async (req, res) => {
+// GET /api/attendance
+export const getAttendances = async (req, res) => {
   try {
-    const data = await Attendance.find()
-      .populate("employee", "fullName employeeId")
-      .populate("location", "name")
-      .sort({ date: -1 });
+    const { status, shift, date } = req.query;
+
+    const match = {};
+
+    if (status) match.status = status;
+    if (shift) match.shift = shift;
+
+    let start, end;
+
+    if (date) {
+      start = new Date(date);
+      end = new Date(date);
+      end.setDate(end.getDate() + 1);
+    } else {
+      const today = new Date();
+      start = new Date(today);
+      start.setHours(0, 0, 0, 0);
+
+      end = new Date(today);
+      end.setHours(23, 59, 59, 999);
+    }
+
+    match.date = { $gte: start, $lte: end };
+
+    const data = await Attendance.aggregate([
+      { $match: match },
+
+      // JOIN LOCATION
+      {
+        $lookup: {
+          from: "locations",
+          localField: "location",
+          foreignField: "_id",
+          as: "location",
+        },
+      },
+      { $unwind: "$location" },
+
+      // JOIN EMPLOYEE
+      {
+        $lookup: {
+          from: "employees",
+          localField: "employee",
+          foreignField: "_id",
+          as: "employee",
+        },
+      },
+      { $unwind: "$employee" },
+
+      // ================= GLOBAL STATS (ALL DATA) =================
+      {
+        $facet: {
+          globalStats: [
+            {
+              $group: {
+                _id: null,
+
+                total: {
+                  $sum: {
+                    $cond: [
+                      {
+                        $in: ["$status", ["present", "leave"]],
+                      },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+
+                present: {
+                  $sum: {
+                    $cond: [{ $eq: ["$status", "present"] }, 1, 0],
+                  },
+                },
+
+                absent: {
+                  $sum: {
+                    $cond: [{ $eq: ["$status", "absent"] }, 1, 0],
+                  },
+                },
+
+                leave: {
+                  $sum: {
+                    $cond: [{ $eq: ["$status", "leave"] }, 1, 0],
+                  },
+                },
+
+                day: {
+                  $sum: {
+                    $cond: [
+                      {
+                        $and: [
+                          { $eq: ["$shift", "day"] },
+                          { $eq: ["$status", "present"] },
+                        ],
+                      },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+
+                night: {
+                  $sum: {
+                    $cond: [
+                      {
+                        $and: [
+                          { $eq: ["$shift", "night"] },
+                          { $eq: ["$status", "present"] },
+                        ],
+                      },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+              },
+            },
+          ],
+
+          // ================= SECTOR WISE =================
+          sectors: [
+            {
+              $group: {
+                _id: "$location.sector",
+
+                total: { $sum: 1 },
+
+                present: {
+                  $sum: {
+                    $cond: [{ $eq: ["$status", "present"] }, 1, 0],
+                  },
+                },
+
+                absent: {
+                  $sum: {
+                    $cond: [{ $eq: ["$status", "absent"] }, 1, 0],
+                  },
+                },
+
+                leave: {
+                  $sum: {
+                    $cond: [{ $eq: ["$status", "leave"] }, 1, 0],
+                  },
+                },
+
+                day: {
+                  $sum: {
+                    $cond: [{ $eq: ["$shift", "day"] }, 1, 0],
+                  },
+                },
+
+                night: {
+                  $sum: {
+                    $cond: [{ $eq: ["$shift", "night"] }, 1, 0],
+                  },
+                },
+
+                records: {
+                  $push: {
+                    _id: "$_id",
+                    empId: "$employee.empId",
+                    name: "$employee.name",
+                    fatherName: "$employee.fatherName",
+                    location: "$location.name",
+                    sector: "$location.sector",
+                    shift: "$shift",
+                    status: "$status",
+                    date: "$date",
+                  },
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+                sector: "$_id",
+                total: 1,
+                present: 1,
+                absent: 1,
+                leave: 1,
+                day: 1,
+                night: 1,
+                records: 1,
+              },
+            },
+
+            { $sort: { sector: 1 } },
+          ],
+        },
+      },
+    ]);
 
     return res.status(200).json({
       success: true,
-      data,
+      message: "Attendance stats fetched successfully",
+      data: {
+        globalStats: data[0].globalStats[0] || {
+          total: 0,
+          present: 0,
+          absent: 0,
+          leave: 0,
+          day: 0,
+          night: 0,
+        },
+        sectors: data[0].sectors,
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -79,33 +254,14 @@ export const getAllAttendance = async (req, res) => {
     });
   }
 };
+// GET /api/attendance/:id
 
-export const getAttendanceByEmployee = async (req, res) => {
+export const getAttendanceById = async (req, res) => {
   try {
-    const { employeeId } = req.params;
-
-    const data = await Attendance.find({ employee: employeeId })
+    const attendance = await Attendance.findById(req.params.id)
+      .populate("employee", "empId name designation")
       .populate("location", "name")
-      .sort({ date: -1 });
-
-    return res.status(200).json({
-      success: true,
-      data,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-export const updateAttendance = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status, remarks } = req.body;
-
-    const attendance = await Attendance.findById(id);
+      .lean();
 
     if (!attendance) {
       return res.status(404).json({
@@ -114,14 +270,9 @@ export const updateAttendance = async (req, res) => {
       });
     }
 
-    if (status) attendance.status = status;
-    if (remarks !== undefined) attendance.remarks = remarks;
-
-    await attendance.save();
-
     return res.status(200).json({
       success: true,
-      message: "Attendance updated",
+      message: "Attendance fetched successfully",
       data: attendance,
     });
   } catch (error) {
@@ -132,11 +283,20 @@ export const updateAttendance = async (req, res) => {
   }
 };
 
-export const deleteAttendance = async (req, res) => {
-  try {
-    const { id } = req.params;
+// PATCH /api/attendance/:id
 
-    const attendance = await Attendance.findByIdAndDelete(id);
+export const updateAttendance = async (req, res) => {
+  try {
+    const attendance = await Attendance.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      },
+    )
+      .populate("employee", "empId name designation")
+      .populate("location", "name");
 
     if (!attendance) {
       return res.status(404).json({
@@ -147,7 +307,71 @@ export const deleteAttendance = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Attendance deleted",
+      message: "Attendance updated successfully",
+      data: attendance,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// DELETE /api/attendance/:id
+
+export const deleteAttendance = async (req, res) => {
+  try {
+    const attendance = await Attendance.findByIdAndDelete(req.params.id);
+
+    if (!attendance) {
+      return res.status(404).json({
+        success: false,
+        message: "Attendance not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Attendance deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Mark All Employee
+export const markBulkAttendance = async (req, res) => {
+  try {
+    const { date, shift, locationId, employees } = req.body;
+
+    const operations = employees.map((emp) => ({
+      updateOne: {
+        filter: {
+          employee: emp.employeeId,
+          date,
+          shift,
+        },
+        update: {
+          employee: emp.employeeId,
+          location: locationId,
+          date,
+          shift,
+          status: emp.status,
+          remarks: emp.remarks || "",
+        },
+        upsert: true,
+      },
+    }));
+
+    await Attendance.bulkWrite(operations);
+
+    return res.status(200).json({
+      success: true,
+      message: "Attendance marked successfully",
     });
   } catch (error) {
     return res.status(500).json({

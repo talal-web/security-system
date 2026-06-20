@@ -8,7 +8,6 @@ const locationSchema = new mongoose.Schema(
       type: String,
       required: [true, "Location name is required"],
       trim: true,
-      unique: true,
     },
 
     address: {
@@ -19,8 +18,8 @@ const locationSchema = new mongoose.Schema(
 
     sector: {
       type: String,
-      trim: true,
-      default: "",
+      enum: ["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d"],
+      required: true,
     },
 
     isActive: {
@@ -32,6 +31,8 @@ const locationSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+locationSchema.index({ name: 1, sector: 1 }, { unique: true });
 
 const Location =
   mongoose.models.Location || mongoose.model("Location", locationSchema);
