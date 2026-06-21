@@ -116,8 +116,8 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     name: "sector",
   });
 
-  const locationOptions = useMemo(
-    () =>
+  const locationOptions = useMemo(() => {
+    const filtered =
       locationsData
         ?.filter(
           (location) =>
@@ -126,10 +126,16 @@ export default function UpdateEmployeeForm({ employee }: Props) {
         .map((location) => ({
           label: location.name,
           value: location._id,
-        })) || [],
-    [locationsData, watchedSector],
-  );
+        })) || [];
 
+    return [
+      {
+        label: "No Location",
+        value: "", // 👈 represents null
+      },
+      ...filtered,
+    ];
+  }, [locationsData, watchedSector]);
   const age = watchedBirthDate ? calculateAge(watchedBirthDate) : 0;
 
   useEffect(() => {
@@ -165,6 +171,11 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     const data = new FormData();
 
     Object.entries(values).forEach(([key, value]) => {
+      if (key === "currentLocation" && value === "") {
+        data.append(key, ""); // or skip it if backend treats empty as null
+        return;
+      }
+
       data.append(key, String(value ?? ""));
     });
 

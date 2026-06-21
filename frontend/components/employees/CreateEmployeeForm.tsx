@@ -217,10 +217,13 @@ export default function CreateEmployeeForm() {
         <Select
           icon={<MapPin />}
           label="Current Location"
-          options={filteredLocations.map((loc) => ({
-            label: loc.name,
-            value: loc._id,
-          }))}
+          options={[
+            { label: "Nil", value: "" },
+            ...filteredLocations.map((loc) => ({
+              label: loc.name,
+              value: loc._id,
+            })),
+          ]}
           error={errors.currentLocation?.message}
           {...register("currentLocation")}
         />

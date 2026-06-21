@@ -34,7 +34,9 @@ export const employeeSchema = z.object({
   ]),
 
   sector: z.enum(["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d"]),
-  currentLocation: z.string().min(1, "Location is required"),
+
+  // Optional
+  currentLocation: z.string().optional(),
 
   birthDate: z.string(),
   entryDate: z.string(),

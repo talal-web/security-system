@@ -114,10 +114,8 @@ export const createEmployee = async (req, res, next) => {
       cnicFrontImage,
       cnicBackImage,
 
-      // 🔥 IMPORTANT FIELD
-      currentLocation,
+      ...(currentLocation?.trim() ? { currentLocation } : {}),
     });
-
     res.status(201).json({
       success: true,
       message: "Employee Created Successfully",
@@ -341,7 +339,6 @@ export const updateEmployee = async (req, res, next) => {
       "designation",
       "reference",
       "sector",
-      "currentLocation",
       "basicSalary",
       "status",
       "entryDate",
@@ -349,11 +346,19 @@ export const updateEmployee = async (req, res, next) => {
       "notes",
     ];
 
+    // Normal fields
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         employee[field] = req.body[field];
       }
     });
+
+    // =========================
+    // CURRENT LOCATION
+    // =========================
+    if (req.body.currentLocation !== undefined) {
+      employee.currentLocation = req.body.currentLocation?.trim() || null;
+    }
 
     // =========================
     // PROFILE IMAGE UPDATE
