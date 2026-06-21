@@ -1,5 +1,6 @@
 import Attendance from "../models/Attendance.js";
 import Employee from "../models/Employee.js";
+import Location from "../models/Location.js";
 
 // POST /api/attendance
 
@@ -372,6 +373,118 @@ export const markBulkAttendance = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Attendance marked successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ======================================
+// GET ATTENDANCE SESSION
+// ======================================
+export const getAttendanceSession = async (req, res) => {
+  try {
+    const employees = await Employee.find({
+      status: "active",
+    })
+      .select("name fatherName sector currentLocation designation empId status")
+      .populate("currentLocation", "name sector")
+      .sort({ name: 1 });
+
+    const locations = await Location.find({
+      isActive: true,
+    })
+      .select("name sector")
+      .sort({ sector: 1, name: 1 });
+
+    const attendanceEmployees = employees.map((emp) => ({
+      employeeId: emp._id,
+      empId: emp.empId,
+      name: emp.name,
+      fatherName: emp.fatherName,
+      designation: emp.designation,
+      sector: emp.sector,
+
+      currentLocation: emp.currentLocation
+        ? {
+            _id: emp.currentLocation._id,
+            name: emp.currentLocation.name,
+            sector: emp.currentLocation.sector,
+          }
+        : null,
+
+      // default values for UI
+      selectedLocation: emp.currentLocation?._id?.toString() || null,
+      status: "present",
+      shift: "day",
+      remarks: "",
+    }));
+
+    return res.status(200).json({
+      success: true,
+      employees: attendanceEmployees,
+      locations,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ======================================
+// MARK ATTENDANCE SESSION
+// ======================================
+export const markAttendanceSession = async (req, res) => {
+  try {
+    const { date, employees } = req.body;
+
+    if (!date) {
+      return res.status(400).json({
+        success: false,
+        message: "Date is required",
+      });
+    }
+
+    if (!Array.isArray(employees) || employees.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Employees data is required",
+      });
+    }
+
+    const attendanceDate = new Date(date);
+    attendanceDate.setHours(0, 0, 0, 0);
+
+    const operations = employees.map((emp) => ({
+      updateOne: {
+        filter: {
+          employee: emp.employeeId,
+          date: attendanceDate,
+          shift: emp.shift,
+        },
+        update: {
+          employee: emp.employeeId,
+          location: emp.locationId,
+          date: attendanceDate,
+          shift: emp.shift,
+          status: emp.status,
+          remarks: emp.remarks || "",
+        },
+        upsert: true,
+      },
+    }));
+
+    await Attendance.bulkWrite(operations);
+
+    return res.status(200).json({
+      success: true,
+      message: "Attendance marked successfully",
+      totalEmployees: employees.length,
     });
   } catch (error) {
     return res.status(500).json({
