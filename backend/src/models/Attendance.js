@@ -1,5 +1,3 @@
-// models/attendance.model.js
-
 import mongoose from "mongoose";
 
 const attendanceSchema = new mongoose.Schema(
@@ -18,13 +16,13 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
     },
 
-    // DATE
+    // DATE (NOW STRING)
     date: {
-      type: Date,
+      type: String, // YYYY-MM-DD (timezone safe)
       required: true,
     },
 
-    // SHIFT (optional but useful)
+    // SHIFT
     shift: {
       type: String,
       enum: ["nil", "day", "night"],
@@ -48,8 +46,15 @@ const attendanceSchema = new mongoose.Schema(
   },
 );
 
-// INDEXES
-attendanceSchema.index({ employee: 1, date: 1, shift: 1 }, { unique: true });
+// INDEXES (UPDATED for string date)
+attendanceSchema.index(
+  {
+    employee: 1,
+    date: 1,
+  },
+  { unique: true },
+);
+
 attendanceSchema.index({ employee: 1 });
 attendanceSchema.index({ date: 1 });
 attendanceSchema.index({ location: 1 });

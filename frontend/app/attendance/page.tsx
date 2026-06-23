@@ -12,14 +12,14 @@ import {
 
 const modules = [
   {
-    title: "Today's Attendance",
+    title: "Mark Attendance",
     description:
       "Mark attendance, update locations, shifts and employee status.",
     href: "/attendance/session",
     icon: ClipboardCheck,
   },
   {
-    title: "Daily Report",
+    title: "View Attendance",
     description: "View attendance records for any selected date.",
     href: "/attendance/daily-report",
     icon: CalendarDays,
@@ -57,17 +57,6 @@ export default function AttendanceDashboardPage() {
           Manage attendance, reports, employee records and location-wise
           analytics from one place.
         </p>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <TopStat title="Today's Attendance" value="Mark" />
-
-        <TopStat title="Daily Reports" value="View" />
-
-        <TopStat title="Monthly Reports" value="Analytics" />
-
-        <TopStat title="Employees" value="History" />
       </div>
 
       {/* Modules */}

@@ -11,7 +11,7 @@ export interface AttendanceSessionLocation {
 }
 
 // ======================================
-// EMPLOYEE CARD
+// EMPLOYEE
 // ======================================
 
 export interface AttendanceSessionEmployee {
@@ -25,12 +25,31 @@ export interface AttendanceSessionEmployee {
   sector: string;
 
   currentLocation: AttendanceSessionLocation | null;
+}
 
-  // Editable fields
-  selectedLocation: string | null;
-  status: AttendanceStatus;
-  shift: AttendanceShift;
-  remarks: string;
+// ======================================
+// SECTOR
+// ======================================
+
+export interface AttendanceSessionSector {
+  sector: string;
+
+  totalEmployees: number;
+  totalLocations: number;
+
+  locations: AttendanceSessionLocation[];
+
+  employees: AttendanceSessionEmployee[];
+}
+
+// ======================================
+// STATS
+// ======================================
+
+export interface AttendanceSessionStats {
+  totalEmployees: number;
+  totalLocations: number;
+  totalSectors: number;
 }
 
 // ======================================
@@ -41,9 +60,42 @@ export interface AttendanceSessionEmployee {
 export interface AttendanceSessionResponse {
   success: boolean;
 
-  employees: AttendanceSessionEmployee[];
+  attendanceDate: string;
+
+  alreadyMarked: boolean;
+
+  stats: AttendanceSessionStats;
+
+  sectors: AttendanceSessionSector[];
+}
+
+// ======================================
+// FRONTEND ATTENDANCE FORM STATE
+// ======================================
+
+export interface AttendanceFormEmployee extends AttendanceSessionEmployee {
+  selectedLocation: string | null;
+
+  status: AttendanceStatus;
+
+  shift: AttendanceShift;
+
+  remarks: string;
+}
+
+// ======================================
+// FRONTEND SECTOR STATE
+// ======================================
+
+export interface AttendanceFormSector {
+  sector: string;
+
+  totalEmployees: number;
+  totalLocations: number;
 
   locations: AttendanceSessionLocation[];
+
+  employees: AttendanceFormEmployee[];
 }
 
 // ======================================
@@ -71,6 +123,8 @@ export interface MarkAttendanceSessionPayload {
 
 export interface MarkAttendanceSessionResponse {
   success: boolean;
+
   message: string;
+
   totalEmployees: number;
 }

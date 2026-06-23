@@ -3,7 +3,13 @@ import Employee from "../models/Employee.js";
 import Location from "../models/Location.js";
 
 // POST /api/attendance
-
+const normalizeDate = (date) => {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error("Invalid date format");
+  }
+  return parsed.toISOString().split("T")[0];
+};
 export const createAttendance = async (req, res) => {
   try {
     const { employeeId, locationId, date, shift, status, remarks } = req.body;
@@ -11,7 +17,7 @@ export const createAttendance = async (req, res) => {
     const attendance = await Attendance.create({
       employee: employeeId,
       location: locationId,
-      date,
+      date: normalizeDate(date), // 👈 IMPORTANT
       shift,
       status,
       remarks,
@@ -40,22 +46,11 @@ export const getAttendances = async (req, res) => {
     if (status) match.status = status;
     if (shift) match.shift = shift;
 
-    let start, end;
-
     if (date) {
-      start = new Date(date);
-      end = new Date(date);
-      end.setDate(end.getDate() + 1);
+      match.date = normalizeDate(date);
     } else {
-      const today = new Date();
-      start = new Date(today);
-      start.setHours(0, 0, 0, 0);
-
-      end = new Date(today);
-      end.setHours(23, 59, 59, 999);
+      match.date = normalizeDate(new Date());
     }
-
-    match.date = { $gte: start, $lte: end };
 
     const data = await Attendance.aggregate([
       { $match: match },
@@ -288,6 +283,10 @@ export const getAttendanceById = async (req, res) => {
 
 export const updateAttendance = async (req, res) => {
   try {
+    if (req.body.date) {
+      req.body.date = normalizeDate(req.body.date);
+    }
+
     const attendance = await Attendance.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -349,17 +348,19 @@ export const markBulkAttendance = async (req, res) => {
   try {
     const { date, shift, locationId, employees } = req.body;
 
+    const attendanceDate = normalizeDate(date);
+
     const operations = employees.map((emp) => ({
       updateOne: {
         filter: {
           employee: emp.employeeId,
-          date,
+          date: attendanceDate,
           shift,
         },
         update: {
           employee: emp.employeeId,
           location: locationId,
-          date,
+          date: attendanceDate,
           shift,
           status: emp.status,
           remarks: emp.remarks || "",
@@ -385,48 +386,148 @@ export const markBulkAttendance = async (req, res) => {
 // ======================================
 // GET ATTENDANCE SESSION
 // ======================================
+
 export const getAttendanceSession = async (req, res) => {
   try {
+    // ==========================================
+    // TODAY DATE RANGE
+    // ==========================================
+    const today = new Date();
+
+    const startOfDay = new Date(
+      Date.UTC(
+        today.getUTCFullYear(),
+        today.getUTCMonth(),
+        today.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ),
+    );
+
+    const endOfDay = new Date(
+      Date.UTC(
+        today.getUTCFullYear(),
+        today.getUTCMonth(),
+        today.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    );
+
+    // ==========================================
+    // CHECK IF ATTENDANCE ALREADY EXISTS TODAY
+    // ==========================================
+    const attendanceExists = await Attendance.exists({
+      date: normalizeDate(new Date()),
+    });
+
+    // ==========================================
+    // GET ACTIVE EMPLOYEES
+    // ==========================================
     const employees = await Employee.find({
       status: "active",
     })
-      .select("name fatherName sector currentLocation designation empId status")
+      .select("name fatherName sector currentLocation designation empId")
       .populate("currentLocation", "name sector")
-      .sort({ name: 1 });
+      .sort({ name: 1 })
+      .lean();
 
+    // ==========================================
+    // GET ACTIVE LOCATIONS
+    // ==========================================
     const locations = await Location.find({
       isActive: true,
     })
       .select("name sector")
-      .sort({ sector: 1, name: 1 });
+      .sort({ sector: 1, name: 1 })
+      .lean();
 
-    const attendanceEmployees = employees.map((emp) => ({
-      employeeId: emp._id,
-      empId: emp.empId,
-      name: emp.name,
-      fatherName: emp.fatherName,
-      designation: emp.designation,
-      sector: emp.sector,
+    // ==========================================
+    // GROUP LOCATIONS BY SECTOR
+    // ==========================================
+    const locationsBySector = {};
 
-      currentLocation: emp.currentLocation
-        ? {
-            _id: emp.currentLocation._id,
-            name: emp.currentLocation.name,
-            sector: emp.currentLocation.sector,
-          }
-        : null,
+    for (const location of locations) {
+      const sector = location.sector || "Unassigned";
 
-      // default values for UI
-      selectedLocation: emp.currentLocation?._id?.toString() || null,
-      status: "present",
-      shift: "day",
-      remarks: "",
-    }));
+      if (!locationsBySector[sector]) {
+        locationsBySector[sector] = [];
+      }
 
+      locationsBySector[sector].push(location);
+    }
+
+    // ==========================================
+    // GROUP EMPLOYEES BY SECTOR
+    // ==========================================
+    const employeesBySector = {};
+
+    for (const emp of employees) {
+      const sector = emp.sector || "Unassigned";
+
+      if (!employeesBySector[sector]) {
+        employeesBySector[sector] = [];
+      }
+
+      employeesBySector[sector].push({
+        employeeId: emp._id,
+        empId: emp.empId,
+        name: emp.name,
+        fatherName: emp.fatherName,
+        designation: emp.designation,
+        sector: emp.sector,
+
+        currentLocation: emp.currentLocation
+          ? {
+              _id: emp.currentLocation._id,
+              name: emp.currentLocation.name,
+              sector: emp.currentLocation.sector,
+            }
+          : null,
+      });
+    }
+
+    // ==========================================
+    // COMBINE SECTOR DATA
+    // ==========================================
+    const allSectors = new Set([
+      ...Object.keys(employeesBySector),
+      ...Object.keys(locationsBySector),
+    ]);
+
+    const sectors = Array.from(allSectors)
+      .sort()
+      .map((sector) => ({
+        sector,
+        totalEmployees: employeesBySector[sector]?.length || 0,
+        totalLocations: locationsBySector[sector]?.length || 0,
+
+        locations: locationsBySector[sector] || [],
+
+        employees: employeesBySector[sector] || [],
+      }));
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
     return res.status(200).json({
       success: true,
-      employees: attendanceEmployees,
-      locations,
+
+      attendanceDate: normalizeDate(new Date()),
+
+      alreadyMarked: Boolean(attendanceExists),
+
+      stats: {
+        totalEmployees: employees.length,
+        totalLocations: locations.length,
+        totalSectors: sectors.length,
+      },
+
+      sectors,
     });
   } catch (error) {
     return res.status(500).json({
@@ -435,7 +536,6 @@ export const getAttendanceSession = async (req, res) => {
     });
   }
 };
-
 // ======================================
 // MARK ATTENDANCE SESSION
 // ======================================
@@ -457,15 +557,13 @@ export const markAttendanceSession = async (req, res) => {
       });
     }
 
-    const attendanceDate = new Date(date);
-    attendanceDate.setHours(0, 0, 0, 0);
+    const attendanceDate = normalizeDate(date);
 
     const operations = employees.map((emp) => ({
       updateOne: {
         filter: {
           employee: emp.employeeId,
           date: attendanceDate,
-          shift: emp.shift,
         },
         update: {
           employee: emp.employeeId,
