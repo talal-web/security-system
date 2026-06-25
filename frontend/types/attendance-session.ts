@@ -1,4 +1,5 @@
 import type { AttendanceShift, AttendanceStatus } from "./attendance";
+import { EmployeeShift } from "./employee";
 
 // ======================================
 // LOCATION
@@ -8,6 +9,7 @@ export interface AttendanceSessionLocation {
   _id: string;
   name: string;
   sector: string;
+  isActive: boolean;
 }
 
 // ======================================
@@ -23,6 +25,7 @@ export interface AttendanceSessionEmployee {
 
   designation: string;
   sector: string;
+  defaultShift: EmployeeShift;
 
   currentLocation: AttendanceSessionLocation | null;
 }

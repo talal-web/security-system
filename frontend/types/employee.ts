@@ -4,21 +4,21 @@ import { ILocation } from "./location";
 
 export type EmployeeStatus = "active" | "inactive";
 
-export type EducationLevel =
-  | "nil"
-  | "middle"
-  | "matric"
-  | "fsc"
-  | "intermediate"
-  | "bs"
-  | "master";
+export type EmployeeShift = "day" | "night";
 
-export type SectorOptions = "zone_1_a" | "zone_1_b" | "zone_1_c" | "zone_1_d";
+export type EducationLevel = "middle" | "matric" | "fsc" | "bs" | "master";
+
+export type SectorOptions =
+  | "zone_1_a"
+  | "zone_1_b"
+  | "zone_1_c"
+  | "zone_1_d"
+  | "rawalpindi";
 
 export type EmployeeDesignation =
   | "guard"
-  | "army guard"
-  | "asst supervisor"
+  | "army_guard"
+  | "asst_supervisor"
   | "supervisor"
   | "mcr"
   | "driver"
@@ -39,25 +39,57 @@ export interface Employee {
   phone1: string;
   phone2?: string;
 
-  education: EducationLevel;
+  education?: EducationLevel | null;
+
   designation: EmployeeDesignation;
 
   reference?: string;
-  sector: SectorOptions;
-  currentLocation: string | ILocation;
+
+  sector?: SectorOptions | null;
+
+  currentLocation?: string | ILocation | null;
 
   basicSalary: number;
+
   status: EmployeeStatus;
 
+  defaultShift?: EmployeeShift | null;
+
   entryDate: string;
+
   exitDate?: string | null;
 
   profileImage?: string;
+
   cnicFrontImage?: string;
+
   cnicBackImage?: string;
 
   notes?: string;
 
   createdAt: string;
+
   updatedAt: string;
+}
+
+export interface EmployeeFilters {
+  status?: EmployeeStatus;
+
+  designation?: EmployeeDesignation;
+
+  sector?: SectorOptions;
+
+  education?: EducationLevel;
+
+  defaultShift?: EmployeeShift;
+
+  search?: string;
+
+  entryFrom?: string;
+
+  entryTo?: string;
+
+  hasExited?: boolean;
+
+  basicSalary?: number;
 }
