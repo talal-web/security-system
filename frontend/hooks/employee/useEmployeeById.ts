@@ -11,7 +11,6 @@ export function useEmployeeById(id: string) {
     data: employee,
     isLoading: loading,
     error,
-    isError,
     refetch,
   } = useQuery<Employee>({
     queryKey: ["employee", id],
@@ -28,7 +27,7 @@ export function useEmployeeById(id: string) {
 
     loading,
 
-    error: isError ? "Failed to load employee" : null,
+    error: error instanceof Error ? error.message : null,
 
     refetch,
   };

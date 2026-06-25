@@ -52,7 +52,7 @@ export function useAttendanceSessionPage() {
           ...emp,
           selectedLocation: emp.currentLocation?._id ?? null,
           status: "present",
-          shift: "day",
+          shift: emp.defaultShift,
           remarks: "",
         })),
       })),

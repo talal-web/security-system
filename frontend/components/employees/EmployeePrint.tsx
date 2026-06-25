@@ -87,7 +87,10 @@ export default function EmployeePrintCard({ employee }: Props) {
 
         <Info label="Age" value={`${age} Years`} />
 
-        <Info label="Education" value={formatText(employee.education)} />
+        <Info
+          label="Education"
+          value={formatText(employee.education ?? undefined)}
+        />
       </div>
 
       {/* ========================================= */}
@@ -120,7 +123,7 @@ export default function EmployeePrintCard({ employee }: Props) {
 
         <Info label="Current Location" value={currentLocation} />
 
-        <Info label="Sector" value={formatText(employee.sector)} />
+        <Info label="Sector" value={formatText(employee.sector ?? undefined)} />
 
         <Info label="Status" value={formatText(employee.status)} />
 

@@ -7,6 +7,7 @@ type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
   label: string;
   options: SelectOption[];
   error?: string;
+  placeholder?: string;
 };
 
 function formatText(text: string) {
@@ -30,16 +31,29 @@ export default function Select({
   label,
   options,
   error,
+  placeholder,
+  className,
   ...props
 }: SelectProps) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium">{label}</label>
+      <label className="mb-1 block text-sm font-medium text-slate-700">
+        {label}
+      </label>
 
-      <div className="flex items-center gap-2 rounded-xl border bg-gray-50 px-3 py-2 focus-within:border-orange-500">
-        {icon && <span className="text-gray-400">{icon}</span>}
+      <div
+        className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors focus-within:border-orange-500 ${
+          error ? "border-red-500 bg-red-50" : "border-slate-200 bg-slate-50"
+        }`}
+      >
+        {icon && <span className="shrink-0 text-slate-400">{icon}</span>}
 
-        <select {...props} className="w-full bg-transparent outline-none">
+        <select
+          {...props}
+          className={`w-full bg-transparent text-sm outline-none ${className ?? ""}`}
+        >
+          <option value="">{placeholder ?? `Select ${label}`}</option>
+
           {options.map((option) => {
             const value = getOptionValue(option);
             const labelText = getOptionLabel(option);
@@ -53,7 +67,9 @@ export default function Select({
         </select>
       </div>
 
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && (
+        <p className="mt-1 text-xs font-medium text-red-500">{error}</p>
+      )}
     </div>
   );
 }

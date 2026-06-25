@@ -5,16 +5,22 @@ import {
   ShieldCheck,
   BriefcaseBusiness,
   MapPin,
+  Clock3,
   X,
 } from "lucide-react";
 
-import { designationOptions, sectorOptions } from "@/constants/employee";
+import { designationOptions } from "@/constants/employee";
+
+import { sectorOptions } from "@/constants/location";
+
+import { shiftOptions } from "@/constants/shiftOptions";
 
 type Filters = {
   search: string;
   status: string;
   designation: string;
   sector: string;
+  defaultShift: string;
 };
 
 type Props = {
@@ -26,7 +32,7 @@ type Props = {
 export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
   return (
     <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         {/* SEARCH */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -65,9 +71,10 @@ export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
             className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-orange-500 focus:bg-white"
           >
             <option value="">All Designations</option>
-            {designationOptions.map((d) => (
-              <option key={d} value={d}>
-                {d}
+
+            {designationOptions.map((designation) => (
+              <option key={designation.value} value={designation.value}>
+                {designation.label}
               </option>
             ))}
           </select>
@@ -83,22 +90,42 @@ export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
             className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-orange-500 focus:bg-white"
           >
             <option value="">All Sectors</option>
-            {sectorOptions.map((s) => (
-              <option key={s} value={s}>
-                {s}
+
+            {sectorOptions.map((sector) => (
+              <option key={sector.value} value={sector.value}>
+                {sector.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* DEFAULT SHIFT */}
+        <div className="relative">
+          <Clock3 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+          <select
+            value={filters.defaultShift}
+            onChange={(e) => onChange("defaultShift", e.target.value)}
+            className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-orange-500 focus:bg-white"
+          >
+            <option value="">All Shifts</option>
+
+            {shiftOptions.map((shift) => (
+              <option key={shift.value} value={shift.value}>
+                {shift.label}
               </option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* CLEAR */}
+      {/* CLEAR FILTERS */}
       {Object.values(filters).some(Boolean) && (
         <div className="mt-5 flex justify-end">
           <button
             type="button"
             onClick={onClear}
-            className="flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
+            className="flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100"
           >
             <X className="h-3.5 w-3.5" />
             Clear Filters

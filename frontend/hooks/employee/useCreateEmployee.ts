@@ -1,10 +1,6 @@
-// src/hooks/useCreateEmployee.ts
-
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { Employee } from "@/types/employee";
 
 import { createEmployee } from "@/services/employee.service";
 
@@ -17,16 +13,9 @@ export function useCreateEmployee({ onSuccess, onError }: Props = {}) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (employeeData: FormData) => {
-      const data = Object.fromEntries(
-        employeeData.entries(),
-      ) as Partial<Employee>;
-
-      return await createEmployee(data);
-    },
+    mutationFn: createEmployee,
 
     onSuccess: () => {
-      // Refresh employee list
       queryClient.invalidateQueries({
         queryKey: ["employees"],
       });
@@ -34,11 +23,11 @@ export function useCreateEmployee({ onSuccess, onError }: Props = {}) {
       onSuccess?.();
     },
 
-    onError: (err: any) => {
+    onError: (error) => {
       const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Something went wrong while creating employee";
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while creating employee";
 
       onError?.(message);
     },

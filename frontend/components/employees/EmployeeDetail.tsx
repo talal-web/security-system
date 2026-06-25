@@ -107,7 +107,7 @@ export default function EmployeeDetail({ employee }: Props) {
 
                     <Tag
                       icon={<GraduationCap className="h-4 w-4" />}
-                      text={formatText(employee.education)}
+                      text={formatText(employee.education ?? undefined)}
                     />
 
                     <Tag

@@ -22,6 +22,7 @@ import {
   BadgeCheck,
   Cake,
   Banknote,
+  Clock3,
 } from "lucide-react";
 
 import { useCreateEmployee } from "@/hooks/employee/useCreateEmployee";
@@ -33,6 +34,7 @@ import { employeeSchema } from "@/lib/employeeSchema";
 import { educationOptions, designationOptions } from "@/constants/employee";
 
 import { sectorOptions } from "@/constants/location";
+import { shiftOptions } from "@/constants/shiftOptions";
 
 type EmployeeFormValues = z.infer<typeof employeeSchema>;
 
@@ -73,10 +75,13 @@ export default function CreateEmployeeForm() {
       address: "",
       phone1: "",
       phone2: "",
-      education: "matric",
-      designation: "guard",
-      sector: "zone_1_a",
-      currentLocation: "",
+      education: undefined,
+      designation: undefined,
+
+      defaultShift: undefined,
+
+      sector: undefined,
+      currentLocation: undefined,
       basicSalary: 0,
       reference: "",
       status: "active",
@@ -102,7 +107,9 @@ export default function CreateEmployeeForm() {
     const form = new FormData();
 
     Object.entries(values).forEach(([key, value]) => {
-      form.append(key, String(value ?? ""));
+      if (value !== undefined && value !== null && value !== "") {
+        form.append(key, String(value));
+      }
     });
 
     if (profileImage) {
@@ -170,38 +177,69 @@ export default function CreateEmployeeForm() {
         onSubmit={handleSubmit(onSubmit)}
         className="grid grid-cols-1 gap-5 px-5 pb-10 sm:px-8 md:grid-cols-2 lg:grid-cols-3"
       >
-        <Input icon={<User />} label="Name" {...register("name")} />
+        <Input
+          icon={<User />}
+          label="Name"
+          error={errors.name?.message}
+          {...register("name")}
+        />
         <Input
           icon={<User />}
           label="Father Name"
+          error={errors.fatherName?.message}
           {...register("fatherName")}
         />
 
         <Select
           icon={<ShieldCheck />}
           label="Designation"
+          placeholder="Select Designation"
           options={designationOptions}
+          error={errors.designation?.message}
           {...register("designation")}
         />
 
-        <Input icon={<CreditCard />} label="CNIC" {...register("cnic")} />
+        <Input
+          icon={<CreditCard />}
+          label="CNIC"
+          error={errors.cnic?.message}
+          {...register("cnic")}
+        />
 
         <Input
           type="date"
           icon={<Cake />}
           label="Birth Date"
+          error={errors.birthDate?.message}
           {...register("birthDate")}
         />
 
-        <Input icon={<MapPin />} label="Address" {...register("address")} />
+        <Input
+          icon={<MapPin />}
+          label="Address"
+          error={errors.address?.message}
+          {...register("address")}
+        />
 
-        <Input icon={<Phone />} label="Phone 1" {...register("phone1")} />
-        <Input icon={<Phone />} label="Phone 2" {...register("phone2")} />
+        <Input
+          icon={<Phone />}
+          label="Phone 1"
+          error={errors.phone1?.message}
+          {...register("phone1")}
+        />
+        <Input
+          icon={<Phone />}
+          label="Phone 2"
+          error={errors.phone2?.message}
+          {...register("phone2")}
+        />
 
         <Select
           icon={<GraduationCap />}
           label="Education"
+          placeholder="Select Education"
           options={educationOptions}
+          error={errors.education?.message}
           {...register("education")}
         />
 
@@ -209,54 +247,73 @@ export default function CreateEmployeeForm() {
         <Select
           icon={<MapPin />}
           label="Sector"
+          placeholder="Select Sector"
           options={sectorOptions}
+          error={errors.sector?.message}
           {...register("sector")}
         />
 
-        {/* 🔥 CURRENT LOCATION (FILTERED BY SECTOR) */}
+        {/*  CURRENT LOCATION (FILTERED BY SECTOR) */}
         <Select
           icon={<MapPin />}
           label="Current Location"
-          options={[
-            { label: "Nil", value: "" },
-            ...filteredLocations.map((loc) => ({
-              label: loc.name,
-              value: loc._id,
-            })),
-          ]}
+          placeholder="Select Location"
+          options={filteredLocations.map((loc) => ({
+            label: loc.name,
+            value: loc._id,
+          }))}
           error={errors.currentLocation?.message}
           {...register("currentLocation")}
+        />
+        <Select
+          icon={<Clock3 />}
+          label="Default Shift"
+          placeholder="Select Shift"
+          options={shiftOptions}
+          error={errors.defaultShift?.message}
+          {...register("defaultShift")}
         />
 
         <Input
           type="date"
           icon={<CalendarDays />}
           label="Entry Date"
+          error={errors.entryDate?.message}
           {...register("entryDate")}
         />
+
         <Input
           type="date"
           icon={<CalendarDays />}
           label="Exit Date"
+          error={errors.exitDate?.message}
           {...register("exitDate")}
         />
 
-        <Input icon={<User />} label="Reference" {...register("reference")} />
+        <Input
+          icon={<User />}
+          label="Reference"
+          error={errors.reference?.message}
+          {...register("reference")}
+        />
 
         <Input
           icon={<Banknote />}
           type="number"
           label="Basic Salary"
-          {...register("basicSalary", { valueAsNumber: true })}
+          error={errors.basicSalary?.message}
+          {...register("basicSalary", {
+            valueAsNumber: true,
+          })}
         />
 
         <Select
           icon={<BadgeCheck />}
           label="Status"
           options={["active", "inactive"]}
+          error={errors.status?.message}
           {...register("status")}
         />
-
         {/* SUBMIT */}
         <div className="md:col-span-2 lg:col-span-3">
           <button

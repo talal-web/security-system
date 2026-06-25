@@ -1,28 +1,27 @@
-// src/hooks/useEmployees.ts
-
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 
-import { Employee } from "@/types/employee";
+import { Employee, EmployeeFilters } from "@/types/employee";
+
 import { getEmployees } from "@/services/employee.service";
 
-export function useEmployees() {
+export function useEmployees(filters?: EmployeeFilters) {
   const {
     data: employees = [],
     isPending: loading,
     error,
-    isError,
     refetch,
   } = useQuery<Employee[]>({
-    queryKey: ["employees"],
-    queryFn: getEmployees,
+    queryKey: ["employees", filters],
+
+    queryFn: () => getEmployees(filters),
   });
 
   return {
     employees,
     loading,
-    error: isError ? "Failed to fetch employees" : "",
+    error: error instanceof Error ? error.message : "",
     refetch,
   };
 }

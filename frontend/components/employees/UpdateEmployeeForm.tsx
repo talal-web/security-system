@@ -31,10 +31,13 @@ import Select from "@/components/Select";
 
 import { Employee } from "@/types/employee";
 import { calculateAge, formatDate } from "@/lib/employeeFormat";
-
-type Props = {
-  employee: Employee;
-};
+import { shiftOptions } from "@/constants/shiftOptions";
+import {
+  EducationLevel,
+  EmployeeDesignation,
+  EmployeeShift,
+  SectorOptions,
+} from "@/types/employee";
 
 type FormValues = {
   name: string;
@@ -44,22 +47,39 @@ type FormValues = {
   address: string;
   phone1: string;
   phone2: string;
-  education: string;
-  designation: string;
-  sector: string;
+
+  education?: EducationLevel | "";
+  designation: EmployeeDesignation;
+
+  sector?: SectorOptions | "";
   currentLocation: string;
+
+  defaultShift?: EmployeeShift | "";
+
   reference: string;
-  status: string;
+  status: "active" | "inactive";
+
   entryDate: string;
   exitDate: string;
+
   basicSalary: number;
 };
 
-// ✅ FIX: normalize old DB values like "Zone-1 A" → "zone_1_a"
-const normalizeSector = (sector?: string) => {
-  if (!sector) return "zone_1_a";
+type Props = {
+  employee: Employee;
+};
 
-  return sector.toLowerCase().replace(/\s+/g, "_").replace(/-+/g, "_");
+const normalizeSector = (sector?: string | null): SectorOptions | "" => {
+  if (!sector) return "";
+
+  const normalized = sector
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/-+/g, "_");
+
+  return sectorOptions.some((option) => option.value === normalized)
+    ? (normalized as SectorOptions)
+    : "";
 };
 
 export default function UpdateEmployeeForm({ employee }: Props) {
@@ -68,7 +88,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
 
   const { handleUpdateEmployee, loading } = useUpdateEmployee();
 
-  const { register, handleSubmit, control, setValue } = useForm<FormValues>({
+  const { register, handleSubmit, control, reset } = useForm<FormValues>({
     defaultValues: {
       name: employee.name || "",
       fatherName: employee.fatherName || "",
@@ -77,8 +97,9 @@ export default function UpdateEmployeeForm({ employee }: Props) {
       address: employee.address || "",
       phone1: employee.phone1 || "",
       phone2: employee.phone2 || "",
-      education: employee.education || "matric",
-      designation: employee.designation || "guard",
+      education: employee.education ?? undefined,
+      designation: employee.designation,
+      defaultShift: employee.defaultShift ?? undefined,
 
       sector: normalizeSector(employee.sector),
 
@@ -128,29 +149,39 @@ export default function UpdateEmployeeForm({ employee }: Props) {
           value: location._id,
         })) || [];
 
-    return [
-      {
-        label: "No Location",
-        value: "", // 👈 represents null
-      },
-      ...filtered,
-    ];
+    return filtered;
   }, [locationsData, watchedSector]);
   const age = watchedBirthDate ? calculateAge(watchedBirthDate) : 0;
 
   useEffect(() => {
-    const currentLocationExists = locationOptions.some(
-      (option) =>
-        option.value ===
-        (typeof employee.currentLocation === "string"
-          ? employee.currentLocation
-          : employee.currentLocation?._id),
-    );
+    if (!employee) return;
 
-    if (!currentLocationExists) {
-      setValue("currentLocation", "");
-    }
-  }, [employee.currentLocation, locationOptions, setValue]);
+    reset({
+      name: employee.name || "",
+      fatherName: employee.fatherName || "",
+      birthDate: employee.birthDate?.split("T")[0] || "",
+      cnic: employee.cnic || "",
+      address: employee.address || "",
+      phone1: employee.phone1 || "",
+      phone2: employee.phone2 || "",
+      education: employee.education ?? undefined,
+      designation: employee.designation,
+      defaultShift: employee.defaultShift ?? undefined,
+
+      sector: normalizeSector(employee.sector),
+
+      currentLocation:
+        typeof employee.currentLocation === "string"
+          ? employee.currentLocation
+          : employee.currentLocation?._id || "",
+
+      reference: employee.reference || "",
+      status: employee.status || "active",
+      entryDate: employee.entryDate?.split("T")[0] || "",
+      exitDate: employee.exitDate?.split("T")[0] || "",
+      basicSalary: employee.basicSalary || 0,
+    });
+  }, [employee, reset]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -171,12 +202,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     const data = new FormData();
 
     Object.entries(values).forEach(([key, value]) => {
-      if (key === "currentLocation" && value === "") {
-        data.append(key, ""); // or skip it if backend treats empty as null
-        return;
-      }
-
-      data.append(key, String(value ?? ""));
+      data.append(key, value == null ? "" : String(value));
     });
 
     if (profileImage) {
@@ -283,6 +309,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
         <Select
           icon={<GraduationCap />}
           label="Education"
+          placeholder="Select Education"
           options={educationOptions}
           {...register("education")}
         />
@@ -290,21 +317,30 @@ export default function UpdateEmployeeForm({ employee }: Props) {
         <Select
           icon={<ShieldCheck />}
           label="Designation"
+          placeholder="Select Designation"
           options={designationOptions}
           {...register("designation")}
         />
-
         <Select
           icon={<MapPin />}
           label="Sector"
+          placeholder="Select Sector"
           options={sectorOptions}
           {...register("sector")}
         />
         <Select
           icon={<MapPin />}
           label="Current Location"
+          placeholder="Select Location"
           options={locationOptions}
           {...register("currentLocation")}
+        />
+        <Select
+          icon={<Clock3 />}
+          label="Default Shift"
+          placeholder="Select Shift"
+          options={shiftOptions}
+          {...register("defaultShift")}
         />
 
         <Input
