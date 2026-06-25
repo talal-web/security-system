@@ -137,6 +137,7 @@ export const getEmployees = async (req, res, next) => {
       designation,
       sector,
       education,
+      currentLocation,
       search,
       entryFrom,
       entryTo,
@@ -148,56 +149,100 @@ export const getEmployees = async (req, res, next) => {
     const filter = {};
 
     // ======================
-    // STATUS FILTER
+    // STATUS
     // ======================
+
     if (status) {
       filter.status = status;
     }
 
     // ======================
-    // DESIGNATION FILTER
+    // DESIGNATION
     // ======================
+
     if (designation) {
       filter.designation = designation;
     }
 
     // ======================
-    // SECTOR FILTER
+    // SECTOR
     // ======================
-    if (sector) {
+
+    if (sector === "unassigned") {
+      filter.$or = [
+        ...(filter.$or || []),
+        { sector: null },
+        { sector: { $exists: false } },
+      ];
+    } else if (sector) {
       filter.sector = sector;
     }
 
     // ======================
-    // DEFAULT SHIFT FILTER
+    // DEFAULT SHIFT
     // ======================
-    if (defaultShift) {
+
+    if (defaultShift === "unassigned") {
+      filter.$or = [
+        ...(filter.$or || []),
+        { defaultShift: null },
+        { defaultShift: { $exists: false } },
+      ];
+    } else if (defaultShift) {
       filter.defaultShift = defaultShift;
     }
 
     // ======================
-    // EDUCATION FILTER
+    // EDUCATION
     // ======================
-    if (education) {
+
+    if (education === "unassigned") {
+      filter.$or = [
+        ...(filter.$or || []),
+        { education: null },
+        { education: { $exists: false } },
+      ];
+    } else if (education) {
       filter.education = education;
     }
 
     // ======================
-    // SEARCH FILTER
+    // CURRENT LOCATION
     // ======================
-    if (search) {
+
+    if (currentLocation === "unassigned") {
       filter.$or = [
-        { empId: { $regex: search, $options: "i" } },
-        { name: { $regex: search, $options: "i" } },
-        { fatherName: { $regex: search, $options: "i" } },
-        { cnic: { $regex: search, $options: "i" } },
-        { phone1: { $regex: search, $options: "i" } },
+        ...(filter.$or || []),
+        { currentLocation: null },
+        { currentLocation: { $exists: false } },
+      ];
+    } else if (currentLocation) {
+      filter.currentLocation = currentLocation;
+    }
+
+    // ======================
+    // SEARCH
+    // ======================
+
+    if (search) {
+      filter.$and = [
+        ...(filter.$and || []),
+        {
+          $or: [
+            { empId: { $regex: search, $options: "i" } },
+            { name: { $regex: search, $options: "i" } },
+            { fatherName: { $regex: search, $options: "i" } },
+            { cnic: { $regex: search, $options: "i" } },
+            { phone1: { $regex: search, $options: "i" } },
+          ],
+        },
       ];
     }
 
     // ======================
     // ENTRY DATE RANGE
     // ======================
+
     if (entryFrom || entryTo) {
       filter.entryDate = {};
 
@@ -211,8 +256,9 @@ export const getEmployees = async (req, res, next) => {
     }
 
     // ======================
-    // EXIT FILTER
+    // EXIT STATUS
     // ======================
+
     if (hasExited === "true") {
       filter.exitDate = { $ne: null };
     }
@@ -222,8 +268,9 @@ export const getEmployees = async (req, res, next) => {
     }
 
     // ======================
-    // EXACT SALARY FILTER
+    // SALARY
     // ======================
+
     if (basicSalary) {
       filter.basicSalary = Number(basicSalary);
     }
@@ -231,6 +278,7 @@ export const getEmployees = async (req, res, next) => {
     // ======================
     // QUERY
     // ======================
+
     const employees = await Employee.find(filter)
       .populate("currentLocation", "name")
       .sort({ empId: 1 });
