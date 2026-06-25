@@ -18,7 +18,7 @@ const locationSchema = new mongoose.Schema(
 
     sector: {
       type: String,
-      enum: ["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d"],
+      enum: ["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d", "rawalpindi"],
       required: true,
     },
 

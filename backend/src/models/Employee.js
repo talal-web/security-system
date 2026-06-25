@@ -81,16 +81,15 @@ const employeeSchema = new mongoose.Schema(
 
     education: {
       type: String,
-      enum: ["nil", "middle", "matric", "fsc", "intermediate", "bs", "master"],
-      default: "nil",
+      enum: ["middle", "matric", "fsc", "bs", "master"],
+      default: null,
     },
-
     designation: {
       type: String,
       enum: [
         "guard",
-        "army guard",
-        "asst supervisor",
+        "army_guard",
+        "asst_supervisor",
         "supervisor",
         "mcr",
         "driver",
@@ -120,13 +119,18 @@ const employeeSchema = new mongoose.Schema(
     },
     sector: {
       type: String,
-      enum: ["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d"],
-      default: "nil",
+      enum: ["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d", "rawalpindi"],
+      default: null,
     },
 
     currentLocation: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Location",
+      default: null,
+    },
+    defaultShift: {
+      type: String,
+      enum: ["day", "night"],
       default: null,
     },
 

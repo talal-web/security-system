@@ -25,7 +25,8 @@ export const createEmployee = async (req, res, next) => {
       entryDate,
       exitDate,
       notes,
-      currentLocation, // 🔥 ADD THIS
+      currentLocation,
+      defaultShift,
     } = req.body;
 
     if (
@@ -105,6 +106,8 @@ export const createEmployee = async (req, res, next) => {
 
       status: status || "active",
 
+      defaultShift: defaultShift || "day",
+
       entryDate,
       exitDate,
 
@@ -116,6 +119,7 @@ export const createEmployee = async (req, res, next) => {
 
       ...(currentLocation?.trim() ? { currentLocation } : {}),
     });
+
     res.status(201).json({
       success: true,
       message: "Employee Created Successfully",
@@ -137,11 +141,8 @@ export const getEmployees = async (req, res, next) => {
       entryFrom,
       entryTo,
       hasExited,
-      minAge,
-      maxAge,
-      minSalary,
-      maxSalary,
       basicSalary,
+      defaultShift,
     } = req.query;
 
     const filter = {};
@@ -165,6 +166,13 @@ export const getEmployees = async (req, res, next) => {
     // ======================
     if (sector) {
       filter.sector = sector;
+    }
+
+    // ======================
+    // DEFAULT SHIFT FILTER
+    // ======================
+    if (defaultShift) {
+      filter.defaultShift = defaultShift;
     }
 
     // ======================
@@ -214,21 +222,8 @@ export const getEmployees = async (req, res, next) => {
     }
 
     // ======================
-    // SALARY FILTER
+    // EXACT SALARY FILTER
     // ======================
-    if (minSalary || maxSalary) {
-      filter.basicSalary = {};
-
-      if (minSalary) {
-        filter.basicSalary.$gte = Number(minSalary);
-      }
-
-      if (maxSalary) {
-        filter.basicSalary.$lte = Number(maxSalary);
-      }
-    }
-
-    // Exact Salary Match
     if (basicSalary) {
       filter.basicSalary = Number(basicSalary);
     }
@@ -236,26 +231,9 @@ export const getEmployees = async (req, res, next) => {
     // ======================
     // QUERY
     // ======================
-    let employees = await Employee.find(filter)
+    const employees = await Employee.find(filter)
       .populate("currentLocation", "name")
       .sort({ empId: 1 });
-
-    // ======================
-    // AGE FILTER
-    // ======================
-    if (minAge || maxAge) {
-      employees = employees.filter((emp) => {
-        const age = emp.age;
-
-        if (!age) return false;
-
-        if (minAge && age < Number(minAge)) return false;
-
-        if (maxAge && age > Number(maxAge)) return false;
-
-        return true;
-      });
-    }
 
     return res.status(200).json({
       success: true,
@@ -339,6 +317,7 @@ export const updateEmployee = async (req, res, next) => {
       "designation",
       "reference",
       "sector",
+      "defaultShift",
       "basicSalary",
       "status",
       "entryDate",
@@ -346,18 +325,27 @@ export const updateEmployee = async (req, res, next) => {
       "notes",
     ];
 
-    // Normal fields
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        employee[field] = req.body[field];
-      }
-    });
+    const nullableFields = ["education", "sector", "defaultShift", "exitDate"];
 
-    // =========================
-    // CURRENT LOCATION
-    // =========================
+    for (const field of allowedFields) {
+      if (req.body[field] === undefined) continue;
+
+      if (nullableFields.includes(field) && req.body[field] === "") {
+        employee[field] = null;
+        continue;
+      }
+
+      if (field === "basicSalary") {
+        employee[field] = Number(req.body[field]) || 0;
+        continue;
+      }
+
+      employee[field] = req.body[field];
+    }
+
     if (req.body.currentLocation !== undefined) {
-      employee.currentLocation = req.body.currentLocation?.trim() || null;
+      employee.currentLocation =
+        String(req.body.currentLocation).trim() || null;
     }
 
     // =========================

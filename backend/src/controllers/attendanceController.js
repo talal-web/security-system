@@ -431,8 +431,10 @@ export const getAttendanceSession = async (req, res) => {
     const employees = await Employee.find({
       status: "active",
     })
-      .select("name fatherName sector currentLocation designation empId")
-      .populate("currentLocation", "name sector")
+      .select(
+        "name fatherName sector currentLocation designation empId defaultShift",
+      )
+      .populate("currentLocation", "name sector isActive")
       .sort({ name: 1 })
       .lean();
 
@@ -480,12 +482,14 @@ export const getAttendanceSession = async (req, res) => {
         fatherName: emp.fatherName,
         designation: emp.designation,
         sector: emp.sector,
+        defaultShift: emp.defaultShift,
 
         currentLocation: emp.currentLocation
           ? {
               _id: emp.currentLocation._id,
               name: emp.currentLocation.name,
               sector: emp.currentLocation.sector,
+              isActive: emp.currentLocation.isActive,
             }
           : null,
       });
@@ -554,6 +558,19 @@ export const markAttendanceSession = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Employees data is required",
+      });
+    }
+
+    const missingShifts = employees.filter((emp) => !emp.defaultShift);
+
+    if (missingShifts.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Some employees are missing shifts",
+        employees: missingShifts.map((e) => ({
+          employeeId: e.employeeId,
+          employeeName: e.name,
+        })),
       });
     }
 
