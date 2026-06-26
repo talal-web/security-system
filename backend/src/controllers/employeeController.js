@@ -106,7 +106,7 @@ export const createEmployee = async (req, res, next) => {
 
       status: status || "active",
 
-      defaultShift: defaultShift || "day",
+      defaultShift: defaultShift || "null",
 
       entryDate,
       exitDate,
@@ -144,9 +144,11 @@ export const getEmployees = async (req, res, next) => {
       hasExited,
       basicSalary,
       defaultShift,
+      unassigned,
     } = req.query;
 
     const filter = {};
+    const andConditions = [];
 
     // ======================
     // STATUS
@@ -168,13 +170,7 @@ export const getEmployees = async (req, res, next) => {
     // SECTOR
     // ======================
 
-    if (sector === "unassigned") {
-      filter.$or = [
-        ...(filter.$or || []),
-        { sector: null },
-        { sector: { $exists: false } },
-      ];
-    } else if (sector) {
+    if (sector) {
       filter.sector = sector;
     }
 
@@ -182,14 +178,16 @@ export const getEmployees = async (req, res, next) => {
     // DEFAULT SHIFT
     // ======================
 
-    if (defaultShift === "unassigned") {
-      filter.$or = [
-        ...(filter.$or || []),
-        { defaultShift: null },
-        { defaultShift: { $exists: false } },
-      ];
-    } else if (defaultShift) {
+    if (defaultShift) {
       filter.defaultShift = defaultShift;
+    }
+
+    // ======================
+    // CURRENT LOCATION
+    // ======================
+
+    if (currentLocation) {
+      filter.currentLocation = currentLocation;
     }
 
     // ======================
@@ -197,27 +195,44 @@ export const getEmployees = async (req, res, next) => {
     // ======================
 
     if (education === "unassigned") {
-      filter.$or = [
-        ...(filter.$or || []),
-        { education: null },
-        { education: { $exists: false } },
-      ];
+      andConditions.push({
+        $or: [
+          { education: null },
+          { education: "" },
+          { education: { $exists: false } },
+        ],
+      });
     } else if (education) {
       filter.education = education;
     }
 
     // ======================
-    // CURRENT LOCATION
+    // ASSIGNMENT STATUS
     // ======================
 
-    if (currentLocation === "unassigned") {
-      filter.$or = [
-        ...(filter.$or || []),
-        { currentLocation: null },
-        { currentLocation: { $exists: false } },
-      ];
-    } else if (currentLocation) {
-      filter.currentLocation = currentLocation;
+    if (unassigned === "sector") {
+      andConditions.push({
+        $or: [{ sector: null }, { sector: "" }, { sector: { $exists: false } }],
+      });
+    }
+
+    if (unassigned === "shift") {
+      andConditions.push({
+        $or: [
+          { defaultShift: null },
+          { defaultShift: "" },
+          { defaultShift: { $exists: false } },
+        ],
+      });
+    }
+
+    if (unassigned === "currentLocation") {
+      andConditions.push({
+        $or: [
+          { currentLocation: null },
+          { currentLocation: { $exists: false } },
+        ],
+      });
     }
 
     // ======================
@@ -225,18 +240,12 @@ export const getEmployees = async (req, res, next) => {
     // ======================
 
     if (search) {
-      filter.$and = [
-        ...(filter.$and || []),
-        {
-          $or: [
-            { empId: { $regex: search, $options: "i" } },
-            { name: { $regex: search, $options: "i" } },
-            { fatherName: { $regex: search, $options: "i" } },
-            { cnic: { $regex: search, $options: "i" } },
-            { phone1: { $regex: search, $options: "i" } },
-          ],
-        },
-      ];
+      andConditions.push({
+        $or: [
+          { empId: { $regex: search, $options: "i" } },
+          { name: { $regex: search, $options: "i" } },
+        ],
+      });
     }
 
     // ======================
@@ -268,11 +277,19 @@ export const getEmployees = async (req, res, next) => {
     }
 
     // ======================
-    // SALARY
+    // BASIC SALARY
     // ======================
 
     if (basicSalary) {
       filter.basicSalary = Number(basicSalary);
+    }
+
+    // ======================
+    // COMBINE FILTERS
+    // ======================
+
+    if (andConditions.length > 0) {
+      filter.$and = andConditions;
     }
 
     // ======================

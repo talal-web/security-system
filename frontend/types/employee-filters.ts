@@ -1,9 +1,3 @@
-export interface EmployeeFilters {
-  search?: string;
-  status?: string;
-  designation?: string;
-  sector?: string;
-  defaultShift?: string;
-  education?: string;
-  hasExited?: boolean | string;
-}
+import type { EmployeeFilters as EmployeeFiltersType } from "./employee";
+
+export type EmployeeFilters = EmployeeFiltersType;

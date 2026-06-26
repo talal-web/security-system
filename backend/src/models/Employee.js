@@ -81,7 +81,7 @@ const employeeSchema = new mongoose.Schema(
 
     education: {
       type: String,
-      enum: ["middle", "matric", "fsc", "bs", "master"],
+      enum: ["none", "middle", "matric", "fsc", "bs", "master"],
       default: null,
     },
     designation: {

@@ -6,7 +6,13 @@ export type EmployeeStatus = "active" | "inactive";
 
 export type EmployeeShift = "day" | "night";
 
-export type EducationLevel = "middle" | "matric" | "fsc" | "bs" | "master";
+export type EducationLevel =
+  | "none"
+  | "middle"
+  | "matric"
+  | "fsc"
+  | "bs"
+  | "master";
 
 export type SectorOptions =
   | "zone_1_a"
@@ -82,6 +88,8 @@ export interface EmployeeFilters {
   education?: EducationLevel;
 
   defaultShift?: EmployeeShift;
+
+  unassigned?: "" | "sector" | "shift" | "currentLocation";
 
   search?: string;
 

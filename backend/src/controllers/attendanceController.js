@@ -561,15 +561,29 @@ export const markAttendanceSession = async (req, res) => {
       });
     }
 
-    const missingShifts = employees.filter((emp) => !emp.defaultShift);
+    const employeeIds = employees.map((emp) => emp.employeeId);
 
-    if (missingShifts.length > 0) {
+    const employeeDocs = await Employee.find({
+      _id: { $in: employeeIds },
+      status: "active",
+    }).select("employeeId name defaultShift sector currentLocation");
+
+    const invalidEmployees = employeeDocs.filter(
+      (emp) => !emp.defaultShift || !emp.sector || !emp.currentLocation,
+    );
+
+    if (invalidEmployees.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "Some employees are missing shifts",
-        employees: missingShifts.map((e) => ({
-          employeeId: e.employeeId,
-          employeeName: e.name,
+        message: "Some active employees are missing required information.",
+        employees: invalidEmployees.map((emp) => ({
+          employeeId: emp.employeeId,
+          employeeName: emp.name,
+          missing: [
+            !emp.defaultShift && "Default Shift",
+            !emp.sector && "Sector",
+            !emp.currentLocation && "Current Location",
+          ].filter(Boolean),
         })),
       });
     }

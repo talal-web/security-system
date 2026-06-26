@@ -1,9 +1,10 @@
 export const educationOptions = [
-  { label: "Middle", value: "middle" },
-  { label: "Matric", value: "matric" },
-  { label: "FSC", value: "fsc" },
-  { label: "BS", value: "bs" },
-  { label: "Master", value: "master" },
+  { value: "none", label: "No Formal Education" },
+  { value: "middle", label: "Middle" },
+  { value: "matric", label: "Matric" },
+  { value: "fsc", label: "FSC" },
+  { value: "bs", label: "Bachelor's" },
+  { value: "master", label: "Master's" },
 ];
 
 export const designationOptions = [
@@ -15,5 +16,3 @@ export const designationOptions = [
   { label: "Driver", value: "driver" },
   { label: "Clerk", value: "clerk" },
 ];
-
-export const FILTER_NONE = "__none__";

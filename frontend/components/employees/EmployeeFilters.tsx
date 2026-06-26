@@ -15,7 +15,7 @@ import { designationOptions, educationOptions } from "@/constants/employee";
 import { sectorOptions } from "@/constants/location";
 import { shiftOptions } from "@/constants/shiftOptions";
 
-import { EmployeeFilters } from "@/types/employee-filters";
+import type { EmployeeFilters } from "@/types/employee-filters";
 
 type Props = {
   filters: EmployeeFilters;
@@ -28,6 +28,23 @@ export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Filter employees
+          </h2>
+          <p className="text-sm text-slate-500">
+            Search by name, status, sector, shift, or assignment state.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClear}
+          className="mt-3 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 sm:mt-0"
+        >
+          Clear all
+        </button>
+      </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {/* SEARCH */}
         <div className="relative">
@@ -106,8 +123,6 @@ export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
           >
             <option value="">All Sectors</option>
 
-            <option value="unassigned">No Sector Assigned</option>
-
             {sectorOptions.map((sector) => (
               <option key={sector.value} value={sector.value}>
                 {sector.label}
@@ -127,8 +142,6 @@ export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
           >
             <option value="">All Shifts</option>
 
-            <option value="unassigned">No Shift Assigned</option>
-
             {shiftOptions.map((shift) => (
               <option key={shift.value} value={shift.value}>
                 {shift.label}
@@ -137,20 +150,25 @@ export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
           </select>
         </div>
 
-        {/* EXITED */}
+        {/* NOT ASSIGNED */}
+        {/* ASSIGNMENT STATUS */}
         <div className="relative">
           <UserMinus className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 
           <select
-            value={
-              filters.hasExited === undefined ? "" : String(filters.hasExited)
-            }
-            onChange={(e) => onChange("hasExited", e.target.value)}
+            value={filters.unassigned ?? ""}
+            onChange={(e) => onChange("unassigned", e.target.value)}
             className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-orange-500 focus:bg-white"
           >
-            <option value="">All Employees</option>
-            <option value="true">Exited Employees</option>
-            <option value="false">Active Employees</option>
+            <option value="">All Assignments</option>
+
+            <option value="sector">No Sector Assigned</option>
+
+            <option value="shift">No Shift Assigned</option>
+
+            <option value="currentLocation">
+              No Current Location Assigned
+            </option>
           </select>
         </div>
       </div>

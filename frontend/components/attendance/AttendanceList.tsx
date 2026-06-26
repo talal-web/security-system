@@ -90,6 +90,13 @@ export default function AttendanceList() {
               </p>
             </div>
 
+            <div className="rounded-xl border bg-yellow-50 p-4 shadow-sm">
+              <p className="text-xs text-yellow-700">Leave</p>
+              <p className="text-2xl font-bold text-yellow-600">
+                {globalStats.leave}
+              </p>
+            </div>
+
             <div className="rounded-xl border bg-green-50 p-4 shadow-sm">
               <p className="text-xs text-green-700">Present</p>
               <p className="text-2xl font-bold text-green-600">
@@ -108,13 +115,6 @@ export default function AttendanceList() {
               <p className="text-xs text-indigo-700">Night Shift</p>
               <p className="text-2xl font-bold text-indigo-600">
                 {globalStats.night}
-              </p>
-            </div>
-
-            <div className="rounded-xl border bg-yellow-50 p-4 shadow-sm">
-              <p className="text-xs text-yellow-700">Leave</p>
-              <p className="text-2xl font-bold text-yellow-600">
-                {globalStats.leave}
               </p>
             </div>
           </div>

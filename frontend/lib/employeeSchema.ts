@@ -34,7 +34,7 @@ export const employeeSchema = z.object({
 
   education: z.preprocess(
     (value) => (value === "" ? undefined : value),
-    z.enum(["middle", "matric", "fsc", "bs", "master"]).optional(),
+    z.enum(["none", "middle", "matric", "fsc", "bs", "master"]).optional(),
   ),
 
   status: z.enum(["active", "inactive"]).optional(),
