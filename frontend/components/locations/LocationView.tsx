@@ -3,11 +3,24 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-import { MapPin, Pencil, Building2, Search, MapPinned } from "lucide-react";
-
+import {
+  MapPin,
+  Pencil,
+  Building2,
+  Search,
+  MapPinned,
+  ArrowUpDown,
+  Check,
+  X,
+} from "lucide-react";
 import { useLocations } from "@/hooks/location/useLocation";
 import { sectorOptions } from "@/constants/location";
 import { LocationSector } from "@/types/location";
+import { ILocation } from "@/types/location";
+
+import { useReorderLocations } from "@/hooks/location/useReorderLocation";
+
+import LocationSortableList from "./reorder/LocationSortableList";
 
 export default function LocationView() {
   const [search, setSearch] = useState("");
@@ -15,6 +28,10 @@ export default function LocationView() {
 
   const [sector, setSector] = useState<LocationSector>();
   const [isActive, setIsActive] = useState<boolean | undefined>(true);
+  const [reorderSector, setReorderSector] = useState<LocationSector | null>(
+    null,
+  );
+  const [reorderItems, setReorderItems] = useState<ILocation[]>([]);
 
   // debounce search
   useEffect(() => {
@@ -36,6 +53,19 @@ export default function LocationView() {
     sector,
     isActive,
   });
+  const { mutate: reorderLocations, isPending: isSavingOrder } =
+    useReorderLocations();
+
+  // when the current reorder sector changes, update the drag list
+  useEffect(() => {
+    if (!reorderSector) return;
+
+    setReorderItems(
+      [...locations]
+        .filter((l) => l.sector === reorderSector)
+        .sort((a, b) => a.sortOrder - b.sortOrder),
+    );
+  }, [locations, reorderSector]);
 
   // group locations
   const groupedLocations = useMemo(() => {
@@ -47,7 +77,7 @@ export default function LocationView() {
     }, {});
   }, [locations]);
 
-  // ✅ build label map from your existing sectorOptions
+  // build label map from your existing sectorOptions
   const sectorLabelMap = useMemo(() => {
     return sectorOptions.reduce(
       (acc, item) => {
@@ -58,10 +88,30 @@ export default function LocationView() {
     );
   }, []);
 
+  const handleSaveOrder = () => {
+    if (!reorderSector) return;
+
+    reorderLocations(
+      {
+        sector: reorderSector,
+
+        locations: reorderItems.map((location, index) => ({
+          _id: location._id,
+          sortOrder: index + 1,
+        })),
+      },
+      {
+        onSuccess: () => {
+          setReorderSector(null);
+        },
+      },
+    );
+  };
+
   // loader only first time
   if (isLoading && locations.length === 0) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center rounded-3xl border bg-white shadow-sm">
+      <div className="flex min-h-100 items-center justify-center rounded-3xl border bg-white shadow-sm">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
           <p className="mt-3 text-sm text-slate-500">Loading locations...</p>
@@ -81,7 +131,7 @@ export default function LocationView() {
   }
 
   return (
-    <div className="space-y-6 min-h-[600px]">
+    <div className="space-y-6 min-h-150">
       {/* HEADER */}
       <div className="rounded-3xl border bg-white p-5 shadow-sm">
         <div className="mb-3 flex justify-end">
@@ -146,7 +196,7 @@ export default function LocationView() {
       </div>
 
       {/* RESULTS */}
-      <div className="min-h-[500px]">
+      <div className="min-h-125">
         {locations.length === 0 && !isFetching ? (
           <div className="rounded-3xl border border-dashed bg-white py-16 text-center">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
@@ -164,7 +214,7 @@ export default function LocationView() {
                 key={sectorName}
                 className="overflow-hidden rounded-3xl border bg-white shadow-sm"
               >
-                {/* SECTOR HEADER (UPDATED) */}
+                {/* HEADER */}
                 <div className="flex items-center justify-between border-b bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-5">
                   <div className="flex items-center gap-4">
                     <div className="rounded-2xl bg-blue-100 p-3 text-blue-700">
@@ -181,54 +231,102 @@ export default function LocationView() {
                       </p>
                     </div>
                   </div>
+
+                  {reorderSector === sectorName ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={isSavingOrder}
+                        onClick={() => setReorderSector(null)}
+                        className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        <X size={16} />
+                        Cancel
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={isSavingOrder}
+                        onClick={handleSaveOrder}
+                        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        <Check size={16} />
+
+                        {isSavingOrder ? "Saving..." : "Save Order"}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReorderSector(sectorName as LocationSector);
+                        setReorderItems(
+                          [...items].sort((a, b) => a.sortOrder - b.sortOrder),
+                        );
+                      }}
+                      className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition hover:bg-slate-50"
+                    >
+                      <ArrowUpDown size={16} />
+                      Reorder
+                    </button>
+                  )}
                 </div>
 
-                {/* GRID */}
-                <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {items.map((loc) => (
-                    <div
-                      key={loc._id}
-                      className="rounded-2xl border bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="text-blue-600" size={18} />
-                          <h3 className="font-semibold text-slate-800">
-                            {loc.name}
-                          </h3>
+                {reorderSector === sectorName ? (
+                  <div className="p-6">
+                    <LocationSortableList
+                      locations={reorderItems}
+                      onChange={setReorderItems}
+                    />
+                  </div>
+                ) : (
+                  <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((loc) => (
+                      <div
+                        key={loc._id}
+                        className="rounded-2xl border bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="text-blue-600" size={18} />
+
+                            <h3 className="font-semibold text-slate-800">
+                              {loc.name}
+                            </h3>
+                          </div>
+
+                          <span
+                            className={`rounded-full px-2 py-1 text-[11px] font-medium ${
+                              loc.isActive
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-600"
+                            }`}
+                          >
+                            {loc.isActive ? "Active" : "Inactive"}
+                          </span>
                         </div>
 
-                        <span
-                          className={`rounded-full px-2 py-1 text-[11px] font-medium ${
-                            loc.isActive
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-600"
-                          }`}
-                        >
-                          {loc.isActive ? "Active" : "Inactive"}
-                        </span>
+                        <p className="mt-2 text-xs text-slate-500">
+                          {loc.address || "No address provided"}
+                        </p>
+
+                        <p className="mt-1 text-[10px] text-slate-400">
+                          ID: {loc._id.slice(-6)}
+                        </p>
+
+                        <div className="mt-4 flex justify-end">
+                          <Link
+                            href={`/locations/${loc._id}/edit`}
+                            className="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs text-blue-700 transition hover:bg-blue-100"
+                          >
+                            <Pencil size={14} />
+                            Edit
+                          </Link>
+                        </div>
                       </div>
-
-                      <p className="mt-2 text-xs text-slate-500">
-                        {loc.address || "No address provided"}
-                      </p>
-
-                      <p className="mt-1 text-[10px] text-slate-400">
-                        ID: {loc._id.slice(-6)}
-                      </p>
-
-                      <div className="mt-4 flex justify-end">
-                        <Link
-                          href={`/locations/${loc._id}/edit`}
-                          className="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs text-blue-700 transition hover:bg-blue-100"
-                        >
-                          <Pencil size={14} />
-                          Edit
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

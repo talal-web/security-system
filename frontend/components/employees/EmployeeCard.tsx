@@ -18,7 +18,7 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
       {/* ================= DESKTOP CARD ================= */}
       <div className="hidden sm:block">
         {/* TOP */}
-        <div className="relative h-28 bg-gradient-to-r from-slate-900 to-slate-800">
+        <div className="relative h-28 bg-linear-to-r from-slate-900 to-slate-800">
           {/* STATUS */}
           <div className="absolute right-3 top-3">
             <span
@@ -92,52 +92,63 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
         </div>
       </div>
 
-      {/* ================= MOBILE CARD (TIKTOK STYLE) ================= */}
-      <div className="flex items-center gap-3 p-3 sm:hidden">
-        {/* AVATAR */}
-        <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border bg-slate-100">
-          {employee.profileImage ? (
-            <Image
-              src={employee.profileImage}
-              alt={employee.name}
-              width={56}
-              height={56}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <User className="h-6 w-6 text-slate-400" />
-            </div>
-          )}
-        </div>
-
-        {/* INFO */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="truncate text-sm font-semibold text-slate-900">
-              {formatText(employee.name)}
-            </h2>
-
-            <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                employee.status === "active"
-                  ? "bg-green-100 text-green-600"
-                  : "bg-red-100 text-red-600"
-              }`}
-            >
-              {employee.status}
-            </span>
+      {/* ================= MOBILE CARD ================= */}
+      <div className="flex flex-col gap-3 p-4 sm:hidden">
+        <div className="flex items-center gap-3">
+          {/* AVATAR */}
+          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border bg-slate-100">
+            {employee.profileImage ? (
+              <Image
+                src={employee.profileImage}
+                alt={employee.name}
+                width={56}
+                height={56}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <User className="h-6 w-6 text-slate-400" />
+              </div>
+            )}
           </div>
 
-          <p className="truncate text-xs text-slate-500">
-            {formatText(employee.designation)}
-          </p>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="truncate text-sm font-semibold text-slate-900">
+                {formatText(employee.name)}
+              </h2>
+
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  employee.status === "active"
+                    ? "bg-green-100 text-green-600"
+                    : "bg-red-100 text-red-600"
+                }`}
+              >
+                {employee.status}
+              </span>
+            </div>
+
+            <p className="mt-1 truncate text-xs text-slate-500">
+              {formatText(employee.designation)}
+            </p>
+          </div>
         </div>
 
-        {/* ACTION */}
-        <Link href={`/employees/${employee._id}`} className="text-slate-500">
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Link
+            href={`/employees/${employee._id}`}
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+          >
+            View
+          </Link>
+          <Link
+            href={`/employees/${employee._id}/edit`}
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Edit
+          </Link>
+        </div>
       </div>
     </div>
   );

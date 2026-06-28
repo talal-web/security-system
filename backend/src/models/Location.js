@@ -22,6 +22,12 @@ const locationSchema = new mongoose.Schema(
       required: true,
     },
 
+    sortOrder: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
+
     isActive: {
       type: Boolean,
       default: true,

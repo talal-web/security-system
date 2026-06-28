@@ -7,6 +7,7 @@ import {
   ILocation,
   CreateLocationPayload,
   UpdateLocationPayload,
+  ReorderLocationsPayload,
   LocationSector,
 } from "@/types/location";
 
@@ -71,6 +72,17 @@ export const updateLocation = async ({
     const response = await api.put(`/locations/${id}`, payload);
 
     return response.data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error));
+  }
+};
+
+// ================= REORDER LOCATIONS =================
+export const reorderLocations = async (
+  payload: ReorderLocationsPayload,
+): Promise<void> => {
+  try {
+    await api.patch("/locations/reorder", payload);
   } catch (error) {
     throw new Error(getApiErrorMessage(error));
   }

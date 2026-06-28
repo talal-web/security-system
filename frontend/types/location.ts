@@ -16,6 +16,8 @@ export interface ILocation {
 
   sector: LocationSector;
 
+  sortOrder: number;
+
   isActive: boolean;
 
   createdAt: string;
@@ -39,4 +41,22 @@ export interface UpdateLocationPayload {
   sector?: LocationSector;
 
   isActive?: boolean;
+}
+
+/**
+ * Single location reorder item
+ */
+export interface ReorderLocationItem {
+  _id: string;
+
+  sortOrder: number;
+}
+
+/**
+ * Payload for drag & drop reorder API
+ */
+export interface ReorderLocationsPayload {
+  sector: LocationSector;
+
+  locations: ReorderLocationItem[];
 }

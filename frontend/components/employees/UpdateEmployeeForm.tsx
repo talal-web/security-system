@@ -138,18 +138,18 @@ export default function UpdateEmployeeForm({ employee }: Props) {
   });
 
   const locationOptions = useMemo(() => {
-    const filtered =
+    return (
       locationsData
         ?.filter(
           (location) =>
+            location.isActive &&
             normalizeSector(location.sector) === normalizeSector(watchedSector),
         )
         .map((location) => ({
           label: location.name,
           value: location._id,
-        })) || [];
-
-    return filtered;
+        })) || []
+    );
   }, [locationsData, watchedSector]);
   const age = watchedBirthDate ? calculateAge(watchedBirthDate) : 0;
 

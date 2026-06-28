@@ -35,13 +35,13 @@ const employeeActions = [
 const attendanceActions = [
   {
     title: "Mark Attendance",
-    href: "/attendance/mark",
+    href: "/attendance/session",
     icon: CheckCircle2,
   },
 
   {
-    title: "Monthly Reports",
-    href: "/attendance/date",
+    title: "Daily Reports",
+    href: "/attendance/daily-report",
     icon: CalendarDays,
   },
 

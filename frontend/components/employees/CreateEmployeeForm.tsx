@@ -97,7 +97,9 @@ export default function CreateEmployeeForm() {
   // Filter locations by sector
   // ======================
   const filteredLocations = useMemo(() => {
-    return locations.filter((loc) => loc.sector === selectedSector);
+    return locations.filter(
+      (loc) => loc.isActive && loc.sector === selectedSector,
+    );
   }, [locations, selectedSector]);
 
   // ======================

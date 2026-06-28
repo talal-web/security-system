@@ -8,12 +8,15 @@ import {
   getLocationById,
   updateLocation,
   deleteLocation,
+  reorderLocations,
 } from "../controllers/locationController.js";
 
 const router = express.Router();
 
 // CREATE LOCATION
 router.post("/", createLocation);
+
+router.patch("/reorder", reorderLocations);
 
 // GET ALL LOCATIONS
 router.get("/", getLocations);

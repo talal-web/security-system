@@ -4,6 +4,8 @@ import AttendanceEmployeeCard from "@/components/attendance/AttendanceEmployeeCa
 
 import { AttendanceFormEmployee } from "@/types/attendance-session";
 
+import { formatSectorName } from "@/lib/utils";
+
 interface Sector {
   sector: string;
 
@@ -45,9 +47,11 @@ export default function AttendanceSectorList({
         <section key={sector.sector} className="space-y-3">
           <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
             <div>
-              <p className="text-sm font-semibold">{sector.sector}</p>
+              <p className="text-lg font-semibold">
+                {formatSectorName(sector.sector)}
+              </p>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-sm text-slate-500">
                 {sector.employees.length} employee
                 {sector.employees.length > 1 ? "s" : ""}
               </p>
@@ -58,7 +62,7 @@ export default function AttendanceSectorList({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {sector.employees.map((employee) => (
               <AttendanceEmployeeCard
                 key={employee.employeeId}
