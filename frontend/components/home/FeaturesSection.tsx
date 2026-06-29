@@ -3,7 +3,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-
 import {
   Shield,
   FileText,
@@ -17,82 +16,80 @@ const features = [
   {
     title: "Guard Management",
     description:
-      "Manage all security guards and employee records in one place.",
+      "Coordinate security personnel and daily operations from a single workspace.",
     icon: UserCheck,
   },
   {
     title: "Attendance Monitoring",
-    description: "Track attendance, shifts, and operational activities easily.",
+    description:
+      "Track shifts, punctuality and workforce activity with dependable visibility.",
     icon: ClipboardCheck,
   },
   {
     title: "Location Deployment",
-    description: "Assign guards to different locations professionally.",
+    description:
+      "Assign guards to sites quickly with clear deployment updates and routing.",
     icon: MapPinned,
   },
   {
     title: "Incident Reports",
-    description: "Generate and maintain detailed operational reports.",
+    description:
+      "Create, manage and review operational reports with professional detail.",
     icon: FileText,
   },
   {
     title: "Emergency Alerts",
     description:
-      "Receive emergency notifications and security updates instantly.",
+      "Deliver instant alerts and notifications so your team can respond fast.",
     icon: BellRing,
   },
   {
     title: "Advanced Security",
-    description: "Modern secure system architecture for company operations.",
+    description:
+      "Protect sensitive information with secure, modern infrastructure and controls.",
     icon: Shield,
   },
 ];
 
 export default function FeaturesSection() {
   return (
-    <section className="bg-slate-50 py-24">
-      <div className="mx-auto max-w-7xl px-6">
-        {/* Heading */}
-        <div className="mb-16 text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
+    <section className="relative overflow-hidden bg-slate-50 py-20 text-slate-900">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.1),transparent_42%)]" />
+      <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
+        <div className="mb-12 max-w-3xl">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-blue-600">
             Features
           </p>
-
-          <h2 className="text-3xl font-black text-slate-900 sm:text-5xl">
-            Complete Security Management System
+          <h2 className="text-3xl font-black sm:text-4xl lg:text-5xl text-slate-900">
+            Built for secure, reliable operations
           </h2>
-
-          <p className="mx-auto mt-5 max-w-2xl text-slate-600">
-            Powerful and modern tools designed for professional security company
-            operations and employee management.
+          <p className="mt-4 text-base leading-8 text-slate-600 sm:text-lg">
+            Every module is designed to give your security team stronger
+            oversight, faster communication and smoother day-to-day execution.
           </p>
         </div>
 
-        {/* Cards */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {features.map((feature, index) => {
             const Icon = feature.icon;
 
             return (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: index * 0.1,
-                }}
+                transition={{ delay: index * 0.08 }}
                 viewport={{ once: true }}
-                whileHover={{ y: -6 }}
-                className="group rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-100 transition-all duration-300 hover:border-blue-200"
+                whileHover={{ y: -6, scale: 1.01 }}
+                className="group rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 transition-all group-hover:scale-110">
-                  <Icon className="h-8 w-8 text-blue-600" />
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-red-100 text-blue-600">
+                  <Icon className="h-6 w-6" />
                 </div>
 
-                <h3 className="mb-4 text-xl font-bold text-slate-900">
+                <h3 className="mb-3 text-xl font-semibold text-slate-900">
                   {feature.title}
                 </h3>
-
                 <p className="text-sm leading-7 text-slate-600">
                   {feature.description}
                 </p>

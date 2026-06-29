@@ -1,14 +1,11 @@
 import api from "@/lib/axios";
 import { getApiErrorMessage } from "@/lib/apiError";
 
-import type {
-  AttendanceFilters,
-  SectorAttendanceResponse,
-} from "@/types/attendance";
+import type { AttendanceFilters, AttendanceResponse } from "@/types/attendance";
 
 export async function getAttendanceBySector(
   filters?: AttendanceFilters,
-): Promise<SectorAttendanceResponse> {
+): Promise<AttendanceResponse> {
   try {
     const res = await api.get("/attendance/sector", {
       params: {

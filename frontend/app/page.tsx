@@ -6,7 +6,7 @@ import StatsSection from "@/components/home/StatsSection";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white overflow-hidden">
+    <main className="min-h-screen bg-slate-50 text-slate-900 overflow-hidden">
       <HeroSection />
       <StatsSection />
       <FeaturesSection />

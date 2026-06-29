@@ -81,6 +81,9 @@ export default function AttendanceEmployeeCard({
     Boolean(employee.remarks?.trim()),
   );
 
+  const isInactiveLocation =
+    employee.currentLocation && !employee.currentLocation.isActive;
+
   const initials = employee.name
     ?.split(" ")
     .map((word) => word[0])
@@ -129,9 +132,20 @@ export default function AttendanceEmployeeCard({
             {employee.designation}
           </p>
 
-          <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+          <div
+            className={`mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium ${
+              isInactiveLocation
+                ? "border border-red-200 bg-red-50 text-red-700"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
             <MapPin className="h-3.5 w-3.5" />
+
             {employee.currentLocation?.name ?? "Not Assigned"}
+
+            {isInactiveLocation && (
+              <span className="font-semibold">(Inactive)</span>
+            )}
           </div>
         </div>
       </div>
@@ -166,9 +180,24 @@ export default function AttendanceEmployeeCard({
         </div>
       </div>
       {/* Shift + Location starts here in Part 2 */} {/* Location */}
-      <div className="mb-3 rounded-lg bg-slate-50 px-2 py-1.5">
-        <p className="truncate text-[11px] text-slate-600">
+      <div
+        className={`mb-3 rounded-lg border px-3 py-2 ${
+          isInactiveLocation
+            ? "border-red-200 bg-red-50"
+            : "border-slate-200 bg-slate-50"
+        }`}
+      >
+        <p
+          className={`truncate text-[11px] font-medium ${
+            isInactiveLocation ? "text-red-700" : "text-slate-600"
+          }`}
+        >
           📍 {employee.currentLocation?.name ?? "Not Assigned"}
+          {isInactiveLocation && (
+            <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+              Inactive
+            </span>
+          )}
         </p>
       </div>
       {/* ================= SHIFT + LOCATION ================= */}

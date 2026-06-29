@@ -1,104 +1,122 @@
 // src/components/layout/Footer.tsx
 
 import Link from "next/link";
-import { ShieldCheck, Mail, Phone, MapPin, Globe, Globe2 } from "lucide-react";
+import type { ReactNode } from "react";
+import Image from "next/image";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  Globe2,
+  ArrowRight,
+} from "lucide-react";
+
+const quickLinks = [
+  { href: "/", label: "Home" },
+  { href: "/employees/view", label: "Employees" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/locations/view", label: "Locations" },
+];
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white print:hidden">
-      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 md:grid-cols-2 lg:grid-cols-4">
-        {/* Brand */}
-        <div>
-          <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-md">
-              <ShieldCheck className="h-6 w-6 text-white" />
+    <footer className="border-t border-slate-200/70 bg-slate-50 text-slate-800 print:hidden">
+      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+        <div className="grid gap-10 rounded-4xl border border-slate-200 bg-white/80 p-8 shadow-xl shadow-slate-200/40 md:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <div className="mb-5 flex items-center gap-3">
+              <div className="relative h-12 w-12 transition-transform duration-300 group-hover:scale-105">
+                <Image
+                  src="/images/logo.png"
+                  alt="Baidar Security Logo"
+                  width={48}
+                  height={48}
+                  priority
+                  className="rounded-xl"
+                />
+              </div>
+
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Baidar Security
+                </h2>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Security Service
+                </p>
+              </div>
             </div>
 
-            <div>
-              <h2 className="text-lg font-black text-slate-900">
-                Baidar Security
-              </h2>
-              <p className="text-xs text-slate-500">Security Service</p>
+            <p className="text-sm leading-7 text-slate-600">
+              Professional security management for guards, attendance,
+              deployment, and daily operations with a clear, reliable overview.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="mb-5 text-lg font-semibold text-slate-900">
+              Quick Links
+            </h3>
+            <div className="flex flex-col gap-2.5">
+              {quickLinks.map((link) => (
+                <FooterLink
+                  key={link.label}
+                  href={link.href}
+                  label={link.label}
+                />
+              ))}
             </div>
           </div>
 
-          <p className="text-sm leading-7 text-slate-600">
-            Professional security management system for handling guards,
-            operations, attendance, reports, and deployment records.
-          </p>
-        </div>
+          <div>
+            <h3 className="mb-5 text-lg font-semibold text-slate-900">Services</h3>
+            <ul className="space-y-2.5 text-sm text-slate-600">
+              <li>Guard roster management</li>
+              <li>Attendance monitoring</li>
+              <li>Incident reporting</li>
+              <li>Deployment tracking</li>
+            </ul>
+          </div>
 
-        {/* Links */}
-        <div>
-          <h3 className="mb-5 text-lg font-semibold text-slate-900">
-            Quick Links
-          </h3>
+          <div>
+            <h3 className="mb-5 text-lg font-semibold text-slate-900">Contact</h3>
+            <div className="space-y-3 text-sm text-slate-600">
+              <div className="flex items-start gap-3">
+                <MapPin className="mt-0.5 h-4 w-4 text-blue-500" />
+                <p>Islamabad, Pakistan</p>
+              </div>
 
-          <div className="flex flex-col gap-3">
-            <FooterLink href="/" label="Home" />
-            <FooterLink href="/employees" label="Employees" />
-            <FooterLink href="/dashboard" label="Dashboard" />
-            <FooterLink href="/reports" label="Reports" />
+              <div className="flex items-center gap-3">
+                <Phone className="h-4 w-4 text-red-500" />
+                <p>+92 300 0000000</p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Mail className="h-4 w-4 text-blue-500" />
+                <p>info@baidarsecurity.com</p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <SocialIcon>
+                  <Globe className="h-4 w-4" />
+                </SocialIcon>
+                <SocialIcon>
+                  <Globe2 className="h-4 w-4" />
+                </SocialIcon>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Services */}
-        <div>
-          <h3 className="mb-5 text-lg font-semibold text-slate-900">
-            Services
-          </h3>
-
-          <div className="space-y-3 text-sm text-slate-600">
-            <p>Security Guard Management</p>
-            <p>Attendance Monitoring</p>
-            <p>Incident Reporting</p>
-            <p>Deployment Tracking</p>
-          </div>
-        </div>
-
-        {/* Contact */}
-        <div>
-          <h3 className="mb-5 text-lg font-semibold text-slate-900">Contact</h3>
-
-          <div className="space-y-4 text-sm text-slate-600">
-            <div className="flex items-start gap-3">
-              <MapPin className="mt-1 h-4 w-4 text-blue-600" />
-              <p>Islamabad, Pakistan</p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Phone className="h-4 w-4 text-blue-600" />
-              <p>+92 300 0000000</p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-blue-600" />
-              <p>info@baidarsecurity.com</p>
-            </div>
-
-            {/* Social */}
-            <div className="flex gap-3 pt-3">
-              <SocialIcon>
-                <Globe className="h-4 w-4" />
-              </SocialIcon>
-
-              <SocialIcon>
-                <Globe2 className="h-4 w-4" />
-              </SocialIcon>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom */}
-      <div className="border-t border-slate-200">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-6 text-sm text-slate-500 md:flex-row">
+        <div className="mt-12 flex flex-col gap-4 border-t border-slate-200/70 pt-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
           <p>
             © {new Date().getFullYear()} Baidar Security Service. All rights
             reserved.
           </p>
-
-          <p>Built with Next.js & Tailwind CSS</p>
+          <div className="flex items-center gap-2 text-slate-600">
+            <span>Built for secure operations</span>
+            <ArrowRight className="h-4 w-4 text-red-500" />
+          </div>
         </div>
       </div>
     </footer>
@@ -116,10 +134,10 @@ function FooterLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-function SocialIcon({ children }: { children: React.ReactNode }) {
+function SocialIcon({ children }: { children: ReactNode }) {
   return (
-    <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-600">
+    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-blue-300/60 hover:text-blue-600">
       {children}
-    </button>
+    </div>
   );
 }

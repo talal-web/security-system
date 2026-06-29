@@ -64,7 +64,12 @@ export const getAttendances = async (req, res) => {
           as: "location",
         },
       },
-      { $unwind: "$location" },
+      {
+        $unwind: {
+          path: "$location",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
 
       // JOIN EMPLOYEE
       {
@@ -75,7 +80,12 @@ export const getAttendances = async (req, res) => {
           as: "employee",
         },
       },
-      { $unwind: "$employee" },
+      {
+        $unwind: {
+          path: "$employee",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
 
       // ================= GLOBAL STATS (ALL DATA) =================
       {
@@ -155,54 +165,111 @@ export const getAttendances = async (req, res) => {
           ],
 
           // ================= SECTOR WISE =================
+          // ================= SECTOR -> LOCATION -> EMPLOYEES =================
           sectors: [
+            // Sort before grouping so locations and employees remain ordered
+            {
+              $sort: {
+                "location.sector": 1,
+                "location.sortOrder": 1,
+                "employee.empId": 1,
+              },
+            },
+
+            // Group by Location
             {
               $group: {
-                _id: "$location.sector",
+                _id: {
+                  sector: {
+                    $ifNull: ["$location.sector", "Unknown"],
+                  },
+                  locationId: "$location._id",
+                },
 
-                total: { $sum: 1 },
-
-                present: {
-                  $sum: {
-                    $cond: [{ $eq: ["$status", "present"] }, 1, 0],
+                sector: {
+                  $first: {
+                    $ifNull: ["$location.sector", "Unknown"],
                   },
                 },
 
-                absent: {
-                  $sum: {
-                    $cond: [{ $eq: ["$status", "absent"] }, 1, 0],
+                locationId: {
+                  $first: "$location._id",
+                },
+
+                locationName: {
+                  $first: {
+                    $ifNull: ["$location.name", "Unknown Location"],
                   },
                 },
 
-                leave: {
-                  $sum: {
-                    $cond: [{ $eq: ["$status", "leave"] }, 1, 0],
+                sortOrder: {
+                  $first: {
+                    $ifNull: ["$location.sortOrder", 999999],
                   },
                 },
 
-                day: {
-                  $sum: {
-                    $cond: [{ $eq: ["$shift", "day"] }, 1, 0],
-                  },
-                },
-
-                night: {
-                  $sum: {
-                    $cond: [{ $eq: ["$shift", "night"] }, 1, 0],
+                isActive: {
+                  $first: {
+                    $ifNull: ["$location.isActive", false],
                   },
                 },
 
                 records: {
                   $push: {
-                    _id: "$_id",
-                    empId: "$employee.empId",
-                    name: "$employee.name",
-                    fatherName: "$employee.fatherName",
-                    location: "$location.name",
-                    sector: "$location.sector",
+                    attendanceId: "$_id",
+
+                    employeeId: "$employee._id",
+
+                    empId: {
+                      $ifNull: ["$employee.empId", "-"],
+                    },
+
+                    name: {
+                      $ifNull: ["$employee.name", "Unknown Employee"],
+                    },
+
+                    fatherName: {
+                      $ifNull: ["$employee.fatherName", ""],
+                    },
+
                     shift: "$shift",
+
                     status: "$status",
+
                     date: "$date",
+                  },
+                },
+              },
+            },
+
+            // Keep locations sorted inside each sector
+            {
+              $sort: {
+                sector: 1,
+                sortOrder: 1,
+              },
+            },
+
+            // Group locations into sectors
+            {
+              $group: {
+                _id: "$sector",
+
+                locations: {
+                  $push: {
+                    _id: "$locationId",
+
+                    name: "$locationName",
+
+                    sortOrder: "$sortOrder",
+
+                    isActive: "$isActive",
+
+                    totalEmployees: {
+                      $size: "$records",
+                    },
+
+                    records: "$records",
                   },
                 },
               },
@@ -212,17 +279,15 @@ export const getAttendances = async (req, res) => {
               $project: {
                 _id: 0,
                 sector: "$_id",
-                total: 1,
-                present: 1,
-                absent: 1,
-                leave: 1,
-                day: 1,
-                night: 1,
-                records: 1,
+                locations: 1,
               },
             },
 
-            { $sort: { sector: 1 } },
+            {
+              $sort: {
+                sector: 1,
+              },
+            },
           ],
         },
       },
@@ -421,7 +486,11 @@ export const getAttendanceSession = async (req, res) => {
       isActive: true,
     })
       .select("name sector")
-      .sort({ sector: 1, name: 1 })
+      .sort({
+        sector: 1,
+        sortOrder: 1,
+        name: 1,
+      })
       .lean();
 
     // ==========================================
@@ -542,10 +611,16 @@ export const markAttendanceSession = async (req, res) => {
     const employeeDocs = await Employee.find({
       _id: { $in: employeeIds },
       status: "active",
-    }).select("employeeId name defaultShift sector currentLocation");
+    })
+      .select("employeeId name defaultShift sector currentLocation")
+      .populate("currentLocation", "name isActive");
 
     const invalidEmployees = employeeDocs.filter(
-      (emp) => !emp.defaultShift || !emp.sector || !emp.currentLocation,
+      (emp) =>
+        !emp.defaultShift ||
+        !emp.sector ||
+        !emp.currentLocation ||
+        !emp.currentLocation.isActive,
     );
 
     if (invalidEmployees.length > 0) {
@@ -559,6 +634,9 @@ export const markAttendanceSession = async (req, res) => {
             !emp.defaultShift && "Default Shift",
             !emp.sector && "Sector",
             !emp.currentLocation && "Current Location",
+            emp.currentLocation &&
+              !emp.currentLocation.isActive &&
+              "Current Location (Inactive)",
           ].filter(Boolean),
         })),
       });

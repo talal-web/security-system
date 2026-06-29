@@ -1,4 +1,4 @@
-import AttendanceList from "@/components/attendance/AttendanceList";
+import AttendanceList from "@/components/attendance/view/AttendanceList";
 
 export default function AttendancePage() {
   return <AttendanceList />;

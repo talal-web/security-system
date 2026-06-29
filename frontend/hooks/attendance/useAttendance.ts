@@ -6,7 +6,8 @@ import { getAttendanceBySector } from "@/services/attendance.service";
 
 import type {
   AttendanceFilters,
-  SectorAttendanceResponse,
+  AttendanceRecord,
+  AttendanceResponse,
 } from "@/types/attendance";
 
 // ============================
@@ -33,7 +34,7 @@ export const attendanceKeys = {
 // ============================
 
 export function useAttendances(filters?: AttendanceFilters) {
-  return useQuery<SectorAttendanceResponse, Error>({
+  return useQuery<AttendanceResponse, Error>({
     queryKey: attendanceKeys.list(filters),
     queryFn: () => getAttendanceBySector(filters),
     staleTime: 1000 * 60, // 1 min cache (better UX)

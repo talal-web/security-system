@@ -1,4 +1,5 @@
 import Employee from "../models/Employee.js";
+import Location from "../models/Location.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 import generateEmpId from "../utils/generateEmpId.js";
 
@@ -227,10 +228,15 @@ export const getEmployees = async (req, res, next) => {
     }
 
     if (unassigned === "currentLocation") {
+      const activeIds = (
+        await Location.find({ isActive: true }, "_id").lean()
+      ).map((location) => location._id);
+
       andConditions.push({
         $or: [
           { currentLocation: null },
           { currentLocation: { $exists: false } },
+          { currentLocation: { $nin: activeIds } },
         ],
       });
     }
