@@ -455,15 +455,15 @@ export const markBulkAttendance = async (req, res) => {
 export const getAttendanceSession = async (req, res) => {
   try {
     // ==========================================
-    // TODAY DATE RANGE
+    // ATTENDANCE DATE
     // ==========================================
-    const today = new Date();
+    const attendanceDate = normalizeDate(new Date());
 
     // ==========================================
-    // CHECK IF ATTENDANCE ALREADY EXISTS TODAY
+    // CHECK IF ALREADY MARKED
     // ==========================================
     const attendanceExists = await Attendance.exists({
-      date: normalizeDate(new Date()),
+      date: attendanceDate,
     });
 
     // ==========================================
@@ -473,91 +473,58 @@ export const getAttendanceSession = async (req, res) => {
       status: "active",
     })
       .select(
-        "name fatherName sector currentLocation designation empId defaultShift",
+        "empId name fatherName designation sector defaultShift currentLocation",
       )
-      .populate("currentLocation", "name sector isActive")
-      .sort({ name: 1 })
-      .lean();
-
-    // ==========================================
-    // GET ACTIVE LOCATIONS
-    // ==========================================
-    const locations = await Location.find({
-      isActive: true,
-    })
-      .select("name sector")
+      .populate("currentLocation", "name sector sortOrder isActive")
       .sort({
         sector: 1,
-        sortOrder: 1,
-        name: 1,
+        empId: 1,
       })
       .lean();
-
-    // ==========================================
-    // GROUP LOCATIONS BY SECTOR
-    // ==========================================
-    const locationsBySector = {};
-
-    for (const location of locations) {
-      const sector = location.sector || "Unassigned";
-
-      if (!locationsBySector[sector]) {
-        locationsBySector[sector] = [];
-      }
-
-      locationsBySector[sector].push(location);
-    }
 
     // ==========================================
     // GROUP EMPLOYEES BY SECTOR
     // ==========================================
     const employeesBySector = {};
 
-    for (const emp of employees) {
-      const sector = emp.sector || "Unassigned";
+    for (const employee of employees) {
+      const sector = employee.sector || "Unassigned";
 
       if (!employeesBySector[sector]) {
         employeesBySector[sector] = [];
       }
 
       employeesBySector[sector].push({
-        employeeId: emp._id,
-        empId: emp.empId,
-        name: emp.name,
-        fatherName: emp.fatherName,
-        designation: emp.designation,
-        sector: emp.sector,
-        defaultShift: emp.defaultShift,
+        employeeId: employee._id,
 
-        currentLocation: emp.currentLocation
+        empId: employee.empId,
+        name: employee.name,
+        fatherName: employee.fatherName,
+        designation: employee.designation,
+
+        defaultShift: employee.defaultShift,
+
+        currentLocation: employee.currentLocation
           ? {
-              _id: emp.currentLocation._id,
-              name: emp.currentLocation.name,
-              sector: emp.currentLocation.sector,
-              isActive: emp.currentLocation.isActive,
+              _id: employee.currentLocation._id,
+              name: employee.currentLocation.name,
+              sector: employee.currentLocation.sector,
+              sortOrder: employee.currentLocation.sortOrder,
+              isActive: employee.currentLocation.isActive,
             }
           : null,
       });
     }
 
     // ==========================================
-    // COMBINE SECTOR DATA
+    // BUILD SECTOR RESPONSE
     // ==========================================
-    const allSectors = new Set([
-      ...Object.keys(employeesBySector),
-      ...Object.keys(locationsBySector),
-    ]);
-
-    const sectors = Array.from(allSectors)
+    const sectors = Object.keys(employeesBySector)
       .sort()
       .map((sector) => ({
         sector,
-        totalEmployees: employeesBySector[sector]?.length || 0,
-        totalLocations: locationsBySector[sector]?.length || 0,
-
-        locations: locationsBySector[sector] || [],
-
-        employees: employeesBySector[sector] || [],
+        totalEmployees: employeesBySector[sector].length,
+        employees: employeesBySector[sector],
       }));
 
     // ==========================================
@@ -565,14 +532,11 @@ export const getAttendanceSession = async (req, res) => {
     // ==========================================
     return res.status(200).json({
       success: true,
-
-      attendanceDate: normalizeDate(new Date()),
-
+      attendanceDate,
       alreadyMarked: Boolean(attendanceExists),
 
       stats: {
         totalEmployees: employees.length,
-        totalLocations: locations.length,
         totalSectors: sectors.length,
       },
 
@@ -606,61 +570,104 @@ export const markAttendanceSession = async (req, res) => {
       });
     }
 
+    const attendanceDate = normalizeDate(date);
+
     const employeeIds = employees.map((emp) => emp.employeeId);
 
     const employeeDocs = await Employee.find({
       _id: { $in: employeeIds },
       status: "active",
     })
-      .select("employeeId name defaultShift sector currentLocation")
-      .populate("currentLocation", "name isActive");
+      .select("employeeId name fatherName defaultShift sector currentLocation")
+      .populate("currentLocation", "name sector isActive");
 
-    const invalidEmployees = employeeDocs.filter(
-      (emp) =>
-        !emp.defaultShift ||
-        !emp.sector ||
-        !emp.currentLocation ||
-        !emp.currentLocation.isActive,
+    const employeeMap = new Map(
+      employeeDocs.map((emp) => [emp._id.toString(), emp]),
     );
 
-    if (invalidEmployees.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Some active employees are missing required information.",
-        employees: invalidEmployees.map((emp) => ({
+    const invalidEmployees = [];
+
+    for (const emp of employees) {
+      const employee = employeeMap.get(emp.employeeId);
+
+      if (!employee) {
+        invalidEmployees.push({
           employeeId: emp.employeeId,
-          employeeName: emp.name,
+          missing: ["Employee not found"],
+        });
+        continue;
+      }
+
+      if (
+        emp.status === "present" &&
+        (!employee.defaultShift ||
+          !employee.currentLocation ||
+          !employee.currentLocation.isActive)
+      ) {
+        invalidEmployees.push({
+          employeeId: employee.employeeId,
+          employeeName: employee.name,
           missing: [
-            !emp.defaultShift && "Default Shift",
-            !emp.sector && "Sector",
-            !emp.currentLocation && "Current Location",
-            emp.currentLocation &&
-              !emp.currentLocation.isActive &&
+            !employee.defaultShift && "Default Shift",
+            !employee.currentLocation && "Current Location",
+            employee.currentLocation &&
+              !employee.currentLocation.isActive &&
               "Current Location (Inactive)",
           ].filter(Boolean),
-        })),
+        });
+      }
+    }
+
+    if (invalidEmployees.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Some employees have invalid attendance data.",
+        employees: invalidEmployees,
       });
     }
 
-    const attendanceDate = normalizeDate(date);
+    const operations = employees.map((attendance) => {
+      const employee = employeeMap.get(attendance.employeeId);
 
-    const operations = employees.map((emp) => ({
-      updateOne: {
-        filter: {
-          employee: emp.employeeId,
-          date: attendanceDate,
+      const isPresent = attendance.status === "present";
+
+      return {
+        updateOne: {
+          filter: {
+            employee: employee._id,
+            date: attendanceDate,
+          },
+          update: {
+            employee: employee._id,
+
+            employeeSnapshot: {
+              empId: employee.employeeId,
+              name: employee.name,
+              fatherName: employee.fatherName,
+            },
+
+            date: attendanceDate,
+
+            status: attendance.status,
+
+            shift: isPresent ? employee.defaultShift : null,
+
+            location: isPresent ? employee.currentLocation._id : null,
+
+            locationSnapshot: isPresent
+              ? {
+                  locationId: employee.currentLocation._id,
+                  name: employee.currentLocation.name,
+                  sector: employee.currentLocation.sector,
+                }
+              : null,
+
+            remarks: attendance.remarks || "",
+          },
+          upsert: true,
         },
-        update: {
-          employee: emp.employeeId,
-          location: emp.locationId,
-          date: attendanceDate,
-          shift: emp.shift,
-          status: emp.status,
-          remarks: emp.remarks || "",
-        },
-        upsert: true,
-      },
-    }));
+      };
+    });
 
     await Attendance.bulkWrite(operations);
 

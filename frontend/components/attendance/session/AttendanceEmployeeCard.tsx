@@ -10,10 +10,11 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { AttendanceFormEmployee } from "@/types/attendance-session";
+import type { AttendanceFormEmployee } from "@/types/attendance-session";
 
 interface AttendanceEmployeeCardProps {
   employee: AttendanceFormEmployee;
+
   locations: {
     _id: string;
     name: string;
@@ -78,14 +79,16 @@ export default function AttendanceEmployeeCard({
   onUpdate,
 }: AttendanceEmployeeCardProps) {
   const [showRemarks, setShowRemarks] = useState(
-    Boolean(employee.remarks?.trim()),
+    Boolean(employee.remarks.trim()),
   );
+
+  const isPresent = employee.status === "present";
 
   const isInactiveLocation =
     employee.currentLocation && !employee.currentLocation.isActive;
 
   const initials = employee.name
-    ?.split(" ")
+    .split(" ")
     .map((word) => word[0])
     .join("")
     .slice(0, 2)
@@ -96,30 +99,29 @@ export default function AttendanceEmployeeCard({
       ? "border-green-500"
       : employee.status === "absent"
         ? "border-red-500"
-        : employee.status === "leave"
-          ? "border-amber-400"
-          : "border-slate-200";
+        : "border-amber-400";
 
   return (
     <div
-      className={`rounded-2xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${borderColor}`}
+      className={`rounded-2xl border bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${borderColor}`}
     >
       {/* ================= HEADER ================= */}
+
       <div className="flex items-start gap-3">
         <input
           type="checkbox"
           checked={selected}
           onChange={(e) => onSelect(e.target.checked)}
-          className="mt-2 h-4 w-4 shrink-0 rounded border-slate-300"
+          className="mt-2 h-4 w-4 rounded border-slate-300"
         />
 
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
           {initials}
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate text-sm font-semibold text-slate-900">
+            <h3 className="truncate font-semibold text-slate-900">
               {employee.name}
             </h3>
 
@@ -128,12 +130,12 @@ export default function AttendanceEmployeeCard({
             </span>
           </div>
 
-          <p className="mt-1 truncate text-xs text-slate-500">
-            {employee.designation}
-          </p>
+          <p className="mt-1 text-xs text-slate-500">{employee.designation}</p>
+
+          <p className="mt-1 text-xs text-slate-400">{employee.fatherName}</p>
 
           <div
-            className={`mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium ${
+            className={`mt-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium ${
               isInactiveLocation
                 ? "border border-red-200 bg-red-50 text-red-700"
                 : "bg-slate-100 text-slate-600"
@@ -141,7 +143,7 @@ export default function AttendanceEmployeeCard({
           >
             <MapPin className="h-3.5 w-3.5" />
 
-            {employee.currentLocation?.name ?? "Not Assigned"}
+            {employee.currentLocation?.name ?? "No Current Location"}
 
             {isInactiveLocation && (
               <span className="font-semibold">(Inactive)</span>
@@ -149,15 +151,18 @@ export default function AttendanceEmployeeCard({
           </div>
         </div>
       </div>
+
       {/* ================= STATUS ================= */}
-      <div className="mt-4">
+
+      <div className="mt-5">
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          Attendance
+          Attendance Status
         </p>
 
         <div className="grid grid-cols-3 gap-2">
           {statusOptions.map((status) => {
             const Icon = status.icon;
+
             const active = employee.status === status.value;
 
             return (
@@ -173,104 +178,105 @@ export default function AttendanceEmployeeCard({
               >
                 <Icon className="h-4 w-4" />
 
-                <span>{status.label}</span>
+                {status.label}
               </button>
             );
           })}
         </div>
       </div>
-      {/* Shift + Location starts here in Part 2 */} {/* Location */}
-      <div
-        className={`mb-3 rounded-lg border px-3 py-2 ${
-          isInactiveLocation
-            ? "border-red-200 bg-red-50"
-            : "border-slate-200 bg-slate-50"
-        }`}
-      >
-        <p
-          className={`truncate text-[11px] font-medium ${
-            isInactiveLocation ? "text-red-700" : "text-slate-600"
-          }`}
-        >
-          📍 {employee.currentLocation?.name ?? "Not Assigned"}
-          {isInactiveLocation && (
-            <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
-              Inactive
-            </span>
-          )}
-        </p>
-      </div>
-      {/* ================= SHIFT + LOCATION ================= */}
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        {/* Shift */}
+      {/* ================= PRESENT ONLY ================= */}
 
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            Shift
-          </p>
+      {isPresent && (
+        <div className="mt-5 space-y-4">
+          {/* Shift */}
 
-          <div className="grid grid-cols-2 gap-2">
-            {shiftOptions.map((shift) => {
-              const Icon = shift.icon;
-              const active = employee.shift === shift.value;
+          <div>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              Shift
+            </p>
 
-              return (
-                <button
-                  key={shift.value}
-                  type="button"
-                  onClick={() =>
-                    onUpdate(employee.employeeId, "shift", shift.value)
-                  }
-                  className={`flex items-center justify-center gap-1 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${
-                    active
-                      ? "border-blue-600 bg-blue-600 text-white"
-                      : "border-slate-300 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
+            <div className="grid grid-cols-2 gap-2">
+              {shiftOptions.map((shift) => {
+                const Icon = shift.icon;
 
-                  {shift.label}
-                </button>
-              );
-            })}
+                const active = employee.shift === shift.value;
+
+                return (
+                  <button
+                    key={shift.value}
+                    type="button"
+                    onClick={() =>
+                      onUpdate(employee.employeeId, "shift", shift.value)
+                    }
+                    className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-all ${
+                      active
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : "border-slate-300 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+
+                    {shift.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Location */}
+
+          <div>
+            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              Assigned Location
+            </label>
+
+            <select
+              value={employee.selectedLocation ?? ""}
+              onChange={(e) =>
+                onUpdate(
+                  employee.employeeId,
+                  "selectedLocation",
+                  e.target.value || null,
+                )
+              }
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">Select Location</option>
+
+              {locations.map((location) => (
+                <option key={location._id} value={location._id}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+      )}
 
-        {/* Location */}
+      {/* ================= ABSENT / LEAVE INFO ================= */}
 
-        <div>
-          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            Location
-          </label>
+      {!isPresent && (
+        <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-800">
+            {employee.status === "absent"
+              ? "Employee is marked absent."
+              : "Employee is on leave."}
+          </p>
 
-          <select
-            value={employee.selectedLocation ?? ""}
-            onChange={(e) =>
-              onUpdate(
-                employee.employeeId,
-                "selectedLocation",
-                e.target.value || null,
-              )
-            }
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-          >
-            <option value="">Select Location</option>
-
-            {locations.map((location) => (
-              <option key={location._id} value={location._id}>
-                {location.name}
-              </option>
-            ))}
-          </select>
+          <p className="mt-1 text-xs text-amber-700">
+            Shift and location are not required.
+          </p>
         </div>
-      </div>
+      )}
+
       {/* ================= REMARKS ================= */}
-      <div className="mt-4 border-t border-slate-100 pt-4">
+
+      <div className="mt-5 border-t border-slate-100 pt-4">
         {!showRemarks ? (
           <button
             type="button"
             onClick={() => setShowRemarks(true)}
-            className="text-xs font-medium text-blue-600 transition hover:text-blue-700"
+            className="text-sm font-medium text-blue-600 transition hover:text-blue-700"
           >
             + Add Remark
           </button>
@@ -285,7 +291,7 @@ export default function AttendanceEmployeeCard({
                 <button
                   type="button"
                   onClick={() => setShowRemarks(false)}
-                  className="text-[11px] text-slate-400 hover:text-slate-600"
+                  className="text-xs text-slate-500 hover:text-slate-700"
                 >
                   Hide
                 </button>

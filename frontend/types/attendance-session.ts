@@ -25,7 +25,8 @@ export interface AttendanceSessionEmployee {
 
   designation: string;
   sector: string;
-  defaultShift: EmployeeShift;
+
+  defaultShift: EmployeeShift | null;
 
   currentLocation: AttendanceSessionLocation | null;
 }
@@ -81,7 +82,7 @@ export interface AttendanceFormEmployee extends AttendanceSessionEmployee {
 
   status: AttendanceStatus;
 
-  shift: AttendanceShift;
+  shift: AttendanceShift | null;
 
   remarks: string;
 }
@@ -113,7 +114,7 @@ export interface MarkAttendanceEmployeePayload {
 
   status: AttendanceStatus;
 
-  shift: AttendanceShift;
+  shift: AttendanceShift | null;
 
   remarks?: string;
 }

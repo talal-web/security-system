@@ -2,37 +2,75 @@ import mongoose from "mongoose";
 
 const attendanceSchema = new mongoose.Schema(
   {
-    // EMPLOYEE
+    // ================= EMPLOYEE =================
     employee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
       required: true,
     },
 
-    // LOCATION
-    location: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Location",
-      required: true,
+    employeeSnapshot: {
+      empId: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      name: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      fatherName: {
+        type: String,
+        required: true,
+        trim: true,
+      },
     },
 
-    // DATE (NOW STRING)
+    // ================= ATTENDANCE =================
     date: {
-      type: String, // YYYY-MM-DD (timezone safe)
+      type: String, // YYYY-MM-DD
       required: true,
-    },
-
-    // SHIFT
-    shift: {
-      type: String,
-      enum: ["nil", "day", "night"],
-      default: "nil",
     },
 
     status: {
       type: String,
       enum: ["present", "absent", "leave"],
       required: true,
+    },
+
+    // Only for Present
+    shift: {
+      type: String,
+      enum: ["day", "night"],
+      default: null,
+    },
+
+    // ================= LOCATION =================
+    location: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Location",
+      default: null,
+    },
+
+    locationSnapshot: {
+      locationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null,
+      },
+
+      name: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+
+      sector: {
+        type: String,
+        default: "",
+      },
     },
 
     remarks: {
@@ -46,17 +84,18 @@ const attendanceSchema = new mongoose.Schema(
   },
 );
 
-// INDEXES (UPDATED for string date)
 attendanceSchema.index(
   {
     employee: 1,
     date: 1,
   },
-  { unique: true },
+  {
+    unique: true,
+  },
 );
 
-attendanceSchema.index({ employee: 1 });
 attendanceSchema.index({ date: 1 });
+attendanceSchema.index({ employee: 1 });
 attendanceSchema.index({ location: 1 });
 
 const Attendance =

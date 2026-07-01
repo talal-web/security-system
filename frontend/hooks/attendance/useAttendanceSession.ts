@@ -9,10 +9,7 @@ import type {
   AttendanceSessionResponse,
   MarkAttendanceSessionPayload,
   MarkAttendanceSessionResponse,
-  MarkAttendanceSessionValidationResponse,
 } from "@/types/attendance-session";
-
-import { ApiError } from "@/lib/api-error";
 
 // ======================================
 // QUERY KEYS
@@ -42,7 +39,7 @@ export function useMarkAttendanceSession() {
 
   return useMutation<
     MarkAttendanceSessionResponse,
-    ApiError<MarkAttendanceSessionValidationResponse>,
+    Error,
     MarkAttendanceSessionPayload
   >({
     mutationFn: markAttendanceSession,
