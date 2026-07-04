@@ -1,66 +1,60 @@
 import type { AttendanceShift, AttendanceStatus } from "./attendance";
 import { EmployeeShift } from "./employee";
 
-// ======================================
-// LOCATION
-// ======================================
-
-export interface AttendanceSessionLocation {
-  _id: string;
-  name: string;
-  sector: string;
-  isActive: boolean;
-}
-
-// ======================================
 // EMPLOYEE
-// ======================================
-
 export interface AttendanceSessionEmployee {
   employeeId: string;
+
   empId: string;
 
   name: string;
   fatherName: string;
 
   designation: string;
-  sector: string;
 
   defaultShift: EmployeeShift | null;
 
-  currentLocation: AttendanceSessionLocation | null;
+  currentLocation?: Pick<
+    AttendanceSessionLocation,
+    "_id" | "name" | "isActive"
+  > | null;
 }
+// LOCATION
+export interface AttendanceSessionLocation {
+  _id: string;
 
-// ======================================
-// SECTOR
-// ======================================
+  name: string;
 
-export interface AttendanceSessionSector {
-  sector: string;
+  sortOrder: number;
 
-  totalEmployees: number;
-  totalLocations: number;
+  isActive: boolean;
 
-  locations: AttendanceSessionLocation[];
+  employeeCount: number;
 
   employees: AttendanceSessionEmployee[];
 }
 
-// ======================================
-// STATS
-// ======================================
+// SECTOR
+export interface AttendanceSessionSector {
+  sector: string;
 
+  totalEmployees: number;
+
+  totalLocations: number;
+
+  locations: AttendanceSessionLocation[];
+}
+
+// STATS
 export interface AttendanceSessionStats {
   totalEmployees: number;
+
   totalLocations: number;
+
   totalSectors: number;
 }
 
-// ======================================
-// GET ATTENDANCE SESSION
 // GET /attendance/session
-// ======================================
-
 export interface AttendanceSessionResponse {
   success: boolean;
 
@@ -73,9 +67,7 @@ export interface AttendanceSessionResponse {
   sectors: AttendanceSessionSector[];
 }
 
-// ======================================
-// FRONTEND ATTENDANCE FORM STATE
-// ======================================
+// FRONTEND EMPLOYEE STATE
 
 export interface AttendanceFormEmployee extends AttendanceSessionEmployee {
   selectedLocation: string | null;
@@ -87,26 +79,28 @@ export interface AttendanceFormEmployee extends AttendanceSessionEmployee {
   remarks: string;
 }
 
-// ======================================
-// FRONTEND SECTOR STATE
-// ======================================
-
-export interface AttendanceFormSector {
-  sector: string;
-
-  totalEmployees: number;
-  totalLocations: number;
-
-  locations: AttendanceSessionLocation[];
+// FRONTEND LOCATION STATE
+export interface AttendanceFormLocation extends Omit<
+  AttendanceSessionLocation,
+  "employees" | "employeeCount"
+> {
+  employeeCount: number;
 
   employees: AttendanceFormEmployee[];
 }
 
-// ======================================
-// MARK ATTENDANCE SESSION
-// POST /attendance/mark/session
-// ======================================
+// FRONTEND SECTOR STATE
+export interface AttendanceFormSector {
+  sector: string;
 
+  totalEmployees: number;
+
+  totalLocations: number;
+
+  locations: AttendanceFormLocation[];
+}
+
+// MARK ATTENDANCE SESSION
 export interface MarkAttendanceEmployeePayload {
   employeeId: string;
 

@@ -36,6 +36,7 @@ interface AttendanceFiltersProps {
   onClearSelection: () => void;
 
   onSubmit: () => void;
+  onReview?: () => void;
 }
 
 export default function AttendanceFilters({
@@ -55,6 +56,7 @@ export default function AttendanceFilters({
 
   onClearSelection,
   onSubmit,
+  onReview,
 }: AttendanceFiltersProps) {
   return (
     <div className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -170,16 +172,28 @@ export default function AttendanceFilters({
         </button>
 
         <div className="ml-auto">
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Send className="h-4 w-4" />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onReview}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Review
+            </button>
 
-            {isSubmitting ? "Saving..." : "Submit Attendance"}
-          </button>
+            <button
+              type="button"
+              onClick={onSubmit}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" />
+
+              {isSubmitting ? "Saving..." : "Submit Attendance"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

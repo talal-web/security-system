@@ -14,9 +14,36 @@ export const createAttendance = async (req, res) => {
   try {
     const { employeeId, locationId, date, shift, status, remarks } = req.body;
 
+    const employee = await Employee.findById(employeeId).select(
+      "empId name fatherName",
+    );
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    const location = locationId
+      ? await Location.findById(locationId).select("name sector")
+      : null;
+
     const attendance = await Attendance.create({
       employee: employeeId,
+      employeeSnapshot: {
+        empId: employee.empId,
+        name: employee.name,
+        fatherName: employee.fatherName,
+      },
       location: locationId,
+      locationSnapshot: location
+        ? {
+            locationId: location._id,
+            name: location.name,
+            sector: location.sector,
+          }
+        : null,
       date: normalizeDate(date), // 👈 IMPORTANT
       shift,
       status,
@@ -420,7 +447,6 @@ export const markBulkAttendance = async (req, res) => {
         filter: {
           employee: emp.employeeId,
           date: attendanceDate,
-          shift,
         },
         update: {
           employee: emp.employeeId,
@@ -454,17 +480,25 @@ export const markBulkAttendance = async (req, res) => {
 
 export const getAttendanceSession = async (req, res) => {
   try {
-    // ==========================================
-    // ATTENDANCE DATE
-    // ==========================================
     const attendanceDate = normalizeDate(new Date());
 
-    // ==========================================
-    // CHECK IF ALREADY MARKED
-    // ==========================================
     const attendanceExists = await Attendance.exists({
       date: attendanceDate,
     });
+
+    // ==========================================
+    // GET ACTIVE LOCATIONS
+    // ==========================================
+    const locations = await Location.find({
+      isActive: true,
+    })
+      .select("name sector sortOrder isActive")
+      .sort({
+        sector: 1,
+        sortOrder: 1,
+        name: 1,
+      })
+      .lean();
 
     // ==========================================
     // GET ACTIVE EMPLOYEES
@@ -475,26 +509,35 @@ export const getAttendanceSession = async (req, res) => {
       .select(
         "empId name fatherName designation sector defaultShift currentLocation",
       )
-      .populate("currentLocation", "name sector sortOrder isActive")
-      .sort({
-        sector: 1,
-        empId: 1,
-      })
       .lean();
 
     // ==========================================
-    // GROUP EMPLOYEES BY SECTOR
+    // LOCATION MAP
     // ==========================================
-    const employeesBySector = {};
+    const locationMap = new Map();
 
+    for (const location of locations) {
+      locationMap.set(location._id.toString(), {
+        _id: location._id,
+        name: location.name,
+        sortOrder: location.sortOrder,
+        isActive: Boolean(location.isActive),
+        employeeCount: 0,
+        employees: [],
+      });
+    }
+
+    // ==========================================
+    // ATTACH EMPLOYEES TO LOCATIONS
+    // ==========================================
     for (const employee of employees) {
-      const sector = employee.sector || "Unassigned";
+      if (!employee.currentLocation) continue;
 
-      if (!employeesBySector[sector]) {
-        employeesBySector[sector] = [];
-      }
+      const location = locationMap.get(employee.currentLocation.toString());
 
-      employeesBySector[sector].push({
+      if (!location) continue;
+
+      location.employees.push({
         employeeId: employee._id,
 
         empId: employee.empId,
@@ -503,40 +546,59 @@ export const getAttendanceSession = async (req, res) => {
         designation: employee.designation,
 
         defaultShift: employee.defaultShift,
-
-        currentLocation: employee.currentLocation
-          ? {
-              _id: employee.currentLocation._id,
-              name: employee.currentLocation.name,
-              sector: employee.currentLocation.sector,
-              sortOrder: employee.currentLocation.sortOrder,
-              isActive: employee.currentLocation.isActive,
-            }
-          : null,
       });
+
+      location.employeeCount++;
     }
 
     // ==========================================
-    // BUILD SECTOR RESPONSE
+    // GROUP LOCATIONS BY SECTOR
     // ==========================================
-    const sectors = Object.keys(employeesBySector)
-      .sort()
-      .map((sector) => ({
-        sector,
-        totalEmployees: employeesBySector[sector].length,
-        employees: employeesBySector[sector],
-      }));
+    const sectorMap = new Map();
+
+    for (const location of locations) {
+      const sector = location.sector || "Unassigned";
+
+      if (!sectorMap.has(sector)) {
+        sectorMap.set(sector, {
+          sector,
+          totalLocations: 0,
+          totalEmployees: 0,
+          locations: [],
+        });
+      }
+
+      const sectorData = sectorMap.get(sector);
+
+      const locationData = locationMap.get(location._id.toString());
+
+      sectorData.locations.push(locationData);
+
+      sectorData.totalLocations++;
+
+      sectorData.totalEmployees += locationData.employeeCount;
+    }
+
+    // ==========================================
+    // FINAL SECTORS
+    // ==========================================
+    const sectors = Array.from(sectorMap.values()).sort((a, b) =>
+      a.sector.localeCompare(b.sector),
+    );
 
     // ==========================================
     // RESPONSE
     // ==========================================
     return res.status(200).json({
       success: true,
+
       attendanceDate,
+
       alreadyMarked: Boolean(attendanceExists),
 
       stats: {
         totalEmployees: employees.length,
+        totalLocations: locations.length,
         totalSectors: sectors.length,
       },
 
@@ -573,6 +635,9 @@ export const markAttendanceSession = async (req, res) => {
     const attendanceDate = normalizeDate(date);
 
     const employeeIds = employees.map((emp) => emp.employeeId);
+    const locationIds = employees
+      .filter((emp) => emp.status === "present" && emp.locationId)
+      .map((emp) => emp.locationId);
 
     const employeeDocs = await Employee.find({
       _id: { $in: employeeIds },
@@ -581,8 +646,15 @@ export const markAttendanceSession = async (req, res) => {
       .select("employeeId name fatherName defaultShift sector currentLocation")
       .populate("currentLocation", "name sector isActive");
 
+    const locationDocs = await Location.find({
+      _id: { $in: locationIds },
+    }).select("name sector isActive");
+
     const employeeMap = new Map(
       employeeDocs.map((emp) => [emp._id.toString(), emp]),
+    );
+    const locationMap = new Map(
+      locationDocs.map((loc) => [loc._id.toString(), loc]),
     );
 
     const invalidEmployees = [];
@@ -598,23 +670,36 @@ export const markAttendanceSession = async (req, res) => {
         continue;
       }
 
-      if (
-        emp.status === "present" &&
-        (!employee.defaultShift ||
-          !employee.currentLocation ||
-          !employee.currentLocation.isActive)
-      ) {
-        invalidEmployees.push({
-          employeeId: employee.employeeId,
-          employeeName: employee.name,
-          missing: [
-            !employee.defaultShift && "Default Shift",
-            !employee.currentLocation && "Current Location",
-            employee.currentLocation &&
-              !employee.currentLocation.isActive &&
-              "Current Location (Inactive)",
-          ].filter(Boolean),
-        });
+      if (emp.status === "present") {
+        const missingReasons = [];
+
+        if (!emp.shift) {
+          missingReasons.push("Shift");
+        }
+
+        if (!emp.locationId) {
+          missingReasons.push("Location");
+        }
+
+        const location = emp.locationId
+          ? locationMap.get(emp.locationId)
+          : null;
+
+        if (emp.locationId && !location) {
+          missingReasons.push("Location not found");
+        }
+
+        if (location && !location.isActive) {
+          missingReasons.push("Location is inactive");
+        }
+
+        if (missingReasons.length > 0) {
+          invalidEmployees.push({
+            employeeId: employee.employeeId,
+            employeeName: employee.name,
+            missing: missingReasons,
+          });
+        }
       }
     }
 
@@ -628,7 +713,9 @@ export const markAttendanceSession = async (req, res) => {
 
     const operations = employees.map((attendance) => {
       const employee = employeeMap.get(attendance.employeeId);
-
+      const location = attendance.locationId
+        ? locationMap.get(attendance.locationId)
+        : null;
       const isPresent = attendance.status === "present";
 
       return {
@@ -650,17 +737,18 @@ export const markAttendanceSession = async (req, res) => {
 
             status: attendance.status,
 
-            shift: isPresent ? employee.defaultShift : null,
+            shift: isPresent ? attendance.shift : null,
 
-            location: isPresent ? employee.currentLocation._id : null,
+            location: isPresent ? location?._id : null,
 
-            locationSnapshot: isPresent
-              ? {
-                  locationId: employee.currentLocation._id,
-                  name: employee.currentLocation.name,
-                  sector: employee.currentLocation.sector,
-                }
-              : null,
+            locationSnapshot:
+              isPresent && location
+                ? {
+                    locationId: location._id,
+                    name: location.name,
+                    sector: location.sector,
+                  }
+                : null,
 
             remarks: attendance.remarks || "",
           },

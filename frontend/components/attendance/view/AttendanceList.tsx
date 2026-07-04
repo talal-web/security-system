@@ -39,8 +39,8 @@ export default function AttendanceList() {
 
   const getShiftStyle = (shift: AttendanceShift) => {
     return shift === "day"
-      ? "inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700"
-      : "inline-flex items-center rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-700";
+      ? "inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200"
+      : "inline-flex items-center rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-800 ring-1 ring-indigo-200";
   };
 
   const getSectorRows = (sector: AttendanceSector) => {

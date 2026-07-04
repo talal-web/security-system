@@ -10,6 +10,7 @@ import {
 
 import type {
   AttendanceFormEmployee,
+  AttendanceFormLocation,
   AttendanceFormSector,
 } from "@/types/attendance-session";
 
@@ -40,6 +41,7 @@ export function useAttendanceSessionPage() {
     Record<string, boolean>
   >({});
 
+  const [isReviewMode, setIsReviewMode] = useState(false);
   // ======================================
   // DATE
   // ======================================
@@ -57,40 +59,60 @@ export function useAttendanceSessionPage() {
   // INITIALIZE FORM
   // ======================================
 
-  useEffect(() => {
-    if (!data?.sectors) return;
+  const initialSectors = useMemo(() => {
+    if (!data?.sectors) return [] as AttendanceFormSector[];
 
-    setSectors(
-      data.sectors.map((sector) => ({
-        ...sector,
+    return data.sectors.map((sector) => ({
+      sector: sector.sector,
+      totalEmployees: sector.totalEmployees,
+      totalLocations: sector.totalLocations,
 
-        locations: Array.isArray(sector.locations) ? sector.locations : [],
+      locations: sector.locations.map(
+        (location): AttendanceFormLocation => ({
+          ...location,
 
-        employees: Array.isArray(sector.employees)
-          ? sector.employees.map((emp) => ({
+          employees: location.employees.map(
+            (emp): AttendanceFormEmployee => ({
               ...emp,
 
-              selectedLocation: emp.currentLocation?._id ?? null,
+              currentLocation: {
+                _id: location._id,
+                name: location.name,
+                isActive: location.isActive,
+              },
+
+              selectedLocation: location._id,
 
               status: "present",
 
               shift: emp.defaultShift ?? null,
 
               remarks: "",
-            }))
-          : [],
-      })),
-    );
-
-    setSelectedEmployees({});
+            }),
+          ),
+        }),
+      ),
+    })) as AttendanceFormSector[];
   }, [data]);
+
+  useEffect(() => {
+    if (!data?.sectors) return;
+
+    queueMicrotask(() => {
+      setSectors(initialSectors);
+      setSelectedEmployees({});
+    });
+  }, [data?.sectors, initialSectors]);
 
   // ======================================
   // ALL EMPLOYEES
   // ======================================
 
   const allEmployees = useMemo(
-    () => sectors.flatMap((sector) => sector.employees),
+    () =>
+      sectors.flatMap((sector) =>
+        sector.locations.flatMap((location) => location.employees),
+      ),
     [sectors],
   );
 
@@ -121,25 +143,22 @@ export function useAttendanceSessionPage() {
   );
 
   // ======================================
-  // SEARCHED EMPLOYEES
+  // SEARCH
   // ======================================
 
   const searchedEmployees = useMemo(() => {
+    const q = query.trim().toLowerCase();
+
     return allEmployees.filter((emp) => {
-      const matchesQuery = [
-        emp.name,
-        emp.empId,
-        emp.fatherName,
-        emp.designation,
-        emp.currentLocation?.name,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(query.toLowerCase());
+      const matchesQuery =
+        q === "" ||
+        [emp.name, emp.empId, emp.fatherName, emp.designation]
+          .join(" ")
+          .toLowerCase()
+          .includes(q);
 
       const matchesStatus =
-        statusFilter === "all" ? true : emp.status === statusFilter;
+        statusFilter === "all" || emp.status === statusFilter;
 
       return matchesQuery && matchesStatus;
     });
@@ -150,68 +169,79 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const presentSectors = useMemo(() => {
+    const q = query.trim().toLowerCase();
+
     return sectors
       .map((sector) => ({
         ...sector,
 
-        employees: sector.employees.filter((emp) => {
-          if (emp.status !== "present") return false;
+        locations: sector.locations
+          .map((location) => ({
+            ...location,
 
-          if (
-            query &&
-            ![emp.name, emp.empId, emp.designation, emp.currentLocation?.name]
-              .filter(Boolean)
-              .join(" ")
-              .toLowerCase()
-              .includes(query.toLowerCase())
-          ) {
-            return false;
-          }
+            employees: location.employees.filter((emp) => {
+              if (emp.status !== "present") return false;
 
-          if (statusFilter !== "all" && statusFilter !== "present") {
-            return false;
-          }
+              if (statusFilter !== "all" && statusFilter !== "present") {
+                return false;
+              }
 
-          return true;
-        }),
+              if (!q) return true;
+
+              return [
+                emp.name,
+                emp.empId,
+                emp.fatherName,
+                emp.designation,
+                location.name,
+              ]
+                .join(" ")
+                .toLowerCase()
+                .includes(q);
+            }),
+          }))
+          .filter((location) => location.employees.length > 0),
       }))
-      .filter((sector) => sector.employees.length > 0);
+      .filter((sector) => sector.locations.length > 0);
   }, [sectors, query, statusFilter]);
 
   // ======================================
-  // ABSENT EMPLOYEES
+  // ABSENT
   // ======================================
 
-  const absentEmployees = useMemo(() => {
-    return searchedEmployees.filter((emp) => emp.status === "absent");
-  }, [searchedEmployees]);
+  const absentEmployees = useMemo(
+    () => searchedEmployees.filter((emp) => emp.status === "absent"),
+    [searchedEmployees],
+  );
 
   // ======================================
-  // LEAVE EMPLOYEES
+  // LEAVE
   // ======================================
 
-  const leaveEmployees = useMemo(() => {
-    return searchedEmployees.filter((emp) => emp.status === "leave");
-  }, [searchedEmployees]);
+  const leaveEmployees = useMemo(
+    () => searchedEmployees.filter((emp) => emp.status === "leave"),
+    [searchedEmployees],
+  );
 
   // ======================================
-  // VISIBLE EMPLOYEES
+  // VISIBLE COUNT
   // ======================================
 
   const visibleEmployeeCount = useMemo(
     () =>
       presentSectors.reduce(
-        (count, sector) => count + sector.employees.length,
+        (total, sector) =>
+          total +
+          sector.locations.reduce(
+            (count, location) => count + location.employees.length,
+            0,
+          ),
         0,
       ) +
       absentEmployees.length +
       leaveEmployees.length,
     [presentSectors, absentEmployees, leaveEmployees],
   );
-  // ======================================
-  // EMPLOYEE UPDATE
-  // ======================================
-
   const handleEmployeeChange = (
     employeeId: string,
     field: keyof AttendanceFormEmployee,
@@ -220,40 +250,41 @@ export function useAttendanceSessionPage() {
     setSectors((prev) =>
       prev.map((sector) => ({
         ...sector,
-        employees: sector.employees.map((emp) => {
-          if (emp.employeeId !== employeeId) {
-            return emp;
-          }
+        locations: sector.locations.map((location) => ({
+          ...location,
+          employees: location.employees.map((emp) => {
+            if (emp.employeeId !== employeeId) {
+              return emp;
+            }
 
-          // Status changed
-          if (field === "status") {
-            const status = value as AttendanceFormEmployee["status"];
+            // Status changed
+            if (field === "status") {
+              const status = value as AttendanceFormEmployee["status"];
 
-            // Present
-            if (status === "present") {
+              if (status === "present") {
+                return {
+                  ...emp,
+                  status,
+                  shift: emp.defaultShift ?? null,
+                  selectedLocation:
+                    emp.selectedLocation ?? emp.currentLocation?._id ?? null,
+                };
+              }
+
               return {
                 ...emp,
                 status,
-                shift: emp.defaultShift ?? null,
-                selectedLocation:
-                  emp.selectedLocation ?? emp.currentLocation?._id ?? null,
+                shift: null,
+                selectedLocation: null,
               };
             }
 
-            // Absent / Leave
             return {
               ...emp,
-              status,
-              shift: null,
-              selectedLocation: null,
+              [field]: value,
             };
-          }
-
-          return {
-            ...emp,
-            [field]: value,
-          };
-        }),
+          }),
+        })),
       })),
     );
   };
@@ -271,28 +302,31 @@ export function useAttendanceSessionPage() {
     setSectors((prev) =>
       prev.map((sector) => ({
         ...sector,
-        employees: sector.employees.map((emp) => {
-          if (!selectedEmployees[emp.employeeId]) {
-            return emp;
-          }
+        locations: sector.locations.map((location) => ({
+          ...location,
+          employees: location.employees.map((emp) => {
+            if (!selectedEmployees[emp.employeeId]) {
+              return emp;
+            }
 
-          if (status === "present") {
+            if (status === "present") {
+              return {
+                ...emp,
+                status,
+                shift: emp.defaultShift ?? null,
+                selectedLocation:
+                  emp.selectedLocation ?? emp.currentLocation?._id ?? null,
+              };
+            }
+
             return {
               ...emp,
               status,
-              shift: emp.defaultShift ?? null,
-              selectedLocation:
-                emp.selectedLocation ?? emp.currentLocation?._id ?? null,
+              shift: null,
+              selectedLocation: null,
             };
-          }
-
-          return {
-            ...emp,
-            status,
-            shift: null,
-            selectedLocation: null,
-          };
-        }),
+          }),
+        })),
       })),
     );
 
@@ -330,24 +364,34 @@ export function useAttendanceSessionPage() {
     toast.success("Selection cleared.");
   };
 
+  const openReview = () => {
+    const invalidEmployee = allEmployees.find(
+      (emp) =>
+        emp.status === "present" && (!emp.selectedLocation || !emp.shift),
+    );
+
+    if (invalidEmployee) {
+      toast.error(
+        `${invalidEmployee.name} must have both a location and a shift.`,
+      );
+
+      return false;
+    }
+
+    setIsReviewMode(true);
+    return true;
+  };
+
+  const closeReview = () => {
+    setIsReviewMode(false);
+  };
+
   // ======================================
   // SUBMIT
   // ======================================
 
   const handleSubmit = async () => {
     try {
-      const invalidEmployee = allEmployees.find(
-        (emp) =>
-          emp.status === "present" && (!emp.selectedLocation || !emp.shift),
-      );
-
-      if (invalidEmployee) {
-        toast.error(
-          `${invalidEmployee.name} must have both a location and a shift.`,
-        );
-        return;
-      }
-
       await markAttendanceMutation.mutateAsync({
         date: dateValue,
 
@@ -371,12 +415,58 @@ export function useAttendanceSessionPage() {
       );
 
       setSelectedEmployees({});
+      setIsReviewMode(false);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to submit attendance.",
       );
     }
   };
+
+  const reviewValidation = useMemo(() => {
+    const missingShift = allEmployees.filter(
+      (emp) => emp.status === "present" && !emp.shift,
+    );
+
+    const missingLocation = allEmployees.filter(
+      (emp) => emp.status === "present" && !emp.selectedLocation,
+    );
+
+    const inactiveLocation = allEmployees.filter(
+      (emp) =>
+        emp.status === "present" &&
+        emp.currentLocation &&
+        !emp.currentLocation.isActive,
+    );
+
+    const hasIssues =
+      missingShift.length > 0 ||
+      missingLocation.length > 0 ||
+      inactiveLocation.length > 0;
+
+    const reviewSummary = {
+      missingShiftCount: missingShift.length,
+      missingLocationCount: missingLocation.length,
+      inactiveLocationCount: inactiveLocation.length,
+      totalIssues:
+        missingShift.length + missingLocation.length + inactiveLocation.length,
+    };
+
+    return {
+      missingShift,
+      missingLocation,
+      inactiveLocation,
+      // Review helpers
+      isReviewMode,
+      openReview,
+      closeReview,
+
+      reviewSummary,
+
+      allEmployees,
+      hasIssues,
+    };
+  }, [allEmployees, isReviewMode, openReview, closeReview]);
 
   // ======================================
   // RETURN
@@ -407,6 +497,8 @@ export function useAttendanceSessionPage() {
     absentEmployees,
     leaveEmployees,
 
+    allEmployees,
+
     visibleEmployeeCount,
 
     // Selection
@@ -416,6 +508,12 @@ export function useAttendanceSessionPage() {
 
     toggleEmployeeSelection,
     clearSelection,
+
+    // Review
+    reviewValidation,
+    isReviewMode,
+    openReview,
+    closeReview,
 
     // Mutation
     markAttendanceMutation,

@@ -32,11 +32,16 @@ export default function AttendanceSectorList({
   const presentSectors = sectors
     .map((sector) => ({
       ...sector,
-      employees: sector.employees.filter(
-        (employee) => employee.status === "present",
-      ),
+      locations: sector.locations
+        .map((location) => ({
+          ...location,
+          employees: location.employees.filter(
+            (employee) => employee.status === "present",
+          ),
+        }))
+        .filter((location) => location.employees.length > 0),
     }))
-    .filter((sector) => sector.employees.length > 0);
+    .filter((sector) => sector.locations.length > 0);
 
   if (presentSectors.length === 0) {
     return (

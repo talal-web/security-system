@@ -30,8 +30,11 @@ export default function AttendanceAbsentLeaveList({
   onEmployeeChange,
 }: AttendanceAbsentLeaveListProps) {
   const employees = sectors.flatMap((sector) =>
-    sector.employees.filter(
-      (employee) => employee.status === "absent" || employee.status === "leave",
+    sector.locations.flatMap((location) =>
+      location.employees.filter(
+        (employee) =>
+          employee.status === "absent" || employee.status === "leave",
+      ),
     ),
   );
 
@@ -63,7 +66,7 @@ export default function AttendanceAbsentLeaveList({
 
       {/* Cards */}
 
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {employees.map((employee) => (
           <AttendanceAbsentLeaveCard
             key={employee.employeeId}
