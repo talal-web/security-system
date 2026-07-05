@@ -1,48 +1,20 @@
 import express from "express";
 
 import {
-  createAttendance,
-  getAttendances,
-  getAttendanceById,
-  updateAttendance,
-  deleteAttendance,
-  markBulkAttendance,
-
-  // NEW
+  getAttendanceReport,
   getAttendanceSession,
-  markAttendanceSession,
+  submitAttendanceSession,
 } from "../controllers/attendanceController.js";
 
 const router = express.Router();
 
-// ======================================
-// ATTENDANCE SESSION
-// ======================================
-
-// Fetch employees + locations for attendance page
+// Fetch attendance session (employees, locations, defaults)
 router.get("/session", getAttendanceSession);
 
-// Mark attendance for all employees
-router.post("/mark/session", markAttendanceSession);
+// Submit/update attendance session
+router.post("/session", submitAttendanceSession);
 
-// ======================================
-// BULK ATTENDANCE
-// ======================================
-
-router.post("/bulk", markBulkAttendance);
-
-// ======================================
-// CRUD
-// ======================================
-
-router.post("/", createAttendance);
-
-router.get("/sector", getAttendances);
-
-router.get("/:id", getAttendanceById);
-
-router.patch("/:id", updateAttendance);
-
-router.delete("/:id", deleteAttendance);
+// Attendance reports & statistics
+router.get("/report", getAttendanceReport);
 
 export default router;

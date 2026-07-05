@@ -10,61 +10,9 @@ const normalizeDate = (date) => {
   }
   return parsed.toISOString().split("T")[0];
 };
-export const createAttendance = async (req, res) => {
-  try {
-    const { employeeId, locationId, date, shift, status, remarks } = req.body;
-
-    const employee = await Employee.findById(employeeId).select(
-      "empId name fatherName",
-    );
-
-    if (!employee) {
-      return res.status(404).json({
-        success: false,
-        message: "Employee not found",
-      });
-    }
-
-    const location = locationId
-      ? await Location.findById(locationId).select("name sector")
-      : null;
-
-    const attendance = await Attendance.create({
-      employee: employeeId,
-      employeeSnapshot: {
-        empId: employee.empId,
-        name: employee.name,
-        fatherName: employee.fatherName,
-      },
-      location: locationId,
-      locationSnapshot: location
-        ? {
-            locationId: location._id,
-            name: location.name,
-            sector: location.sector,
-          }
-        : null,
-      date: normalizeDate(date), // 👈 IMPORTANT
-      shift,
-      status,
-      remarks,
-    });
-
-    return res.status(201).json({
-      success: true,
-      message: "Attendance marked successfully",
-      data: attendance,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
 
 // GET /api/attendance
-export const getAttendances = async (req, res) => {
+export const getAttendanceReport = async (req, res) => {
   try {
     const { status, shift, date } = req.query;
 
@@ -342,137 +290,6 @@ export const getAttendances = async (req, res) => {
     });
   }
 };
-// GET /api/attendance/:id
-
-export const getAttendanceById = async (req, res) => {
-  try {
-    const attendance = await Attendance.findById(req.params.id)
-      .populate("employee", "empId name designation")
-      .populate("location", "name")
-      .lean();
-
-    if (!attendance) {
-      return res.status(404).json({
-        success: false,
-        message: "Attendance not found",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Attendance fetched successfully",
-      data: attendance,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// PATCH /api/attendance/:id
-
-export const updateAttendance = async (req, res) => {
-  try {
-    if (req.body.date) {
-      req.body.date = normalizeDate(req.body.date);
-    }
-
-    const attendance = await Attendance.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      },
-    )
-      .populate("employee", "empId name designation")
-      .populate("location", "name");
-
-    if (!attendance) {
-      return res.status(404).json({
-        success: false,
-        message: "Attendance not found",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Attendance updated successfully",
-      data: attendance,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// DELETE /api/attendance/:id
-
-export const deleteAttendance = async (req, res) => {
-  try {
-    const attendance = await Attendance.findByIdAndDelete(req.params.id);
-
-    if (!attendance) {
-      return res.status(404).json({
-        success: false,
-        message: "Attendance not found",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Attendance deleted successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// Mark All Employee
-export const markBulkAttendance = async (req, res) => {
-  try {
-    const { date, shift, locationId, employees } = req.body;
-
-    const attendanceDate = normalizeDate(date);
-
-    const operations = employees.map((emp) => ({
-      updateOne: {
-        filter: {
-          employee: emp.employeeId,
-          date: attendanceDate,
-        },
-        update: {
-          employee: emp.employeeId,
-          location: locationId,
-          date: attendanceDate,
-          shift,
-          status: emp.status,
-          remarks: emp.remarks || "",
-        },
-        upsert: true,
-      },
-    }));
-
-    await Attendance.bulkWrite(operations);
-
-    return res.status(200).json({
-      success: true,
-      message: "Attendance marked successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
 
 // ======================================
 // GET ATTENDANCE SESSION
@@ -614,7 +431,7 @@ export const getAttendanceSession = async (req, res) => {
 // ======================================
 // MARK ATTENDANCE SESSION
 // ======================================
-export const markAttendanceSession = async (req, res) => {
+export const submitAttendanceSession = async (req, res) => {
   try {
     const { date, employees } = req.body;
 
@@ -643,7 +460,7 @@ export const markAttendanceSession = async (req, res) => {
       _id: { $in: employeeIds },
       status: "active",
     })
-      .select("employeeId name fatherName defaultShift sector currentLocation")
+      .select("empId name fatherName defaultShift sector currentLocation")
       .populate("currentLocation", "name sector isActive");
 
     const locationDocs = await Location.find({
@@ -695,7 +512,8 @@ export const markAttendanceSession = async (req, res) => {
 
         if (missingReasons.length > 0) {
           invalidEmployees.push({
-            employeeId: employee.employeeId,
+            employeeId: employee._id,
+            empId: employee.empId,
             employeeName: employee.name,
             missing: missingReasons,
           });
@@ -725,32 +543,37 @@ export const markAttendanceSession = async (req, res) => {
             date: attendanceDate,
           },
           update: {
-            employee: employee._id,
+            $set: {
+              employee: employee._id,
 
-            employeeSnapshot: {
-              empId: employee.employeeId,
-              name: employee.name,
-              fatherName: employee.fatherName,
+              employeeSnapshot: {
+                empId: employee.empId,
+                name: employee.name,
+                fatherName: employee.fatherName,
+              },
+
+              date: attendanceDate,
+              status: attendance.status,
+
+              shift: isPresent ? attendance.shift : null,
+
+              location: isPresent ? location?._id : null,
+
+              locationSnapshot:
+                isPresent && location
+                  ? {
+                      locationId: location._id,
+                      name: location.name,
+                      sector: location.sector,
+                    }
+                  : {
+                      locationId: null,
+                      name: "",
+                      sector: "",
+                    },
+
+              remarks: attendance.remarks || "",
             },
-
-            date: attendanceDate,
-
-            status: attendance.status,
-
-            shift: isPresent ? attendance.shift : null,
-
-            location: isPresent ? location?._id : null,
-
-            locationSnapshot:
-              isPresent && location
-                ? {
-                    locationId: location._id,
-                    name: location.name,
-                    sector: location.sector,
-                  }
-                : null,
-
-            remarks: attendance.remarks || "",
           },
           upsert: true,
         },

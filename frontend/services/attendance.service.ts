@@ -7,7 +7,7 @@ export async function getAttendanceBySector(
   filters?: AttendanceFilters,
 ): Promise<AttendanceResponse> {
   try {
-    const res = await api.get("/attendance/sector", {
+    const res = await api.get("/attendance/report", {
       params: {
         status: filters?.status,
         shift: filters?.shift,
