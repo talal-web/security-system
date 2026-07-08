@@ -7,6 +7,8 @@ import type {
   AttendanceFormSector,
 } from "@/types/attendance-session";
 
+import { formatSectorName } from "@/utils/formatSectorName";
+
 interface AttendanceSectorCardProps {
   sector: AttendanceFormSector;
   allLocations: AttendanceFormSector["locations"];
@@ -30,7 +32,7 @@ export default function AttendanceSectorCard({
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {sector.sector}
+              {formatSectorName(sector.sector)}
             </h2>
 
             <p className="text-sm text-slate-500">

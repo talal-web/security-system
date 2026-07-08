@@ -30,7 +30,7 @@ import Input from "@/components/Input";
 import Select from "@/components/Select";
 
 import { Employee } from "@/types/employee";
-import { calculateAge, formatDate } from "@/utils/employeeFormat";
+import { calculateAge, formatDate } from "@/utils/employee/employeeFormat";
 import { shiftOptions } from "@/constants/shiftOptions";
 import {
   EducationLevel,

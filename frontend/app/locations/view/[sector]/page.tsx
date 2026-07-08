@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { formatText } from "@/utils/employeeFormat";
+import { formatText } from "@/utils/employee/employeeFormat";
 
 import { useParams } from "next/navigation";
 

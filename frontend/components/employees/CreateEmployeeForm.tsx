@@ -29,7 +29,7 @@ import { useCreateEmployee } from "@/hooks/employee/useCreateEmployee";
 import { useLocations } from "@/hooks/location/useLocation"; // 🔥 ADD THIS
 
 import { z } from "zod";
-import { employeeSchema } from "@/utils/employeeSchema";
+import { employeeSchema } from "@/utils/employee/employeeSchema";
 
 import { educationOptions, designationOptions } from "@/constants/employee";
 
