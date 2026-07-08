@@ -29,7 +29,7 @@ export async function markAttendanceSession(
   payload: MarkAttendanceSessionPayload,
 ): Promise<MarkAttendanceSessionResponse> {
   try {
-    const res = await api.post("/attendance/mark/session", payload);
+    const res = await api.post("/attendance/session", payload);
 
     return res.data;
   } catch (error) {

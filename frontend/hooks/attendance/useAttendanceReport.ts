@@ -1,17 +1,13 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-import { getAttendanceBySector } from "@/services/attendance.service";
+import { getAttendanceReport } from "@/services/attendance.service";
 
-import type {
-  AttendanceFilters,
-  AttendanceRecord,
-  AttendanceResponse,
-} from "@/types/attendance";
+import type { AttendanceFilters, AttendanceResponse } from "@/types/attendance";
 
 // ============================
-// QUERY KEYS (SCALABLE)
+// QUERY KEYS
 // ============================
 export const attendanceKeys = {
   all: ["attendance"] as const,
@@ -25,18 +21,17 @@ export const attendanceKeys = {
 
   detail: (id: string) => [...attendanceKeys.details(), id] as const,
 
-  // FUTURE READY (analytics/stats)
   stats: () => [...attendanceKeys.all, "stats"] as const,
 };
 
 // ============================
-// QUERIES
+// QUERY
 // ============================
 
-export function useAttendances(filters?: AttendanceFilters) {
+export function useAttendanceReport(filters?: AttendanceFilters) {
   return useQuery<AttendanceResponse, Error>({
     queryKey: attendanceKeys.list(filters),
-    queryFn: () => getAttendanceBySector(filters),
-    staleTime: 1000 * 60, // 1 min cache (better UX)
+    queryFn: () => getAttendanceReport(filters),
+    staleTime: 1000 * 60,
   });
 }

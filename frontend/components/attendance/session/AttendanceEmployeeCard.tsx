@@ -13,16 +13,11 @@ import type { AttendanceFormEmployee } from "@/types/attendance-session";
 
 interface AttendanceEmployeeCardProps {
   employee: AttendanceFormEmployee;
-
   locations: {
     _id: string;
     name: string;
+    sortOrder: number;
   }[];
-
-  selected: boolean;
-
-  onSelect: (checked: boolean) => void;
-
   onUpdate: (
     employeeId: string,
     field: keyof AttendanceFormEmployee,
@@ -64,8 +59,6 @@ const shiftOptions = [
 export default function AttendanceEmployeeCard({
   employee,
   locations,
-  selected,
-  onSelect,
   onUpdate,
 }: AttendanceEmployeeCardProps) {
   const isPresent = employee.status === "present";
@@ -91,18 +84,7 @@ export default function AttendanceEmployeeCard({
     <div
       className={`rounded-xl border bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${borderColor}`}
     >
-      {/* ===================================================== */}
-      {/* Header */}
-      {/* ===================================================== */}
-
       <div className="flex items-start gap-3">
-        <input
-          type="checkbox"
-          checked={selected}
-          onChange={(e) => onSelect(e.target.checked)}
-          className="mt-1 h-4 w-4 rounded border-slate-300"
-        />
-
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
           {initials}
         </div>
@@ -133,7 +115,6 @@ export default function AttendanceEmployeeCard({
               }`}
             >
               <MapPin className="h-3 w-3" />
-
               {employee.currentLocation?.name ?? "No Location"}
             </span>
 
@@ -145,10 +126,6 @@ export default function AttendanceEmployeeCard({
           </div>
         </div>
       </div>
-
-      {/* ===================================================== */}
-      {/* Row 1 : Status + Shift */}
-      {/* ===================================================== */}
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <select
@@ -184,12 +161,6 @@ export default function AttendanceEmployeeCard({
         </select>
       </div>
 
-      {/* ================= STATUS ================= */}
-
-      {/* ===================================================== */}
-      {/* Row 2 : Location + Remark */}
-      {/* ===================================================== */}
-
       <div className="mt-2 grid grid-cols-2 gap-2">
         <select
           value={employee.selectedLocation ?? ""}
@@ -223,10 +194,6 @@ export default function AttendanceEmployeeCard({
         />
       </div>
 
-      {/* ===================================================== */}
-      {/* Status Message */}
-      {/* ===================================================== */}
-
       {!isPresent && (
         <div
           className={`mt-2 rounded-lg border px-3 py-2 text-[11px] font-medium ${
@@ -240,10 +207,6 @@ export default function AttendanceEmployeeCard({
             : "Employee is on Leave."}
         </div>
       )}
-
-      {/* ===================================================== */}
-      {/* Inactive Location Warning */}
-      {/* ===================================================== */}
 
       {isPresent && isInactiveLocation && (
         <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-medium text-red-700">

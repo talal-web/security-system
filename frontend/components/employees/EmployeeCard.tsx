@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Phone, ShieldCheck, BadgeCheck, User, ArrowRight } from "lucide-react";
 
 import { Employee } from "@/types/employee";
-import { formatText } from "@/lib/employeeFormat";
+import { formatText } from "@/utils/employeeFormat";
 
 type EmployeeCardProps = {
   employee: Employee;

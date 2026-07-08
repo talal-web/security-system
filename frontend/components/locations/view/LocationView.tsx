@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+
+import CreateLocationModal from "@/components/locations/CreateLocationModal";
 import LocationFilters from "./LocationFilters";
 import LocationSector from "./LocationSector";
 
@@ -38,6 +41,8 @@ export default function LocationView() {
     sectorLabelMap,
   } = useLocationView();
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
   const totalLocations = locations.length;
   const activeLocations = locations.filter(
     (location) => location.isActive,
@@ -68,6 +73,11 @@ export default function LocationView() {
 
   return (
     <div className="space-y-6 min-h-150">
+      <CreateLocationModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+
       {/* HEADER */}
       <LocationFilters
         search={search}
@@ -77,6 +87,7 @@ export default function LocationView() {
         isActive={isActive}
         onStatusChange={setIsActive}
         onClearFilters={handleClearFilters}
+        onCreateLocation={() => setIsCreateModalOpen(true)}
         isFetching={isFetching}
         disabled={!!reorderSector}
         totalLocations={totalLocations}

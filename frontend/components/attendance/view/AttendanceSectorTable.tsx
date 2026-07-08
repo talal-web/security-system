@@ -6,7 +6,7 @@ import type {
   AttendanceStatus,
 } from "@/types/attendance";
 
-import { formatSectorName } from "@/lib/utils";
+import { formatSectorName } from "@/utils/formatSectorName";
 
 interface AttendanceSectorTableProps {
   sector: AttendanceSector;
@@ -34,14 +34,16 @@ export default function AttendanceSectorTable({
     0,
   );
 
+  const sectorTitle = sector.sector?.trim()
+    ? formatSectorName(sector.sector)
+    : "No Sector";
+
   return (
     <div className="rounded-xl border bg-white shadow-sm">
       {/* Sector Header */}
       <div className="flex flex-col gap-1 border-b bg-gray-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-semibold text-gray-900">
-            {formatSectorName(sector.sector)}
-          </h2>
+          <h2 className="font-semibold text-gray-900">{sectorTitle}</h2>
 
           <p className="text-xs text-gray-500">Employee Attendance Records</p>
         </div>
@@ -67,46 +69,83 @@ export default function AttendanceSectorTable({
           </thead>
 
           <tbody className="divide-y">
-            {rows.map(({ location, record }, index) => (
-              <tr
-                key={record.attendanceId}
-                className="transition hover:bg-gray-50"
-              >
-                <td className="px-4 py-3 text-center font-medium text-slate-600">
-                  {index + 1}
-                </td>
+            {(() => {
+              let serial = 1;
 
-                <td className="px-4 py-3 font-medium text-slate-900">
-                  {record.name}
-                </td>
+              return sector.locations.flatMap((location) => {
+                const locationName = location.name?.trim() || "No Location";
 
-                <td className="px-4 py-3 text-slate-600">
-                  {record.fatherName}
-                </td>
+                return [
+                  // Location Header
+                  <tr key={`location-${location._id}`} className="bg-blue-50">
+                    <td
+                      colSpan={7}
+                      className="border-y border-blue-200 px-4 py-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">📍</span>
 
-                <td className="px-4 py-3">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                    {location.name}
-                  </span>
-                </td>
+                          <span className="font-semibold text-blue-900">
+                            {locationName}
+                          </span>
+                        </div>
 
-                <td className="px-4 py-3">
-                  <span className={getShiftStyle(record.shift)}>
-                    {record.shift}
-                  </span>
-                </td>
+                        <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                          {location.totalEmployees} Employees
+                        </span>
+                      </div>
+                    </td>
+                  </tr>,
 
-                <td className="px-4 py-3">
-                  <span className={getStatusStyle(record.status)}>
-                    {record.status}
-                  </span>
-                </td>
+                  // Employee Rows
+                  ...location.records.map((record) => {
+                    const shiftText = record.shift?.trim() || "No Shift";
 
-                <td className="px-4 py-3 text-slate-600">
-                  {new Date(record.date).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
+                    return (
+                      <tr
+                        key={record.attendanceId}
+                        className="transition hover:bg-gray-50"
+                      >
+                        <td className="px-4 py-3 text-center font-medium text-slate-600">
+                          {serial++}
+                        </td>
+
+                        <td className="px-4 py-3 font-medium text-slate-900">
+                          {record.name}
+                        </td>
+
+                        <td className="px-4 py-3 text-slate-600">
+                          {record.fatherName}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                            {locationName}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <span className={getShiftStyle(record.shift)}>
+                            {shiftText}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <span className={getStatusStyle(record.status)}>
+                            {record.status}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-3 text-slate-600">
+                          {new Date(record.date).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    );
+                  }),
+                ];
+              });
+            })()}
           </tbody>
         </table>
       </div>

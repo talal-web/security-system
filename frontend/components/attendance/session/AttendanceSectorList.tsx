@@ -9,13 +9,6 @@ import type {
 
 interface AttendanceSectorListProps {
   sectors: AttendanceFormSector[];
-
-  selectedEmployees: Record<string, boolean>;
-
-  setSelectedEmployees: React.Dispatch<
-    React.SetStateAction<Record<string, boolean>>
-  >;
-
   onEmployeeChange: (
     employeeId: string,
     field: keyof AttendanceFormEmployee,
@@ -25,8 +18,6 @@ interface AttendanceSectorListProps {
 
 export default function AttendanceSectorList({
   sectors,
-  selectedEmployees,
-  setSelectedEmployees,
   onEmployeeChange,
 }: AttendanceSectorListProps) {
   const presentSectors = sectors
@@ -55,15 +46,20 @@ export default function AttendanceSectorList({
 
   return (
     <div className="space-y-6">
-      {presentSectors.map((sector) => (
-        <AttendanceSectorCard
-          key={sector.sector}
-          sector={sector}
-          selectedEmployees={selectedEmployees}
-          setSelectedEmployees={setSelectedEmployees}
-          onEmployeeChange={onEmployeeChange}
-        />
-      ))}
+      {presentSectors.map((presentSector) => {
+        const originalSector = sectors.find(
+          (sector) => sector.sector === presentSector.sector,
+        );
+
+        return (
+          <AttendanceSectorCard
+            key={presentSector.sector}
+            sector={presentSector}
+            allLocations={originalSector?.locations ?? []}
+            onEmployeeChange={onEmployeeChange}
+          />
+        );
+      })}
     </div>
   );
 }

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useAttendances } from "@/hooks/attendance/useAttendance";
+import { useAttendanceReport } from "@/hooks/attendance/useAttendanceReport";
 import AttendanceSectorTable from "./AttendanceSectorTable";
 import ViewAttendanceFilters from "./AttendanceFilters";
 import AttendanceStats from "./AttendanceStats";
+import AttendanceEmployeeTable from "./AttendanceEmployeeTable";
 
 import type {
   AttendanceFilters,
@@ -13,13 +14,47 @@ import type {
   AttendanceSector,
 } from "@/types/attendance";
 
-export default function AttendanceList() {
-  const [filters, setFilters] = useState<AttendanceFilters>({});
+import { getTodayDate } from "@/utils/attendance/date";
 
-  const { data, isLoading, error } = useAttendances(filters);
+export default function AttendanceList() {
+  const [filters, setFilters] = useState<AttendanceFilters>(() => ({
+    date: getTodayDate(),
+  }));
+
+  const { data, isLoading, error } = useAttendanceReport(filters);
 
   const globalStats = data?.data?.globalStats;
-  const sectorGroups: AttendanceSector[] = data?.data?.sectors ?? [];
+
+  const presentSectors = data?.data?.presentSectors ?? [];
+
+  const absentEmployees = data?.data?.absentEmployees ?? [];
+
+  const leaveEmployees = data?.data?.leaveEmployees ?? [];
+
+  // Map non-present employee shapes to table-friendly shape (provide missing fields)
+  const absentEmployeesMapped = absentEmployees.map((e) => ({
+    attendanceId: e.attendanceId,
+    employeeId: e.employeeId,
+    empId: e.empId,
+    name: e.name,
+    fatherName: e.fatherName,
+    designation: "-",
+    status: "absent" as const,
+    remarks: e.remarks || "",
+    date: e.date,
+  }));
+
+  const leaveEmployeesMapped = leaveEmployees.map((e) => ({
+    attendanceId: e.attendanceId,
+    employeeId: e.employeeId,
+    empId: e.empId,
+    name: e.name,
+    fatherName: e.fatherName,
+    designation: "-",
+    status: "leave" as const,
+    remarks: e.remarks || "",
+    date: e.date,
+  }));
 
   const getStatusStyle = (status: AttendanceStatus) => {
     switch (status) {
@@ -37,7 +72,11 @@ export default function AttendanceList() {
     }
   };
 
-  const getShiftStyle = (shift: AttendanceShift) => {
+  const getShiftStyle = (shift?: AttendanceShift | null) => {
+    if (!shift) {
+      return "inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200";
+    }
+
     return shift === "day"
       ? "inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200"
       : "inline-flex items-center rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-800 ring-1 ring-indigo-200";
@@ -77,8 +116,8 @@ export default function AttendanceList() {
       <ViewAttendanceFilters filters={filters} setFilters={setFilters} />
 
       {/* ================= SECTORS ================= */}
-      {sectorGroups.length > 0 ? (
-        sectorGroups.map((sector) => (
+      {presentSectors.length > 0 ? (
+        presentSectors.map((sector) => (
           <AttendanceSectorTable
             key={sector.sector}
             sector={sector}
@@ -89,8 +128,28 @@ export default function AttendanceList() {
         ))
       ) : (
         <div className="rounded-xl border bg-white p-10 text-center text-gray-500">
-          No attendance records found
+          No present employees found
         </div>
+      )}
+
+      {/* ================= ABSENT ================= */}
+
+      {absentEmployees.length > 0 && (
+        <AttendanceEmployeeTable
+          title="Absent Employees"
+          status="absent"
+          employees={absentEmployees}
+        />
+      )}
+
+      {/* ================= LEAVE ================= */}
+
+      {leaveEmployees.length > 0 && (
+        <AttendanceEmployeeTable
+          title="Leave Employees"
+          status="leave"
+          employees={leaveEmployees}
+        />
       )}
     </div>
   );

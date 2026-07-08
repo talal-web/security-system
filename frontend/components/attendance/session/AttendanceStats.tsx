@@ -66,14 +66,14 @@ export default function AttendanceStats({
   return (
     <div className="space-y-5">
       {/* Top Summary */}
-      <div className="flex items-center justify-between rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-white p-5">
+      <div className="flex items-center justify-between rounded-2xl border border-blue-100 bg-linear-to-r from-blue-50 to-white p-5">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
             Attendance Overview
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            Live summary of today's attendance session.
+            Live summary of today `&apos;`s attendance session.
           </p>
         </div>
 
@@ -87,14 +87,14 @@ export default function AttendanceStats({
       </div>
 
       {/* Cards */}
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
 
           return (
             <div
               key={card.title}
-              className={`group rounded-2xl border bg-gradient-to-br ${card.bg} p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
+              className={`group rounded-2xl border bg-linear-to-br ${card.bg} p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -102,7 +102,7 @@ export default function AttendanceStats({
                     {card.title}
                   </p>
 
-                  <h3 className={`mt-2 text-4xl font-bold ${card.text}`}>
+                  <h3 className={`mt-2 text-2xl font-bold ${card.text}`}>
                     {card.value}
                   </h3>
 
@@ -110,9 +110,9 @@ export default function AttendanceStats({
                 </div>
 
                 <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.iconBg} text-white shadow-md transition-transform duration-300 group-hover:scale-110`}
+                  className={`flex h-5 w-6 items-center justify-center rounded-2xl ${card.iconBg} text-white shadow-md transition-transform duration-300 group-hover:scale-110`}
                 >
-                  <Icon className="h-6 w-6" />
+                  <Icon className="h-4 w-4" />
                 </div>
               </div>
 

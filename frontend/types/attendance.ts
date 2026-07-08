@@ -13,7 +13,7 @@ export interface AttendanceFilters {
 }
 
 // ======================================
-// ATTENDANCE RECORD
+// PRESENT RECORD
 // ======================================
 
 export interface AttendanceRecord {
@@ -24,16 +24,20 @@ export interface AttendanceRecord {
   empId: string;
 
   name: string;
+
   fatherName: string;
 
   shift: AttendanceShift;
+
   status: AttendanceStatus;
 
   date: string;
+
+  remarks: string;
 }
 
 // ======================================
-// LOCATION
+// PRESENT LOCATION
 // ======================================
 
 export interface AttendanceLocation {
@@ -51,13 +55,33 @@ export interface AttendanceLocation {
 }
 
 // ======================================
-// SECTOR
+// PRESENT SECTOR
 // ======================================
 
 export interface AttendanceSector {
   sector: string;
 
   locations: AttendanceLocation[];
+}
+
+// ======================================
+// ABSENT / LEAVE EMPLOYEE
+// ======================================
+
+export interface AttendanceNonPresentEmployee {
+  attendanceId: string;
+
+  employeeId: string;
+
+  empId: string;
+
+  name: string;
+
+  fatherName: string;
+
+  date: string;
+
+  remarks: string;
 }
 
 // ======================================
@@ -79,6 +103,20 @@ export interface AttendanceGlobalStats {
 }
 
 // ======================================
+// RESPONSE DATA
+// ======================================
+
+export interface AttendanceData {
+  globalStats: AttendanceGlobalStats;
+
+  presentSectors: AttendanceSector[];
+
+  absentEmployees: AttendanceNonPresentEmployee[];
+
+  leaveEmployees: AttendanceNonPresentEmployee[];
+}
+
+// ======================================
 // RESPONSE
 // ======================================
 
@@ -87,9 +125,24 @@ export interface AttendanceResponse {
 
   message: string;
 
-  data: {
-    globalStats: AttendanceGlobalStats;
+  data: AttendanceData;
+}
 
-    sectors: AttendanceSector[];
-  };
+export interface AttendanceEmployee {
+  attendanceId: string;
+
+  employeeId: string;
+
+  empId: string;
+
+  name: string;
+  fatherName: string;
+
+  designation: string;
+
+  status: AttendanceStatus;
+
+  remarks: string;
+
+  date: string;
 }

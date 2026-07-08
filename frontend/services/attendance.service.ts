@@ -3,7 +3,7 @@ import { getApiErrorMessage } from "@/lib/apiError";
 
 import type { AttendanceFilters, AttendanceResponse } from "@/types/attendance";
 
-export async function getAttendanceBySector(
+export async function getAttendanceReport(
   filters?: AttendanceFilters,
 ): Promise<AttendanceResponse> {
   try {

@@ -21,7 +21,7 @@ import {
 
 import { Employee } from "@/types/employee";
 
-import { calculateAge, formatDate, formatText } from "@/lib/employeeFormat";
+import { calculateAge, formatDate, formatText } from "@/utils/employeeFormat";
 
 type Props = {
   employee: Employee;

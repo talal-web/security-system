@@ -1,16 +1,9 @@
 "use client";
 
-import { CalendarClock, CheckCircle2, XCircle } from "lucide-react";
-
 import type { AttendanceFormEmployee } from "@/types/attendance-session";
 
 interface AttendanceAbsentLeaveCardProps {
   employee: AttendanceFormEmployee;
-
-  selected: boolean;
-
-  onSelect: (checked: boolean) => void;
-
   onUpdate: (
     employeeId: string,
     field: keyof AttendanceFormEmployee,
@@ -35,8 +28,6 @@ const statusOptions = [
 
 export default function AttendanceAbsentLeaveCard({
   employee,
-  selected,
-  onSelect,
   onUpdate,
 }: AttendanceAbsentLeaveCardProps) {
   const initials = employee.name
@@ -57,16 +48,7 @@ export default function AttendanceAbsentLeaveCard({
     <div
       className={`rounded-xl border bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${borderColor}`}
     >
-      {/* ================= Header ================= */}
-
       <div className="flex items-start gap-3">
-        <input
-          type="checkbox"
-          checked={selected}
-          onChange={(e) => onSelect(e.target.checked)}
-          className="mt-1 h-4 w-4 rounded border-slate-300"
-        />
-
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
           {initials}
         </div>
@@ -90,8 +72,6 @@ export default function AttendanceAbsentLeaveCard({
         </div>
       </div>
 
-      {/* ================= Status ================= */}
-
       <div className="mt-3">
         <select
           value={employee.status}
@@ -108,8 +88,6 @@ export default function AttendanceAbsentLeaveCard({
         </select>
       </div>
 
-      {/* ================= Remark ================= */}
-
       <div className="mt-2">
         <input
           type="text"
@@ -121,8 +99,6 @@ export default function AttendanceAbsentLeaveCard({
           className="h-9 w-full rounded-lg border border-slate-300 px-2 text-xs placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
         />
       </div>
-
-      {/* ================= Info ================= */}
 
       <div
         className={`mt-2 rounded-lg border px-3 py-2 text-[11px] font-medium ${

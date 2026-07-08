@@ -14,6 +14,8 @@ import type {
   AttendanceFormSector,
 } from "@/types/attendance-session";
 
+import { updateEmployee } from "@/utils/attendance/mark/updateEmployee";
+
 export function useAttendanceSessionPage() {
   // ======================================
   // API
@@ -37,11 +39,6 @@ export function useAttendanceSessionPage() {
 
   const [sectors, setSectors] = useState<AttendanceFormSector[]>([]);
 
-  const [selectedEmployees, setSelectedEmployees] = useState<
-    Record<string, boolean>
-  >({});
-
-  const [isReviewMode, setIsReviewMode] = useState(false);
   // ======================================
   // DATE
   // ======================================
@@ -100,7 +97,6 @@ export function useAttendanceSessionPage() {
 
     queueMicrotask(() => {
       setSectors(initialSectors);
-      setSelectedEmployees({});
     });
   }, [data?.sectors, initialSectors]);
 
@@ -136,11 +132,6 @@ export function useAttendanceSessionPage() {
   // ======================================
   // SELECTION
   // ======================================
-
-  const selectedCount = useMemo(
-    () => Object.values(selectedEmployees).filter(Boolean).length,
-    [selectedEmployees],
-  );
 
   // ======================================
   // SEARCH
@@ -247,145 +238,8 @@ export function useAttendanceSessionPage() {
     field: keyof AttendanceFormEmployee,
     value: unknown,
   ) => {
-    setSectors((prev) =>
-      prev.map((sector) => ({
-        ...sector,
-        locations: sector.locations.map((location) => ({
-          ...location,
-          employees: location.employees.map((emp) => {
-            if (emp.employeeId !== employeeId) {
-              return emp;
-            }
-
-            // Status changed
-            if (field === "status") {
-              const status = value as AttendanceFormEmployee["status"];
-
-              if (status === "present") {
-                return {
-                  ...emp,
-                  status,
-                  shift: emp.defaultShift ?? null,
-                  selectedLocation:
-                    emp.selectedLocation ?? emp.currentLocation?._id ?? null,
-                };
-              }
-
-              return {
-                ...emp,
-                status,
-                shift: null,
-                selectedLocation: null,
-              };
-            }
-
-            return {
-              ...emp,
-              [field]: value,
-            };
-          }),
-        })),
-      })),
-    );
+    setSectors((prev) => updateEmployee(prev, employeeId, field, value));
   };
-
-  // ======================================
-  // BULK STATUS UPDATE
-  // ======================================
-
-  const handleBulkUpdateStatus = (status: "present" | "absent" | "leave") => {
-    if (selectedCount === 0) {
-      toast.error("No employees selected.");
-      return;
-    }
-
-    setSectors((prev) =>
-      prev.map((sector) => ({
-        ...sector,
-        locations: sector.locations.map((location) => ({
-          ...location,
-          employees: location.employees.map((emp) => {
-            if (!selectedEmployees[emp.employeeId]) {
-              return emp;
-            }
-
-            if (status === "present") {
-              return {
-                ...emp,
-                status,
-                shift: emp.defaultShift ?? null,
-                selectedLocation:
-                  emp.selectedLocation ?? emp.currentLocation?._id ?? null,
-              };
-            }
-
-            return {
-              ...emp,
-              status,
-              shift: null,
-              selectedLocation: null,
-            };
-          }),
-        })),
-      })),
-    );
-
-    const selectedCountText =
-      Object.values(selectedEmployees).filter(Boolean).length;
-
-    toast.success(
-      `${selectedCountText} employee${
-        selectedCountText > 1 ? "s" : ""
-      } marked as ${status}.`,
-    );
-  };
-
-  // ======================================
-  // SELECTION
-  // ======================================
-
-  const toggleEmployeeSelection = (employeeId: string, checked: boolean) => {
-    setSelectedEmployees((prev) => {
-      const next = { ...prev };
-
-      if (checked) {
-        next[employeeId] = true;
-      } else {
-        delete next[employeeId];
-      }
-
-      return next;
-    });
-  };
-
-  const clearSelection = () => {
-    setSelectedEmployees({});
-
-    toast.success("Selection cleared.");
-  };
-
-  const openReview = () => {
-    const invalidEmployee = allEmployees.find(
-      (emp) =>
-        emp.status === "present" && (!emp.selectedLocation || !emp.shift),
-    );
-
-    if (invalidEmployee) {
-      toast.error(
-        `${invalidEmployee.name} must have both a location and a shift.`,
-      );
-
-      return false;
-    }
-
-    setIsReviewMode(true);
-    return true;
-  };
-
-  const closeReview = () => {
-    setIsReviewMode(false);
-  };
-
   // ======================================
   // SUBMIT
   // ======================================
@@ -413,60 +267,12 @@ export function useAttendanceSessionPage() {
           ? "Attendance updated successfully."
           : "Attendance marked successfully.",
       );
-
-      setSelectedEmployees({});
-      setIsReviewMode(false);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to submit attendance.",
       );
     }
   };
-
-  const reviewValidation = useMemo(() => {
-    const missingShift = allEmployees.filter(
-      (emp) => emp.status === "present" && !emp.shift,
-    );
-
-    const missingLocation = allEmployees.filter(
-      (emp) => emp.status === "present" && !emp.selectedLocation,
-    );
-
-    const inactiveLocation = allEmployees.filter(
-      (emp) =>
-        emp.status === "present" &&
-        emp.currentLocation &&
-        !emp.currentLocation.isActive,
-    );
-
-    const hasIssues =
-      missingShift.length > 0 ||
-      missingLocation.length > 0 ||
-      inactiveLocation.length > 0;
-
-    const reviewSummary = {
-      missingShiftCount: missingShift.length,
-      missingLocationCount: missingLocation.length,
-      inactiveLocationCount: inactiveLocation.length,
-      totalIssues:
-        missingShift.length + missingLocation.length + inactiveLocation.length,
-    };
-
-    return {
-      missingShift,
-      missingLocation,
-      inactiveLocation,
-      // Review helpers
-      isReviewMode,
-      openReview,
-      closeReview,
-
-      reviewSummary,
-
-      allEmployees,
-      hasIssues,
-    };
-  }, [allEmployees, isReviewMode, openReview, closeReview]);
 
   // ======================================
   // RETURN
@@ -498,29 +304,10 @@ export function useAttendanceSessionPage() {
     leaveEmployees,
 
     allEmployees,
-
     visibleEmployeeCount,
 
-    // Selection
-    selectedEmployees,
-    setSelectedEmployees,
-    selectedCount,
-
-    toggleEmployeeSelection,
-    clearSelection,
-
-    // Review
-    reviewValidation,
-    isReviewMode,
-    openReview,
-    closeReview,
-
-    // Mutation
     markAttendanceMutation,
-
-    // Actions
     handleEmployeeChange,
-    handleBulkUpdateStatus,
     handleSubmit,
   };
 }

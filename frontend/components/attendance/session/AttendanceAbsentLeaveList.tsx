@@ -9,13 +9,6 @@ import type {
 
 interface AttendanceAbsentLeaveListProps {
   sectors: AttendanceFormSector[];
-
-  selectedEmployees: Record<string, boolean>;
-
-  setSelectedEmployees: React.Dispatch<
-    React.SetStateAction<Record<string, boolean>>
-  >;
-
   onEmployeeChange: (
     employeeId: string,
     field: keyof AttendanceFormEmployee,
@@ -25,8 +18,6 @@ interface AttendanceAbsentLeaveListProps {
 
 export default function AttendanceAbsentLeaveList({
   sectors,
-  selectedEmployees,
-  setSelectedEmployees,
   onEmployeeChange,
 }: AttendanceAbsentLeaveListProps) {
   const employees = sectors.flatMap((sector) =>
@@ -44,8 +35,6 @@ export default function AttendanceAbsentLeaveList({
 
   return (
     <section className="space-y-4">
-      {/* Header */}
-
       <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
@@ -64,20 +53,11 @@ export default function AttendanceAbsentLeaveList({
         </div>
       </div>
 
-      {/* Cards */}
-
       <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {employees.map((employee) => (
           <AttendanceAbsentLeaveCard
             key={employee.employeeId}
             employee={employee}
-            selected={selectedEmployees[employee.employeeId] ?? false}
-            onSelect={(checked) =>
-              setSelectedEmployees((prev) => ({
-                ...prev,
-                [employee.employeeId]: checked,
-              }))
-            }
             onUpdate={onEmployeeChange}
           />
         ))}

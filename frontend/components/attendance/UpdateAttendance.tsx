@@ -1,27 +1,16 @@
 "use client";
 
-import { useUpdateAttendance } from "@/hooks/attendance/useAttendance";
-
 export default function UpdateAttendanceButton({
   attendanceId,
 }: {
   attendanceId: string;
 }) {
-  const updateAttendance = useUpdateAttendance();
-
   const handleUpdate = () => {
-    updateAttendance.mutate({
-      id: attendanceId,
-      payload: {
-        status: "leave",
-        remarks: "Approved leave",
-      },
-    });
+    console.info(
+      "Attendance update is not available in this build.",
+      attendanceId,
+    );
   };
 
-  return (
-    <button onClick={handleUpdate} disabled={updateAttendance.isPending}>
-      Update
-    </button>
-  );
+  return <button onClick={handleUpdate}>Update</button>;
 }

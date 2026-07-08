@@ -7,6 +7,7 @@ import {
   XCircle,
   Loader2,
   Filter,
+  Plus,
 } from "lucide-react";
 
 import { sectorOptions } from "@/constants/location";
@@ -22,6 +23,7 @@ interface LocationFiltersProps {
   isActive?: boolean;
   onStatusChange: (value?: boolean) => void;
   onClearFilters?: () => void;
+  onCreateLocation: () => void;
 
   isFetching: boolean;
   disabled?: boolean;
@@ -41,6 +43,7 @@ export default function LocationFilters({
   isActive,
   onStatusChange,
   onClearFilters = () => {},
+  onCreateLocation,
 
   isFetching,
   disabled = false,
@@ -78,20 +81,33 @@ export default function LocationFilters({
 
           {/* Searching */}
 
-          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm">
-            {isFetching ? (
-              <>
-                <Loader2 size={16} className="animate-spin text-blue-600" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm">
+              {isFetching ? (
+                <>
+                  <Loader2 size={16} className="animate-spin text-blue-600" />
 
-                <span className="font-medium text-blue-600">Searching...</span>
-              </>
-            ) : (
-              <>
-                <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                  <span className="font-medium text-blue-600">
+                    Searching...
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
 
-                <span className="text-slate-600">Up to date</span>
-              </>
-            )}
+                  <span className="text-slate-600">Up to date</span>
+                </>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={onCreateLocation}
+              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <Plus size={16} className="mr-2" />
+              Add Location
+            </button>
           </div>
         </div>
 

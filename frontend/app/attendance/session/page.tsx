@@ -7,11 +7,9 @@ import AttendanceSectorList from "@/components/attendance/session/AttendanceSect
 import AttendanceAbsentLeaveList from "@/components/attendance/session/AttendanceAbsentLeaveList";
 
 import { useAttendanceSessionPage } from "@/hooks/attendance/useAttendanceSessionPage";
-import { useRouter } from "next/navigation";
 
 export default function AttendanceSessionPage() {
   const attendance = useAttendanceSessionPage();
-  const router = useRouter();
 
   if (attendance.isLoading) {
     return (
@@ -33,52 +31,31 @@ export default function AttendanceSessionPage() {
 
   return (
     <main className="space-y-6 p-4 lg:p-6">
-      {/* Header */}
       <AttendanceHeader
         attendanceDate={attendance.data?.attendanceDate ?? attendance.dateValue}
         alreadyMarked={attendance.data?.alreadyMarked ?? false}
       />
 
-      {/* Filters */}
       <AttendanceFilters
         dateValue={attendance.dateValue}
         query={attendance.query}
         statusFilter={attendance.statusFilter}
-        selectedCount={attendance.selectedCount}
         isSubmitting={attendance.markAttendanceMutation.isPending}
         onDateChange={attendance.setDate}
         onQueryChange={attendance.setQuery}
         onStatusFilterChange={attendance.setStatusFilter}
-        onBulkPresent={() => attendance.handleBulkUpdateStatus("present")}
-        onBulkAbsent={() => attendance.handleBulkUpdateStatus("absent")}
-        onBulkLeave={() => attendance.handleBulkUpdateStatus("leave")}
-        onClearSelection={attendance.clearSelection}
         onSubmit={attendance.handleSubmit}
-        onReview={() => {
-          const ok = attendance.openReview();
-
-          if (ok) {
-            router.push("/attendance/session/review");
-          }
-        }}
       />
 
-      {/* Statistics */}
       <AttendanceStats {...attendance.stats} />
 
-      {/* Present Employees */}
       <AttendanceSectorList
         sectors={attendance.sectors}
-        selectedEmployees={attendance.selectedEmployees}
-        setSelectedEmployees={attendance.setSelectedEmployees}
         onEmployeeChange={attendance.handleEmployeeChange}
       />
 
-      {/* Absent & Leave */}
       <AttendanceAbsentLeaveList
         sectors={attendance.sectors}
-        selectedEmployees={attendance.selectedEmployees}
-        setSelectedEmployees={attendance.setSelectedEmployees}
         onEmployeeChange={attendance.handleEmployeeChange}
       />
     </main>

@@ -46,25 +46,11 @@ export const getAttendanceReport = async (req, res) => {
         },
       },
 
-      // JOIN EMPLOYEE
-      {
-        $lookup: {
-          from: "employees",
-          localField: "employee",
-          foreignField: "_id",
-          as: "employee",
-        },
-      },
-      {
-        $unwind: {
-          path: "$employee",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-
-      // ================= GLOBAL STATS (ALL DATA) =================
       {
         $facet: {
+          // ======================================
+          // GLOBAL STATS
+          // ======================================
           globalStats: [
             {
               $group: {
@@ -105,8 +91,8 @@ export const getAttendanceReport = async (req, res) => {
                     $cond: [
                       {
                         $and: [
-                          { $eq: ["$shift", "day"] },
                           { $eq: ["$status", "present"] },
+                          { $eq: ["$shift", "day"] },
                         ],
                       },
                       1,
@@ -120,8 +106,8 @@ export const getAttendanceReport = async (req, res) => {
                     $cond: [
                       {
                         $and: [
-                          { $eq: ["$shift", "night"] },
                           { $eq: ["$status", "present"] },
+                          { $eq: ["$shift", "night"] },
                         ],
                       },
                       1,
@@ -139,42 +125,41 @@ export const getAttendanceReport = async (req, res) => {
             },
           ],
 
-          // ================= SECTOR WISE =================
-          // ================= SECTOR -> LOCATION -> EMPLOYEES =================
-          sectors: [
-            // Sort before grouping so locations and employees remain ordered
+          // ======================================
+          // PRESENT
+          // ======================================
+          presentSectors: [
             {
-              $sort: {
-                "location.sector": 1,
-                "location.sortOrder": 1,
-                "employee.empId": 1,
+              $match: {
+                status: "present",
               },
             },
 
-            // Group by Location
+            {
+              $sort: {
+                "locationSnapshot.sector": 1,
+                "location.sortOrder": 1,
+                "employeeSnapshot.empId": 1,
+              },
+            },
+
             {
               $group: {
                 _id: {
-                  sector: {
-                    $ifNull: ["$location.sector", "Unknown"],
-                  },
-                  locationId: "$location._id",
+                  sector: "$locationSnapshot.sector",
+                  locationId: "$locationSnapshot.locationId",
                 },
 
                 sector: {
-                  $first: {
-                    $ifNull: ["$location.sector", "Unknown"],
-                  },
+                  $first: "$locationSnapshot.sector",
                 },
 
                 locationId: {
-                  $first: "$location._id",
+                  $first: "$locationSnapshot.locationId",
                 },
 
                 locationName: {
-                  $first: {
-                    $ifNull: ["$location.name", "Unknown Location"],
-                  },
+                  $first: "$locationSnapshot.name",
                 },
 
                 sortOrder: {
@@ -193,31 +178,26 @@ export const getAttendanceReport = async (req, res) => {
                   $push: {
                     attendanceId: "$_id",
 
-                    employeeId: "$employee._id",
+                    employeeId: "$employee",
 
-                    empId: {
-                      $ifNull: ["$employee.empId", "-"],
-                    },
+                    empId: "$employeeSnapshot.empId",
 
-                    name: {
-                      $ifNull: ["$employee.name", "Unknown Employee"],
-                    },
+                    name: "$employeeSnapshot.name",
 
-                    fatherName: {
-                      $ifNull: ["$employee.fatherName", ""],
-                    },
+                    fatherName: "$employeeSnapshot.fatherName",
 
                     shift: "$shift",
 
                     status: "$status",
 
                     date: "$date",
+
+                    remarks: "$remarks",
                   },
                 },
               },
             },
 
-            // Keep locations sorted inside each sector
             {
               $sort: {
                 sector: 1,
@@ -225,7 +205,6 @@ export const getAttendanceReport = async (req, res) => {
               },
             },
 
-            // Group locations into sectors
             {
               $group: {
                 _id: "$sector",
@@ -264,13 +243,87 @@ export const getAttendanceReport = async (req, res) => {
               },
             },
           ],
+
+          // ======================================
+          // ABSENT
+          // ======================================
+          absentEmployees: [
+            {
+              $match: {
+                status: "absent",
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+
+                attendanceId: "$_id",
+
+                employeeId: "$employee",
+
+                empId: "$employeeSnapshot.empId",
+
+                name: "$employeeSnapshot.name",
+
+                fatherName: "$employeeSnapshot.fatherName",
+
+                date: "$date",
+
+                remarks: "$remarks",
+              },
+            },
+
+            {
+              $sort: {
+                empId: 1,
+              },
+            },
+          ],
+
+          // ======================================
+          // LEAVE
+          // ======================================
+          leaveEmployees: [
+            {
+              $match: {
+                status: "leave",
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+
+                attendanceId: "$_id",
+
+                employeeId: "$employee",
+
+                empId: "$employeeSnapshot.empId",
+
+                name: "$employeeSnapshot.name",
+
+                fatherName: "$employeeSnapshot.fatherName",
+
+                date: "$date",
+
+                remarks: "$remarks",
+              },
+            },
+
+            {
+              $sort: {
+                empId: 1,
+              },
+            },
+          ],
         },
       },
     ]);
 
     return res.status(200).json({
       success: true,
-      message: "Attendance stats fetched successfully",
+      message: "Attendance report fetched successfully",
       data: {
         globalStats: data[0].globalStats[0] || {
           total: 0,
@@ -280,7 +333,12 @@ export const getAttendanceReport = async (req, res) => {
           day: 0,
           night: 0,
         },
-        sectors: data[0].sectors,
+
+        presentSectors: data[0].presentSectors,
+
+        absentEmployees: data[0].absentEmployees,
+
+        leaveEmployees: data[0].leaveEmployees,
       },
     });
   } catch (error) {
@@ -536,6 +594,25 @@ export const submitAttendanceSession = async (req, res) => {
         : null;
       const isPresent = attendance.status === "present";
 
+      const locationSnapshot =
+        isPresent && location
+          ? {
+              locationId: location._id,
+              name: location.name,
+              sector: location.sector,
+            }
+          : employee.currentLocation
+            ? {
+                locationId: employee.currentLocation._id,
+                name: employee.currentLocation.name,
+                sector: employee.currentLocation.sector,
+              }
+            : {
+                locationId: null,
+                name: "",
+                sector: "",
+              };
+
       return {
         updateOne: {
           filter: {
@@ -559,18 +636,7 @@ export const submitAttendanceSession = async (req, res) => {
 
               location: isPresent ? location?._id : null,
 
-              locationSnapshot:
-                isPresent && location
-                  ? {
-                      locationId: location._id,
-                      name: location.name,
-                      sector: location.sector,
-                    }
-                  : {
-                      locationId: null,
-                      name: "",
-                      sector: "",
-                    },
+              locationSnapshot,
 
               remarks: attendance.remarks || "",
             },
