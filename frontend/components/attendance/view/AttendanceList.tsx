@@ -6,13 +6,14 @@ import AttendanceSectorTable from "./AttendanceSectorTable";
 import ViewAttendanceFilters from "./AttendanceFilters";
 import AttendanceStats from "./AttendanceStats";
 import AttendanceEmployeeTable from "./AttendanceEmployeeTable";
+import { useAttendanceExport } from "@/hooks/attendance/useAttendanceExport";
+import { getSectorRows } from "@/utils/attendance/attendanceHelper";
+import {
+  getShiftStyle,
+  getStatusStyle,
+} from "@/utils/attendance/attendanceStyles";
 
-import type {
-  AttendanceFilters,
-  AttendanceStatus,
-  AttendanceShift,
-  AttendanceSector,
-} from "@/types/attendance";
+import type { AttendanceFilters } from "@/types/attendance";
 
 import { getTodayDate } from "@/utils/attendance/date";
 
@@ -31,65 +32,7 @@ export default function AttendanceList() {
 
   const leaveEmployees = data?.data?.leaveEmployees ?? [];
 
-  // Map non-present employee shapes to table-friendly shape (provide missing fields)
-  const absentEmployeesMapped = absentEmployees.map((e) => ({
-    attendanceId: e.attendanceId,
-    employeeId: e.employeeId,
-    empId: e.empId,
-    name: e.name,
-    fatherName: e.fatherName,
-    designation: "-",
-    status: "absent" as const,
-    remarks: e.remarks || "",
-    date: e.date,
-  }));
-
-  const leaveEmployeesMapped = leaveEmployees.map((e) => ({
-    attendanceId: e.attendanceId,
-    employeeId: e.employeeId,
-    empId: e.empId,
-    name: e.name,
-    fatherName: e.fatherName,
-    designation: "-",
-    status: "leave" as const,
-    remarks: e.remarks || "",
-    date: e.date,
-  }));
-
-  const getStatusStyle = (status: AttendanceStatus) => {
-    switch (status) {
-      case "present":
-        return "inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700";
-
-      case "absent":
-        return "inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700";
-
-      case "leave":
-        return "inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700";
-
-      default:
-        return "inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700";
-    }
-  };
-
-  const getShiftStyle = (shift?: AttendanceShift | null) => {
-    if (!shift) {
-      return "inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200";
-    }
-
-    return shift === "day"
-      ? "inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200"
-      : "inline-flex items-center rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-800 ring-1 ring-indigo-200";
-  };
-
-  const getSectorRows = (sector: AttendanceSector) => {
-    return sector.locations.flatMap((location) =>
-      location.records.map((record) => ({
-        location,
-        record,
-      })),
-    );
-  };
+  const { exportAll, isExporting } = useAttendanceExport();
 
   if (isLoading) {
     return (
@@ -114,6 +57,24 @@ export default function AttendanceList() {
 
       {/* ================= FILTERS ================= */}
       <ViewAttendanceFilters filters={filters} setFilters={setFilters} />
+
+      <div className="flex items-center justify-end">
+        <button
+          onClick={() =>
+            exportAll({
+              globalStats,
+              presentSectors,
+              absentEmployees,
+              leaveEmployees,
+              date: filters.date ?? "",
+            })
+          }
+          disabled={isExporting}
+          className="ml-4 rounded bg-indigo-600 px-3 py-1 text-white disabled:opacity-50"
+        >
+          {isExporting ? "Exporting..." : "Export All"}
+        </button>
+      </div>
 
       {/* ================= SECTORS ================= */}
       {presentSectors.length > 0 ? (

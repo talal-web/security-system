@@ -27,6 +27,12 @@ const attendanceSchema = new mongoose.Schema(
         required: true,
         trim: true,
       },
+
+      designation: {
+        type: String,
+        default: "",
+        trim: true,
+      },
     },
 
     // ================= ATTENDANCE =================

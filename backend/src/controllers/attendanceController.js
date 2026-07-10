@@ -186,6 +186,8 @@ export const getAttendanceReport = async (req, res) => {
 
                     fatherName: "$employeeSnapshot.fatherName",
 
+                    designation: "$employeeSnapshot.designation",
+
                     shift: "$shift",
 
                     status: "$status",
@@ -259,17 +261,18 @@ export const getAttendanceReport = async (req, res) => {
                 _id: 0,
 
                 attendanceId: "$_id",
-
                 employeeId: "$employee",
 
                 empId: "$employeeSnapshot.empId",
-
                 name: "$employeeSnapshot.name",
-
                 fatherName: "$employeeSnapshot.fatherName",
+                designation: "$employeeSnapshot.designation",
+
+                sector: "$locationSnapshot.sector",
+                location: "$locationSnapshot.name",
+                shift: "$shift",
 
                 date: "$date",
-
                 remarks: "$remarks",
               },
             },
@@ -296,17 +299,18 @@ export const getAttendanceReport = async (req, res) => {
                 _id: 0,
 
                 attendanceId: "$_id",
-
                 employeeId: "$employee",
 
                 empId: "$employeeSnapshot.empId",
-
                 name: "$employeeSnapshot.name",
-
                 fatherName: "$employeeSnapshot.fatherName",
+                designation: "$employeeSnapshot.designation",
+
+                sector: "$locationSnapshot.sector",
+                location: "$locationSnapshot.name",
+                shift: "$shift",
 
                 date: "$date",
-
                 remarks: "$remarks",
               },
             },
@@ -518,7 +522,9 @@ export const submitAttendanceSession = async (req, res) => {
       _id: { $in: employeeIds },
       status: "active",
     })
-      .select("empId name fatherName defaultShift sector currentLocation")
+      .select(
+        "empId name fatherName designation defaultShift sector currentLocation",
+      )
       .populate("currentLocation", "name sector isActive");
 
     const locationDocs = await Location.find({
@@ -627,6 +633,7 @@ export const submitAttendanceSession = async (req, res) => {
                 empId: employee.empId,
                 name: employee.name,
                 fatherName: employee.fatherName,
+                designation: employee.designation,
               },
 
               date: attendanceDate,

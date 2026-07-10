@@ -2,6 +2,8 @@ export type AttendanceStatus = "present" | "absent" | "leave";
 
 export type AttendanceShift = "day" | "night";
 
+import { EmployeeDesignation } from "./employee";
+
 // ======================================
 // FILTERS
 // ======================================
@@ -26,6 +28,8 @@ export interface AttendanceRecord {
   name: string;
 
   fatherName: string;
+
+  designation: EmployeeDesignation;
 
   shift: AttendanceShift;
 
@@ -78,6 +82,14 @@ export interface AttendanceNonPresentEmployee {
   name: string;
 
   fatherName: string;
+
+  designation: EmployeeDesignation;
+
+  sector?: string;
+
+  location?: string;
+
+  shift?: AttendanceShift;
 
   date: string;
 
@@ -139,6 +151,31 @@ export interface AttendanceEmployee {
   fatherName: string;
 
   designation: string;
+
+  status: AttendanceStatus;
+
+  remarks: string;
+
+  date: string;
+}
+
+export interface AttendanceExportRow {
+  attendanceId: string;
+
+  employeeId: string;
+
+  empId: string;
+
+  name: string;
+  fatherName: string;
+
+  designation: string;
+
+  sector?: string;
+
+  location?: string;
+
+  shift?: string;
 
   status: AttendanceStatus;
 
