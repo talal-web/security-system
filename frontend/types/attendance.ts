@@ -183,3 +183,105 @@ export interface AttendanceExportRow {
 
   date: string;
 }
+
+// ======================================
+// MONTHLY ATTENDANCE
+// ======================================
+
+export type MonthlyAttendanceStatus = "P" | "L" | "A" | "-";
+
+// ======================================
+// MONTHLY EMPLOYEE SUMMARY
+// ======================================
+
+export interface MonthlyAttendanceSummary {
+  total: number;
+
+  present: number;
+
+  leave: number;
+
+  absent: number;
+}
+
+// ======================================
+// MONTHLY EMPLOYEE
+// ======================================
+
+export interface MonthlyAttendanceEmployee {
+  employeeId: string;
+
+  empId: string;
+
+  name: string;
+
+  fatherName: string;
+
+  designation: EmployeeDesignation;
+
+  summary: MonthlyAttendanceSummary;
+
+  attendance: Record<string, MonthlyAttendanceStatus>;
+}
+
+// ======================================
+// MONTHLY OVERALL STATS
+// ======================================
+
+export interface MonthlyAttendanceOverall {
+  employees: number;
+
+  total: number;
+
+  present: number;
+
+  leave: number;
+
+  absent: number;
+}
+
+// ======================================
+// MONTH INFO
+// ======================================
+
+export interface MonthlyAttendanceMonth {
+  value: string;
+
+  year: number;
+
+  month: number;
+
+  days: number;
+}
+
+// ======================================
+// MONTHLY RESPONSE DATA
+// ======================================
+
+export interface MonthlyAttendanceData {
+  month: MonthlyAttendanceMonth;
+
+  overall: MonthlyAttendanceOverall;
+
+  employees: MonthlyAttendanceEmployee[];
+}
+
+// ======================================
+// MONTHLY RESPONSE
+// ======================================
+
+export interface MonthlyAttendanceResponse {
+  success: boolean;
+
+  message: string;
+
+  data: MonthlyAttendanceData;
+}
+
+// ======================================
+// MONTHLY FILTERS
+// ======================================
+
+export interface MonthlyAttendanceFilters {
+  month: string; // Format: YYYY-MM
+}

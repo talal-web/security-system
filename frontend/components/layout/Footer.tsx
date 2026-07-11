@@ -3,14 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import Image from "next/image";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
-  Globe2,
-  ArrowRight,
-} from "lucide-react";
+import { Mail, Phone, MapPin, Globe, Globe2, ArrowRight } from "lucide-react";
 
 const quickLinks = [
   { href: "/", label: "Home" },
@@ -69,7 +62,9 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-5 text-lg font-semibold text-slate-900">Services</h3>
+            <h3 className="mb-5 text-lg font-semibold text-slate-900">
+              Services
+            </h3>
             <ul className="space-y-2.5 text-sm text-slate-600">
               <li>Guard roster management</li>
               <li>Attendance monitoring</li>
@@ -79,16 +74,18 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-5 text-lg font-semibold text-slate-900">Contact</h3>
+            <h3 className="mb-5 text-lg font-semibold text-slate-900">
+              Contact
+            </h3>
             <div className="space-y-3 text-sm text-slate-600">
               <div className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 text-blue-500" />
-                <p>Islamabad, Pakistan</p>
+                <p>Rawalpindi, Pakistan</p>
               </div>
 
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-red-500" />
-                <p>+92 300 0000000</p>
+                <p>{process.env.NEXT_PUBLIC_COMPANY_PHONE}</p>
               </div>
 
               <div className="flex items-center gap-3">

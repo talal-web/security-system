@@ -9,6 +9,9 @@ export const useMe = () => {
     queryKey: ["me"],
     queryFn: getMe,
     retry: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchInterval: 60 * 1000, // check every minute
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 };

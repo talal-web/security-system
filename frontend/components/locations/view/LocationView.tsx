@@ -3,10 +3,13 @@
 import { useState } from "react";
 
 import CreateLocationModal from "@/components/locations/CreateLocationModal";
+import UpdateLocationModal from "@/components/locations/UpdateLocationModal";
+
 import LocationFilters from "./LocationFilters";
 import LocationSector from "./LocationSector";
 
 import { MapPinned } from "lucide-react";
+
 import { useLocationView } from "@/hooks/location/useLocationView";
 
 export default function LocationView() {
@@ -43,13 +46,17 @@ export default function LocationView() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  const [editingLocationId, setEditingLocationId] = useState<string | null>(
+    null,
+  );
+
   const totalLocations = locations.length;
   const activeLocations = locations.filter(
     (location) => location.isActive,
   ).length;
   const inactiveLocations = totalLocations - activeLocations;
 
-  // loader only first time
+  // Initial loading only
   if (isLoading && locations.length === 0) {
     return (
       <div className="flex min-h-100 items-center justify-center rounded-3xl border bg-white shadow-sm">
@@ -72,13 +79,21 @@ export default function LocationView() {
   }
 
   return (
-    <div className="space-y-6 min-h-150">
+    <div className="min-h-150 space-y-6">
+      {/* Create */}
       <CreateLocationModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
 
-      {/* HEADER */}
+      {/* Update */}
+      <UpdateLocationModal
+        open={!!editingLocationId}
+        locationId={editingLocationId}
+        onClose={() => setEditingLocationId(null)}
+      />
+
+      {/* Filters */}
       <LocationFilters
         search={search}
         onSearchChange={setSearch}
@@ -95,16 +110,18 @@ export default function LocationView() {
         inactiveLocations={inactiveLocations}
       />
 
-      {/* RESULTS */}
+      {/* Results */}
       <div className="min-h-125">
         {locations.length === 0 && !isFetching ? (
           <div className="rounded-3xl border border-dashed bg-white py-16 text-center">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
-              <MapPinned className="text-slate-400" size={32} />
+              <MapPinned size={32} className="text-slate-400" />
             </div>
+
             <h2 className="mt-5 text-xl font-semibold">No Locations Found</h2>
+
             <p className="mt-2 text-sm text-slate-500">
-              Try changing filters or search keyword
+              Try changing filters or search keyword.
             </p>
           </div>
         ) : (
@@ -121,6 +138,7 @@ export default function LocationView() {
                 setReorderItems={setReorderItems}
                 handleSaveOrder={handleSaveOrder}
                 isSavingOrder={isSavingOrder}
+                onEdit={setEditingLocationId}
               />
             ))}
           </div>

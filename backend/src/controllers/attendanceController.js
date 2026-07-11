@@ -667,3 +667,244 @@ export const submitAttendanceSession = async (req, res) => {
     });
   }
 };
+
+// ======================================
+// GET MONTHLY ATTENDANCE REPORT
+// GET /api/attendance/reports/monthly?month=2026-07
+// ======================================
+
+const normalizeMonth = (month) => {
+  if (!month) {
+    throw new Error("Month is required.");
+  }
+
+  const regex = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+  if (!regex.test(month)) {
+    throw new Error("Month format must be YYYY-MM");
+  }
+
+  return month;
+};
+
+const getMonthDays = (year, month) => {
+  const totalDays = new Date(year, month, 0).getDate();
+
+  return Array.from({ length: totalDays }, (_, index) => index + 1);
+};
+
+const mapAttendanceStatus = (status) => {
+  switch (status) {
+    case "present":
+      return "P";
+
+    case "leave":
+      return "L";
+
+    case "absent":
+      return "A";
+
+    default:
+      return "-";
+  }
+};
+
+export const getMonthlyAttendanceReport = async (req, res) => {
+  try {
+    // ======================================
+    // VALIDATE MONTH
+    // ======================================
+
+    const month = normalizeMonth(req.query.month);
+
+    const [year, monthNumber] = month.split("-").map(Number);
+
+    const firstDay = new Date(year, monthNumber - 1, 1);
+
+    const lastDay = new Date(year, monthNumber, 0);
+
+    const monthStart = firstDay.toISOString().split("T")[0];
+    const monthEnd = lastDay.toISOString().split("T")[0];
+
+    const totalDays = lastDay.getDate();
+
+    const days = getMonthDays(year, monthNumber);
+
+    // ======================================
+    // GET EMPLOYEES
+    // ======================================
+
+    const employees = await Employee.find({
+      $or: [
+        {
+          status: "active",
+        },
+
+        {
+          status: "inactive",
+
+          exitDate: {
+            $gte: firstDay,
+          },
+        },
+      ],
+    })
+      .select("_id empId name fatherName designation status exitDate")
+      .sort({
+        empId: 1,
+      })
+      .lean();
+
+    // ======================================
+    // GET ATTENDANCE OF MONTH
+    // ======================================
+
+    const attendance = await Attendance.find({
+      date: {
+        $gte: monthStart,
+        $lte: monthEnd,
+      },
+    })
+      .select("employee employeeSnapshot date status")
+      .lean();
+
+    // ======================================
+    // OVERALL STATS
+    // ======================================
+
+    const overall = {
+      employees: employees.length,
+
+      absent: 0,
+
+      present: 0,
+
+      leave: 0,
+
+      total: 0,
+    };
+
+    // ======================================
+    // EMPLOYEE MAP
+    // (Filled in Part 2)
+    // ======================================
+
+    const employeeMap = new Map();
+    // ======================================
+    // INITIALIZE EMPLOYEES
+    // ======================================
+
+    for (const employee of employees) {
+      const attendanceDays = {};
+
+      for (const day of days) {
+        attendanceDays[day] = "-";
+      }
+
+      employeeMap.set(employee._id.toString(), {
+        employeeId: employee._id,
+
+        empId: employee.empId,
+        name: employee.name,
+        fatherName: employee.fatherName,
+        designation: employee.designation,
+
+        summary: {
+          present: 0,
+          leave: 0,
+          absent: 0,
+          total: 0,
+        },
+
+        attendance: attendanceDays,
+      });
+    }
+
+    // ======================================
+    // PROCESS ATTENDANCE
+    // ======================================
+
+    for (const record of attendance) {
+      const employee = employeeMap.get(record.employee.toString());
+
+      // Skip employees not included in this report
+      if (!employee) continue;
+
+      const day = Number(record.date.split("-")[2]);
+
+      const status = mapAttendanceStatus(record.status);
+
+      employee.attendance[day] = status;
+
+      switch (status) {
+        case "P":
+          employee.summary.present++;
+          employee.summary.total++;
+
+          overall.present++;
+          overall.total++;
+
+          break;
+
+        case "L":
+          employee.summary.leave++;
+          employee.summary.total++;
+
+          overall.leave++;
+          overall.total++;
+
+          break;
+
+        case "A":
+          employee.summary.absent++;
+
+          overall.absent++;
+
+          break;
+      }
+    }
+
+    // ======================================
+    // CONVERT MAP TO ARRAY
+    // ======================================
+
+    const report = Array.from(employeeMap.values());
+
+    // ======================================
+    // SORT BY EMPLOYEE ID
+    // ======================================
+
+    report.sort((a, b) =>
+      a.empId.localeCompare(b.empId, undefined, {
+        numeric: true,
+      }),
+    );
+
+    // ======================================
+    // RESPONSE
+    // ======================================
+
+    return res.status(200).json({
+      success: true,
+      message: "Monthly attendance report fetched successfully",
+
+      data: {
+        month: {
+          value: month,
+          year,
+          month: monthNumber,
+          days: totalDays,
+        },
+
+        overall,
+
+        employees: report,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-
 import { useRouter } from "next/navigation";
 
 import { useMe } from "@/hooks/auth/useMe";
 
 type Role = "admin" | "supervisor" | "developer";
 
-type ProtectedRouteProps = {
+interface ProtectedRouteProps {
   children: React.ReactNode;
-
   allowedRoles: Role[];
-};
+}
 
 export default function ProtectedRoute({
   children,
@@ -23,26 +21,20 @@ export default function ProtectedRoute({
   const { data, isLoading, isError } = useMe();
 
   const user = data?.user;
-
   const role = user?.role as Role | undefined;
 
-  // 🔐 Not authenticated
   useEffect(() => {
-    if (isError) {
+    if (isLoading) return;
+
+    if (isError || !user) {
       router.replace("/login");
+      return;
     }
-  }, [isError, router]);
 
-  // 🚫 Unauthorized role
-  useEffect(() => {
-    if (!isLoading && role) {
-      const hasAccess = allowedRoles.includes(role);
-
-      if (!hasAccess) {
-        router.replace("app/dashboard/unauthorized");
-      }
+    if (!allowedRoles.includes(role!)) {
+      router.replace("/dashboard/unauthorized");
     }
-  }, [isLoading, role, allowedRoles, router]);
+  }, [isLoading, isError, user, role, allowedRoles, router]);
 
   if (isLoading) {
     return (
@@ -50,6 +42,10 @@ export default function ProtectedRoute({
         <p className="text-lg font-medium">Checking permissions...</p>
       </div>
     );
+  }
+
+  if (isError || !user || !allowedRoles.includes(role!)) {
+    return null;
   }
 
   return <>{children}</>;

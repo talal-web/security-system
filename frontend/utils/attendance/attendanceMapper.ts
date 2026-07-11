@@ -2,7 +2,6 @@ import type {
   AttendanceExportRow,
   AttendanceNonPresentEmployee,
   AttendanceSector,
-  AttendanceShift,
 } from "@/types/attendance";
 
 export function mapAttendanceEmployee(
@@ -15,7 +14,6 @@ export function mapAttendanceEmployee(
     empId: employee.empId,
     name: employee.name,
     fatherName: employee.fatherName,
-
     designation: employee.designation ?? "-",
     sector: employee.sector ?? "-",
     location: employee.location ?? "-",

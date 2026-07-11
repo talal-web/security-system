@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   getAttendanceReport,
+  getMonthlyAttendanceReport,
   getAttendanceSession,
   submitAttendanceSession,
 } from "../controllers/attendanceController.js";
@@ -16,5 +17,7 @@ router.post("/session", submitAttendanceSession);
 
 // Attendance reports & statistics
 router.get("/report", getAttendanceReport);
+
+router.get("/report/monthly", getMonthlyAttendanceReport);
 
 export default router;

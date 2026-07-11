@@ -39,13 +39,11 @@ export async function exportAttendanceToExcel({
       worksheet,
       [
         ["Attendance Summary"],
-        [],
         ["Day Shift", globalStats.day],
         ["Night Shift", globalStats.night],
         ["Present", globalStats.present],
         ["Leave", globalStats.leave],
         ["Total Employees", globalStats.total],
-        // ["Absent", globalStats.absent],
         [],
       ],
       { origin: "A1" },
