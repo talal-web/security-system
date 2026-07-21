@@ -14,6 +14,17 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
   }
 }
 
+export async function logoutUser(): Promise<{ message: string }> {
+  try {
+    const res = await api.post("/auth/logout");
+
+    return res.data;
+  } catch (error) {
+    const message = getApiErrorMessage(error);
+    throw new Error(message);
+  }
+}
+
 export async function getMe(): Promise<MeResponse> {
   try {
     const res = await api.get("/auth/me");

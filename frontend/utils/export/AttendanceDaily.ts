@@ -1,4 +1,4 @@
-import { formatSectorName } from "./formatSectorName";
+import { formatSectorName } from "../formatSectorName";
 
 import type {
   AttendanceExportRow,

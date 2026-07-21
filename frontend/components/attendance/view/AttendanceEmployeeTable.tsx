@@ -17,6 +17,8 @@ export default function AttendanceEmployeeTable({
   status,
   employees,
 }: AttendanceEmployeeTableProps) {
+  const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
   const getStatusStyle = () => {
     switch (status) {
       case "absent":
@@ -48,17 +50,33 @@ export default function AttendanceEmployeeTable({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-[850px] w-full text-sm">
+        <table className="w-full min-w-212.5 text-sm">
           <thead className="bg-gray-50 text-left text-xs font-semibold uppercase text-gray-600">
             <tr>
-              <th className="w-16 px-4 py-3 text-center">#</th>
-              <th className="px-4 py-3">Emp ID</th>
-              <th className="px-4 py-3">Employee Name</th>
-              <th className="px-4 py-3">Father Name</th>
-              <th className="px-4 py-3">Designation</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Remarks</th>
-              <th className="px-4 py-3">Date</th>
+              <th scope="col" className="w-16 px-4 py-3 text-center">
+                #
+              </th>
+              <th scope="col" className="px-4 py-3">
+                Emp ID
+              </th>
+              <th scope="col" className="px-4 py-3">
+                Employee Name
+              </th>
+              <th scope="col" className="px-4 py-3">
+                Father Name
+              </th>
+              <th scope="col" className="px-4 py-3">
+                Designation
+              </th>
+              <th scope="col" className="px-4 py-3">
+                Status
+              </th>
+              <th scope="col" className="px-4 py-3">
+                Remarks
+              </th>
+              <th scope="col" className="px-4 py-3">
+                Date
+              </th>
             </tr>
           </thead>
 
@@ -89,9 +107,7 @@ export default function AttendanceEmployeeTable({
                 </td>
 
                 <td className="px-4 py-3">
-                  <span className={getStatusStyle()}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </span>
+                  <span className={getStatusStyle()}>{statusLabel}</span>
                 </td>
 
                 <td className="px-4 py-3 text-slate-600">

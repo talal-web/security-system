@@ -7,7 +7,7 @@ const generateEmpId = async () => {
     { new: true, upsert: true },
   );
 
-  return `EMP-${String(counter.seq).padStart(4, "0")}`;
+  return `BSS-${String(counter.seq).padStart(4, "0")}`;
 };
 
 export default generateEmpId;

@@ -27,7 +27,7 @@ export default function ProtectedRoute({
     if (isLoading) return;
 
     if (isError || !user) {
-      router.replace("/login");
+      router.replace("/?login=true");
       return;
     }
 

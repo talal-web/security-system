@@ -6,12 +6,16 @@ import { useForm } from "react-hook-form";
 
 import { useLogin } from "@/hooks/auth/useLogin";
 
+type LoginFormProps = {
+  onSuccess?: () => void;
+};
+
 type LoginFormData = {
   userId: string;
   password: string;
 };
 
-export default function LoginForm() {
+export default function LoginForm({ onSuccess }: LoginFormProps) {
   const router = useRouter();
 
   const { mutateAsync, isPending, isError, error } = useLogin();
@@ -23,13 +27,21 @@ export default function LoginForm() {
   } = useForm<LoginFormData>();
 
   const onSubmit = async (data: LoginFormData) => {
-    await mutateAsync(data);
+    try {
+      await mutateAsync(data);
 
-    router.push("/employees");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      // mutation handles error state
+    }
   };
 
   return (
-    <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-sm">
+    <div>
       <div className="mb-6 space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Login</h1>
 

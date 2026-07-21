@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Menu, X, ArrowRight } from "lucide-react";
 import Image from "next/image";
+
+import { useLogout } from "@/hooks/auth/useLogout";
+import { useMe } from "@/hooks/auth/useMe";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -15,6 +19,17 @@ const navLinks = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  const { data, isLoading } = useMe();
+  const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
+
+  const user = data?.user;
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/login");
+  };
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-slate-200/70 bg-white/95 shadow-sm shadow-slate-200/40 backdrop-blur-xl print:hidden">
@@ -54,20 +69,42 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Link
-            href="/login"
-            className="text-sm font-medium text-slate-700 transition hover:text-red-600"
-          >
-            Login
-          </Link>
+          {user ? (
+            <>
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="text-sm font-medium text-slate-700 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </button>
 
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-blue-600 via-sky-500 to-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-200/40 transition-all hover:-translate-y-0.5 hover:brightness-110"
-          >
-            Open Dashboard
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-blue-600 via-sky-500 to-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-200/40 transition-all hover:-translate-y-0.5 hover:brightness-110"
+              >
+                Open Dashboard
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/?login=true"
+                className="text-sm font-medium text-slate-700 transition hover:text-red-600"
+              >
+                Login
+              </Link>
+
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-blue-600 via-sky-500 to-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-200/40 transition-all hover:-translate-y-0.5 hover:brightness-110"
+              >
+                Open Dashboard
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -93,13 +130,26 @@ export default function Navbar() {
             ))}
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="rounded-2xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                Login
-              </Link>
+              {user ? (
+                <button
+                  onClick={async () => {
+                    setOpen(false);
+                    await handleLogout();
+                  }}
+                  disabled={isLoggingOut}
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isLoggingOut ? "Logging out..." : "Logout"}
+                </button>
+              ) : (
+                <Link
+                  href="/?login=true"
+                  onClick={() => setOpen(false)}
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                >
+                  Login
+                </Link>
+              )}
 
               <Link
                 href="/dashboard"

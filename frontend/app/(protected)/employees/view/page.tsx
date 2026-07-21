@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Plus, Filter } from "lucide-react";
 
-import EmployeeCard from "@/components/employees/EmployeeCard";
+import EmployeeCard from "@/components/employees/view/EmployeeCard";
 import EmployeeFilters from "@/components/employees/EmployeeFilters";
 
 import { useEmployeeDirectory } from "@/hooks/employee/useEmployeeDirectory";

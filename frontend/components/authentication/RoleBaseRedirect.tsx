@@ -41,7 +41,7 @@ export default function RoleBasedRedirect({ children }: Props) {
   // 🔐 Redirect unauthenticated users
   useEffect(() => {
     if (isError) {
-      router.replace("/login");
+      router.replace("/?login=true");
     }
   }, [isError, router]);
 

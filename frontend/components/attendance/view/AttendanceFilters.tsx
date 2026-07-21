@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Filter, Moon, Sun, UserCheck } from "lucide-react";
+import { CalendarDays, Filter, Sun, UserCheck } from "lucide-react";
 
 import type {
   AttendanceFilters,
@@ -19,7 +19,12 @@ export default function ViewAttendanceFilters({
   filters,
   setFilters,
 }: AttendanceFiltersProps) {
-  const hasFilters = filters.status || filters.shift || filters.date;
+  const today = getTodayDate();
+
+  const hasFilters =
+    Boolean(filters.status) ||
+    Boolean(filters.shift) ||
+    Boolean(filters.date && filters.date !== today);
 
   const clearFilters = () => {
     setFilters({

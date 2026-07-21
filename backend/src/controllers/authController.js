@@ -35,12 +35,15 @@ export const login = async (req, res) => {
         expiresIn: "1h",
       },
     );
-    res.cookie("token", token, {
+
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 60 * 60 * 1000, // 1 hour
-    });
+    };
+
+    res.cookie("token", token, cookieOptions);
 
     res.status(200).json({
       message: "Login successful",
@@ -50,6 +53,24 @@ export const login = async (req, res) => {
         role: user.role,
         userId: user.userId,
       },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+    });
+
+    res.status(200).json({
+      message: "Logged out successfully",
     });
   } catch (error) {
     res.status(500).json({

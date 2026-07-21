@@ -16,6 +16,12 @@ export const protect = (req, res, next) => {
 
     next();
   } catch (error) {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+    });
+
     return res.status(401).json({
       message: "Invalid token",
     });

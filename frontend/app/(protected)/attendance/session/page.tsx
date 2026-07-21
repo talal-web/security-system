@@ -50,12 +50,13 @@ export default function AttendanceSessionPage() {
       <AttendanceStats {...attendance.stats} />
 
       <AttendanceSectorList
-        sectors={attendance.sectors}
+        sectors={attendance.presentSectors}
         onEmployeeChange={attendance.handleEmployeeChange}
       />
 
       <AttendanceAbsentLeaveList
-        sectors={attendance.sectors}
+        absentEmployees={attendance.absentEmployees}
+        leaveEmployees={attendance.leaveEmployees}
         onEmployeeChange={attendance.handleEmployeeChange}
       />
     </main>

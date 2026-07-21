@@ -65,7 +65,7 @@ export default function CreateEmployeeForm() {
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<EmployeeFormValues>({
+  } = useForm({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
       name: "",
@@ -105,7 +105,7 @@ export default function CreateEmployeeForm() {
   // ======================
   // Submit
   // ======================
-  const onSubmit = async (values: EmployeeFormValues) => {
+  const onSubmit = async (values: any) => {
     const form = new FormData();
 
     Object.entries(values).forEach(([key, value]) => {
@@ -131,7 +131,7 @@ export default function CreateEmployeeForm() {
   return (
     <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
       {/* HEADER */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+      <div className="relative overflow-hidden bg-linear-to-r from-orange-500 via-amber-500 to-yellow-500 px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-medium text-white backdrop-blur">
@@ -182,12 +182,14 @@ export default function CreateEmployeeForm() {
         <Input
           icon={<User />}
           label="Name"
+          placeholder="Talal Malik"
           error={errors.name?.message}
           {...register("name")}
         />
         <Input
           icon={<User />}
           label="Father Name"
+          placeholder="Father Name"
           error={errors.fatherName?.message}
           {...register("fatherName")}
         />
@@ -204,6 +206,7 @@ export default function CreateEmployeeForm() {
         <Input
           icon={<CreditCard />}
           label="CNIC"
+          placeholder="13302-3475226-5"
           error={errors.cnic?.message}
           {...register("cnic")}
         />
@@ -219,19 +222,22 @@ export default function CreateEmployeeForm() {
         <Input
           icon={<MapPin />}
           label="Address"
+          placeholder="MalikAbad, Haripur, KPK, Pakistan"
           error={errors.address?.message}
           {...register("address")}
         />
 
         <Input
           icon={<Phone />}
-          label="Phone 1"
+          label="Personal Number"
+          placeholder="0347-9107491"
           error={errors.phone1?.message}
           {...register("phone1")}
         />
         <Input
           icon={<Phone />}
-          label="Phone 2"
+          label="Family Number"
+          placeholder="0347-9107491"
           error={errors.phone2?.message}
           {...register("phone2")}
         />
@@ -295,6 +301,7 @@ export default function CreateEmployeeForm() {
         <Input
           icon={<User />}
           label="Reference"
+          placeholder="Enter Reference Name"
           error={errors.reference?.message}
           {...register("reference")}
         />

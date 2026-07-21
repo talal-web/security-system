@@ -6,8 +6,8 @@ import { motion } from "framer-motion";
 import { Shield, Users, Building2, Activity } from "lucide-react";
 
 const stats = [
-  { title: "500+", subtitle: "Security Guards", icon: Users },
-  { title: "120+", subtitle: "Client Locations", icon: Building2 },
+  { title: "120+", subtitle: "Security Guards", icon: Users },
+  { title: "75+", subtitle: "Client Locations", icon: Building2 },
   { title: "24/7", subtitle: "Monitoring", icon: Activity },
   { title: "99%", subtitle: "Operational Efficiency", icon: Shield },
 ];

@@ -34,15 +34,19 @@ const fadeUp: Variants = {
 };
 
 const stats = [
-  { value: "450+", label: "Security Personnel" },
-  { value: "30+", label: "Deployment Locations" },
+  { value: "120+", label: "Security Personnel" },
+  { value: "75+", label: "Deployment Locations" },
   { value: "99%", label: "Attendance Accuracy" },
   { value: "24/7", label: "Operations" },
 ];
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  onLoginClick: () => void;
+}
+
+export default function HeroSection({ onLoginClick }: HeroSectionProps) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-slate-100 to-white text-slate-900">
+    <section className="relative overflow-hidden bg-linear-to-b from-slate-50 via-slate-100 to-white text-slate-900">
       <div className="absolute inset-0">
         <div className="absolute inset-0 opacity-30 bg-[linear-gradient(rgba(15,23,42,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.03)_1px,transparent_1px)] bg-size-[56px_56px]" />
         <motion.div
@@ -118,20 +122,22 @@ export default function HeroSection() {
               variants={fadeUp}
               className="mt-8 flex flex-col gap-3 sm:flex-row"
             >
-              <Link
-                href="/employees"
-                className="group inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 px-7 py-3.5 font-semibold text-white shadow-lg shadow-sky-500/20 transition-all duration-300 hover:-translate-y-1 hover:from-blue-700 hover:to-sky-600"
+              <button
+                type="button"
+                onClick={onLoginClick}
+                className="group inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-blue-600 to-sky-500 px-7 py-3.5 font-semibold text-white shadow-lg shadow-sky-500/20 transition-all duration-300 hover:-translate-y-1 hover:from-blue-700 hover:to-sky-600"
               >
-                Manage Employees
+                Secure Login
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
+              </button>
 
-              <Link
-                href="/dashboard"
+              <button
+                type="button"
+                onClick={onLoginClick}
                 className="inline-flex items-center justify-center rounded-2xl border border-red-200 bg-white px-7 py-3.5 font-semibold text-slate-900 transition-all duration-300 hover:border-red-300 hover:bg-red-50"
               >
                 Open Dashboard
-              </Link>
+              </button>
             </motion.div>
 
             <motion.div
@@ -206,7 +212,7 @@ export default function HeroSection() {
                   <DashboardCard
                     icon={<Users className="h-5 w-5 text-blue-600" />}
                     title="Employees"
-                    value="186"
+                    value="125"
                   />
                   <DashboardCard
                     icon={<ClipboardCheck className="h-5 w-5 text-red-600" />}
@@ -216,7 +222,7 @@ export default function HeroSection() {
                   <DashboardCard
                     icon={<MapPinned className="h-5 w-5 text-sky-500" />}
                     title="Locations"
-                    value="32"
+                    value="75"
                   />
                   <DashboardCard
                     icon={<Clock3 className="h-5 w-5 text-orange-500" />}
@@ -237,7 +243,7 @@ export default function HeroSection() {
                       initial={{ width: 0 }}
                       animate={{ width: "96%" }}
                       transition={{ duration: 1.2, delay: 0.8 }}
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-500 to-red-500"
+                      className="h-full rounded-full bg-linear-to-r from-blue-500 via-cyan-500 to-red-500"
                     />
                   </div>
                 </div>

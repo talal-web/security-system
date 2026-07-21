@@ -18,7 +18,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
     if (isLoading) return;
 
     if (isError || !data?.user) {
-      router.replace("/login");
+      router.replace("/?login=true");
     }
   }, [isLoading, isError, data, router]);
 
@@ -34,5 +34,5 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
     return null;
   }
 
-  return <>{children}</>;
+  return children;
 }

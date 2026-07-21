@@ -2,13 +2,11 @@
 
 import AttendanceAbsentLeaveCard from "./AttendanceAbsentLeaveCard";
 
-import type {
-  AttendanceFormEmployee,
-  AttendanceFormSector,
-} from "@/types/attendance-session";
+import type { AttendanceFormEmployee } from "@/types/attendance-session";
 
 interface AttendanceAbsentLeaveListProps {
-  sectors: AttendanceFormSector[];
+  absentEmployees: AttendanceFormEmployee[];
+  leaveEmployees: AttendanceFormEmployee[];
   onEmployeeChange: (
     employeeId: string,
     field: keyof AttendanceFormEmployee,
@@ -17,17 +15,11 @@ interface AttendanceAbsentLeaveListProps {
 }
 
 export default function AttendanceAbsentLeaveList({
-  sectors,
+  absentEmployees,
+  leaveEmployees,
   onEmployeeChange,
 }: AttendanceAbsentLeaveListProps) {
-  const employees = sectors.flatMap((sector) =>
-    sector.locations.flatMap((location) =>
-      location.employees.filter(
-        (employee) =>
-          employee.status === "absent" || employee.status === "leave",
-      ),
-    ),
-  );
+  const employees = [...absentEmployees, ...leaveEmployees];
 
   if (employees.length === 0) {
     return null;
@@ -43,7 +35,7 @@ export default function AttendanceAbsentLeaveList({
             </h2>
 
             <p className="text-sm text-red-600">
-              Employees without duty assignment
+              Employees marked absent or on leave
             </p>
           </div>
 
