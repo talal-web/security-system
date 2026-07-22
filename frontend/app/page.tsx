@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import HeroSection from "@/components/home/HeroSection";
@@ -10,6 +10,14 @@ import StatsSection from "@/components/home/StatsSection";
 import LoginModal from "@/components/authentication/LoginModal";
 
 export default function HomePage() {
+  return (
+    <Suspense fallback={null}>
+      <HomePageContent />
+    </Suspense>
+  );
+}
+
+function HomePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loginOpen, setLoginOpen] = useState(false);

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { Resolver, useForm, useWatch } from "react-hook-form";
 
 import Input from "@/components/Input";
 import Select from "@/components/Select";
@@ -29,15 +29,38 @@ import {
 import { useCreateEmployee } from "@/hooks/employee/useCreateEmployee";
 import { useLocations } from "@/hooks/location/useLocation";
 
-import { z } from "zod";
 import { employeeSchema } from "@/utils/employee/employeeSchema";
+import {
+  EducationLevel,
+  EmployeeDesignation,
+  EmployeeShift,
+  SectorOptions,
+} from "@/types/employee";
 
 import { educationOptions, designationOptions } from "@/constants/employee";
 
 import { sectorOptions } from "@/constants/location";
 import { shiftOptions } from "@/constants/shiftOptions";
 
-type EmployeeFormValues = z.infer<typeof employeeSchema>;
+type EmployeeFormValues = {
+  name: string;
+  fatherName: string;
+  birthDate: string;
+  cnic: string;
+  address: string;
+  phone1: string;
+  phone2: string;
+  education?: EducationLevel | "";
+  designation: EmployeeDesignation;
+  sector?: SectorOptions | "";
+  currentLocation?: string;
+  defaultShift?: EmployeeShift | "";
+  basicSalary?: number;
+  reference: string;
+  status: "active" | "inactive";
+  entryDate: string;
+  exitDate: string;
+};
 
 export default function CreateEmployeeForm() {
   const router = useRouter();
@@ -62,7 +85,7 @@ export default function CreateEmployeeForm() {
     handleSubmit,
     formState: { errors },
   } = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeSchema),
+    resolver: zodResolver(employeeSchema) as Resolver<EmployeeFormValues>,
     defaultValues: {
       name: "",
       fatherName: "",
@@ -71,13 +94,11 @@ export default function CreateEmployeeForm() {
       address: "",
       phone1: "",
       phone2: "",
-      education: undefined,
-      designation: undefined,
-
-      defaultShift: undefined,
-
-      sector: undefined,
-      currentLocation: undefined,
+      education: "",
+      designation: "guard",
+      defaultShift: "",
+      sector: "",
+      currentLocation: "",
       basicSalary: 0,
       reference: "",
       status: "active",

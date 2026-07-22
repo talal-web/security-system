@@ -18,7 +18,15 @@ import {
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 import { useMe } from "@/hooks/auth/useMe";
 
-const employeeActions = [
+type DashboardActionItem = {
+  title: string;
+  description: string;
+  href: string;
+  icon: React.ElementType;
+  color: "blue" | "red";
+};
+
+const employeeActions: DashboardActionItem[] = [
   {
     title: "Add Employee",
     description: "Register new security personnel.",
@@ -35,7 +43,7 @@ const employeeActions = [
   },
 ];
 
-const attendanceActions = [
+const attendanceActions: DashboardActionItem[] = [
   {
     title: "Mark Attendance",
     description: "Mark today's attendance.",
@@ -59,7 +67,7 @@ const attendanceActions = [
   },
 ];
 
-const locationActions = [
+const locationActions: DashboardActionItem[] = [
   {
     title: "Add Location",
     description: "Create a new deployment location.",
@@ -298,17 +306,7 @@ function DashboardSection({
   );
 }
 
-function DashboardFeatureCard({
-  item,
-}: {
-  item: {
-    title: string;
-    description: string;
-    href: string;
-    icon: React.ElementType;
-    color: "blue" | "red";
-  };
-}) {
+function DashboardFeatureCard({ item }: { item: DashboardActionItem }) {
   const Icon = item.icon;
 
   const styles =
