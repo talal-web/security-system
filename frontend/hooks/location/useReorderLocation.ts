@@ -23,7 +23,7 @@ export const useReorderLocations = () => {
     },
 
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error(error.message || "Failed to reorder locations.");
     },
   });
 };

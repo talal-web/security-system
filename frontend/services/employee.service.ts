@@ -14,8 +14,6 @@ export async function getEmployees(
   } catch (error) {
     const message = getApiErrorMessage(error);
 
-    console.error("GET EMPLOYEES ERROR:", message);
-
     throw new Error(message);
   }
 }
@@ -27,8 +25,6 @@ export async function getEmployeeById(id: string): Promise<Employee> {
     return res.data.data;
   } catch (error) {
     const message = getApiErrorMessage(error);
-
-    console.error("GET EMPLOYEE BY ID ERROR:", message);
 
     throw new Error(message);
   }
@@ -47,8 +43,6 @@ export async function createEmployee(
     return res.data.data;
   } catch (error) {
     const message = getApiErrorMessage(error);
-
-    console.error("CREATE EMPLOYEE ERROR:", message);
 
     throw new Error(message);
   }
@@ -69,8 +63,6 @@ export async function updateEmployee(
   } catch (error) {
     const message = getApiErrorMessage(error);
 
-    console.error("UPDATE EMPLOYEE ERROR:", message);
-
     throw new Error(message);
   }
 }
@@ -80,8 +72,6 @@ export async function deleteEmployee(id: string): Promise<void> {
     await api.delete(`/employees/${id}`);
   } catch (error) {
     const message = getApiErrorMessage(error);
-
-    console.error("DELETE EMPLOYEE ERROR:", message);
 
     throw new Error(message);
   }

@@ -42,15 +42,19 @@ export default function Select({
       </label>
 
       <div
-        className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors focus-within:border-orange-500 ${
+        className={`flex h-11 items-center gap-2 rounded-xl border px-3 transition-colors focus-within:border-orange-500 ${
           error ? "border-red-500 bg-red-50" : "border-slate-200 bg-slate-50"
         }`}
       >
-        {icon && <span className="shrink-0 text-slate-400">{icon}</span>}
+        {icon && (
+          <span className="shrink-0 text-slate-400 [&_svg]:h-4 [&_svg]:w-4">
+            {icon}
+          </span>
+        )}
 
         <select
           {...props}
-          className={`w-full bg-transparent text-sm outline-none ${className ?? ""}`}
+          className={`w-full bg-transparent text-sm text-slate-900 outline-none disabled:cursor-not-allowed disabled:text-slate-400 ${className ?? ""}`}
         >
           <option value="">{placeholder ?? `Select ${label}`}</option>
 

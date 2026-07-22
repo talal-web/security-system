@@ -23,10 +23,12 @@ export const useLocations = ({
   search,
   sector,
   isActive,
+  enabled,
 }: {
   search?: string;
   sector?: LocationSector;
   isActive?: boolean;
+  enabled?: boolean;
 } = {}) => {
   return useQuery({
     queryKey: ["locations", search, sector, isActive],
@@ -38,6 +40,7 @@ export const useLocations = ({
         isActive,
       }),
 
+    enabled: enabled ?? true,
     staleTime: 60 * 1000,
     placeholderData: (previousData) => previousData,
   });

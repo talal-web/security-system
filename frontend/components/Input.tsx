@@ -16,19 +16,31 @@ export default function Input({
 }: InputProps) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium">{label}</label>
+      <label className="mb-1 block text-sm font-medium text-slate-700">
+        {label}
+      </label>
 
-      <div className="flex items-center gap-2 rounded-xl border bg-gray-50 px-3 py-2 focus-within:border-orange-500">
-        {icon && <span className="text-gray-400">{icon}</span>}
+      <div
+        className={`flex h-11 items-center gap-2 rounded-xl border px-3 transition-colors focus-within:border-orange-500 ${
+          error ? "border-red-500 bg-red-50" : "border-slate-200 bg-slate-50"
+        }`}
+      >
+        {icon && (
+          <span className="shrink-0 text-slate-400 [&_svg]:h-4 [&_svg]:w-4">
+            {icon}
+          </span>
+        )}
 
         <input
           {...props}
           placeholder={placeholder}
-          className="w-full bg-transparent outline-none placeholder:text-gray-400"
+          className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:text-slate-400"
         />
       </div>
 
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && (
+        <p className="mt-1 text-xs font-medium text-red-500">{error}</p>
+      )}
     </div>
   );
 }

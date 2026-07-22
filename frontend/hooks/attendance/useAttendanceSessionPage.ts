@@ -269,7 +269,9 @@ export function useAttendanceSessionPage() {
       );
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to submit attendance.",
+        error instanceof Error && error.message
+          ? error.message
+          : "Failed to submit attendance.",
       );
     }
   };

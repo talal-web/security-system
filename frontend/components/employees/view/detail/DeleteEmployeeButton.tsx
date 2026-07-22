@@ -16,12 +16,12 @@ export default function DeleteEmployeeButton({ employeeId }: Props) {
 
   const { removeEmployee, isLoading } = useDeleteEmployee({
     onSuccess: () => {
-      toast.success("Employee deleted successfully");
+      toast.success("Employee deleted successfully.");
       router.push("/employees");
     },
 
     onError: (message) => {
-      toast.error(message);
+      toast.error(message || "Failed to delete employee.");
     },
   });
 
@@ -41,22 +41,11 @@ export default function DeleteEmployeeButton({ employeeId }: Props) {
       onClick={handleDelete}
       disabled={isLoading}
       className="
-        inline-flex
-        h-11
-        w-full
-        items-center
-        justify-center
-        gap-2
-        rounded-xl
-        bg-red-600
-        px-5
-        text-sm
-        font-semibold
-        text-white
-        transition-all
-        duration-300
+        inline-flex h-11 min-w-36 w-full items-center justify-center gap-2
+        rounded-xl bg-red-600 px-5
+        text-sm font-semibold text-white
+        transition-colors duration-200
         hover:bg-red-700
-        hover:shadow-lg
         disabled:cursor-not-allowed
         disabled:opacity-70
         sm:w-auto

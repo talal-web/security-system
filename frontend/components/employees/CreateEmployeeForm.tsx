@@ -65,18 +65,6 @@ type EmployeeFormValues = {
 export default function CreateEmployeeForm() {
   const router = useRouter();
 
-  const { data: locations = [] } = useLocations();
-
-  const { handleCreateEmployee, loading } = useCreateEmployee({
-    onSuccess: () => {
-      toast.success("Employee created successfully");
-      router.push("/employees");
-    },
-    onError: (message) => {
-      toast.error(message);
-    },
-  });
-
   const [profileImage, setProfileImage] = useState<File | null>(null);
 
   const {
@@ -112,6 +100,27 @@ export default function CreateEmployeeForm() {
     name: "sector",
   });
 
+  const {
+    data: locations = [],
+    isLoading: isLocationsLoading,
+    isError: isLocationsError,
+    error: locationsError,
+  } = useLocations({
+    sector: selectedSector || undefined,
+    isActive: true,
+    enabled: Boolean(selectedSector),
+  });
+
+  const { handleCreateEmployee, loading } = useCreateEmployee({
+    onSuccess: () => {
+      toast.success("Employee created successfully.");
+      router.push("/employees");
+    },
+    onError: (message) => {
+      toast.error(message || "Failed to create employee.");
+    },
+  });
+
   const profilePreviewUrl = useMemo(() => {
     return profileImage ? URL.createObjectURL(profileImage) : null;
   }, [profileImage]);
@@ -124,11 +133,42 @@ export default function CreateEmployeeForm() {
     };
   }, [profilePreviewUrl]);
 
-  const filteredLocations = useMemo(() => {
-    return locations.filter(
-      (loc) => loc.isActive && loc.sector === selectedSector,
-    );
-  }, [locations, selectedSector]);
+  const locationOptions = useMemo(
+    () =>
+      locations.map((loc) => ({
+        label: loc.name,
+        value: loc._id,
+      })),
+    [locations],
+  );
+
+  const isLocationSelectDisabled =
+    !selectedSector ||
+    isLocationsLoading ||
+    isLocationsError ||
+    locationOptions.length === 0;
+
+  const locationPlaceholder = !selectedSector
+    ? "Select Sector First"
+    : isLocationsLoading
+      ? "Loading Locations..."
+      : isLocationsError
+        ? "Locations Unavailable"
+        : locationOptions.length === 0
+          ? "No Active Locations in This Sector"
+          : "Select Location";
+
+  const locationStatusMessage = !selectedSector
+    ? "Select a sector to load available locations."
+    : isLocationsLoading
+      ? "Loading available locations..."
+      : isLocationsError
+        ? locationsError instanceof Error
+          ? locationsError.message
+          : "Unable to load locations right now."
+        : locationOptions.length === 0
+          ? "No active locations found for the selected sector."
+          : "";
 
   const onSubmit = async (values: EmployeeFormValues) => {
     const form = new FormData();
@@ -145,9 +185,7 @@ export default function CreateEmployeeForm() {
 
     const data = await handleCreateEmployee(form);
 
-    if (data) {
-      router.push("/employees");
-    }
+    return data;
   };
 
   return (
@@ -207,14 +245,14 @@ export default function CreateEmployeeForm() {
         <Input
           icon={<User />}
           label="Name"
-          placeholder="Talal Malik"
+          placeholder="Enter full name"
           error={errors.name?.message}
           {...register("name")}
         />
         <Input
           icon={<User />}
           label="Father Name"
-          placeholder="Father Name"
+          placeholder="Enter father's name"
           error={errors.fatherName?.message}
           {...register("fatherName")}
         />
@@ -222,7 +260,7 @@ export default function CreateEmployeeForm() {
         <Select
           icon={<ShieldCheck />}
           label="Designation"
-          placeholder="Select Designation"
+          placeholder="Select designation"
           options={designationOptions}
           error={errors.designation?.message}
           {...register("designation")}
@@ -231,7 +269,7 @@ export default function CreateEmployeeForm() {
         <Input
           icon={<CreditCard />}
           label="CNIC"
-          placeholder="13302-3475226-5"
+          placeholder="e.g. 13302-3475226-5"
           error={errors.cnic?.message}
           {...register("cnic")}
         />
@@ -247,7 +285,7 @@ export default function CreateEmployeeForm() {
         <Input
           icon={<MapPin />}
           label="Address"
-          placeholder="MalikAbad, Haripur, KPK, Pakistan"
+          placeholder="Street 54, G10/3, Islamabad, Pakistan"
           error={errors.address?.message}
           {...register("address")}
         />
@@ -255,14 +293,14 @@ export default function CreateEmployeeForm() {
         <Input
           icon={<Phone />}
           label="Personal Number"
-          placeholder="0347-9107491"
+          placeholder="e.g. 0347-1234567"
           error={errors.phone1?.message}
           {...register("phone1")}
         />
         <Input
           icon={<Phone />}
           label="Family Number"
-          placeholder="0347-9107491"
+          placeholder="e.g. 0347-7654321"
           error={errors.phone2?.message}
           {...register("phone2")}
         />
@@ -270,7 +308,7 @@ export default function CreateEmployeeForm() {
         <Select
           icon={<GraduationCap />}
           label="Education"
-          placeholder="Select Education"
+          placeholder="Select education"
           options={educationOptions}
           error={errors.education?.message}
           {...register("education")}
@@ -280,7 +318,7 @@ export default function CreateEmployeeForm() {
         <Select
           icon={<MapPin />}
           label="Sector"
-          placeholder="Select Sector"
+          placeholder="Select sector"
           options={sectorOptions}
           error={errors.sector?.message}
           {...register("sector")}
@@ -290,18 +328,22 @@ export default function CreateEmployeeForm() {
         <Select
           icon={<MapPin />}
           label="Current Location"
-          placeholder="Select Location"
-          options={filteredLocations.map((loc) => ({
-            label: loc.name,
-            value: loc._id,
-          }))}
+          placeholder={locationPlaceholder}
+          options={locationOptions}
+          disabled={isLocationSelectDisabled}
+          aria-busy={isLocationsLoading}
           error={errors.currentLocation?.message}
           {...register("currentLocation")}
         />
+        {locationStatusMessage && (
+          <p className="mt-1 text-xs font-medium text-slate-500 md:col-span-2 lg:col-span-1">
+            {locationStatusMessage}
+          </p>
+        )}
         <Select
           icon={<Clock3 />}
           label="Default Shift"
-          placeholder="Select Shift"
+          placeholder="Select shift"
           options={shiftOptions}
           error={errors.defaultShift?.message}
           {...register("defaultShift")}
@@ -326,7 +368,7 @@ export default function CreateEmployeeForm() {
         <Input
           icon={<User />}
           label="Reference"
-          placeholder="Enter Reference Name"
+          placeholder="Enter reference name"
           error={errors.reference?.message}
           {...register("reference")}
         />
@@ -335,6 +377,7 @@ export default function CreateEmployeeForm() {
           icon={<Banknote />}
           type="number"
           label="Basic Salary"
+          placeholder="e.g. 35000"
           error={errors.basicSalary?.message}
           {...register("basicSalary", {
             valueAsNumber: true,
@@ -353,9 +396,9 @@ export default function CreateEmployeeForm() {
           <button
             type="submit"
             disabled={loading}
-            className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-orange-600 font-bold text-white"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-orange-600 text-sm font-semibold text-white transition-colors duration-200 hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <Save className="h-5 w-5" />
+            <Save className="h-4 w-4" />
             {loading ? "Creating..." : "Create Employee"}
           </button>
         </div>
