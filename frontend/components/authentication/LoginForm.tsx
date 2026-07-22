@@ -35,9 +35,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       } else {
         router.push("/dashboard");
       }
-    } catch (error) {
-      // mutation handles error state
-    }
+    } catch {}
   };
 
   return (

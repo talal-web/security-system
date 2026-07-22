@@ -1,11 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { toast } from "sonner";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import Input from "@/components/Input";
 import Select from "@/components/Select";
@@ -26,7 +27,7 @@ import {
 } from "lucide-react";
 
 import { useCreateEmployee } from "@/hooks/employee/useCreateEmployee";
-import { useLocations } from "@/hooks/location/useLocation"; // 🔥 ADD THIS
+import { useLocations } from "@/hooks/location/useLocation";
 
 import { z } from "zod";
 import { employeeSchema } from "@/utils/employee/employeeSchema";
@@ -41,31 +42,26 @@ type EmployeeFormValues = z.infer<typeof employeeSchema>;
 export default function CreateEmployeeForm() {
   const router = useRouter();
 
-  const { data: locations = [] } = useLocations(); // 🔥 GET LOCATIONS
+  const { data: locations = [] } = useLocations();
 
-  const { handleCreateEmployee, loading, isSuccess, error } = useCreateEmployee(
-    {
-      onSuccess: () => {
-        toast.success("Employee created successfully");
-        router.push("/employees");
-      },
-      onError: (message) => {
-        toast.error(message);
-      },
+  const { handleCreateEmployee, loading } = useCreateEmployee({
+    onSuccess: () => {
+      toast.success("Employee created successfully");
+      router.push("/employees");
     },
-  );
+    onError: (message) => {
+      toast.error(message);
+    },
+  });
 
   const [profileImage, setProfileImage] = useState<File | null>(null);
 
-  // ======================
-  // React Hook Form
-  // ======================
   const {
+    control,
     register,
     handleSubmit,
-    watch,
     formState: { errors },
-  } = useForm({
+  } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
       name: "",
@@ -90,22 +86,30 @@ export default function CreateEmployeeForm() {
     },
   });
 
-  // 🔥 watch sector for filtering locations
-  const selectedSector = watch("sector");
+  const selectedSector = useWatch({
+    control,
+    name: "sector",
+  });
 
-  // ======================
-  // Filter locations by sector
-  // ======================
+  const profilePreviewUrl = useMemo(() => {
+    return profileImage ? URL.createObjectURL(profileImage) : null;
+  }, [profileImage]);
+
+  useEffect(() => {
+    return () => {
+      if (profilePreviewUrl) {
+        URL.revokeObjectURL(profilePreviewUrl);
+      }
+    };
+  }, [profilePreviewUrl]);
+
   const filteredLocations = useMemo(() => {
     return locations.filter(
       (loc) => loc.isActive && loc.sector === selectedSector,
     );
   }, [locations, selectedSector]);
 
-  // ======================
-  // Submit
-  // ======================
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: EmployeeFormValues) => {
     const form = new FormData();
 
     Object.entries(values).forEach(([key, value]) => {
@@ -125,9 +129,6 @@ export default function CreateEmployeeForm() {
     }
   };
 
-  // ======================
-  // UI
-  // ======================
   return (
     <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
       {/* HEADER */}
@@ -151,10 +152,13 @@ export default function CreateEmployeeForm() {
           {/* PROFILE IMAGE */}
           <label className="flex flex-col items-center gap-2 lg:items-end">
             <div className="relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-3xl border-2 border-white/30 bg-white/10 backdrop-blur">
-              {profileImage ? (
-                <img
-                  src={URL.createObjectURL(profileImage)}
-                  className="h-full w-full object-cover"
+              {profilePreviewUrl ? (
+                <Image
+                  src={profilePreviewUrl}
+                  alt="Selected employee profile preview"
+                  fill
+                  unoptimized
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex flex-col items-center text-white">

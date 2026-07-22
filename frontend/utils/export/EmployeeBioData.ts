@@ -28,14 +28,14 @@ export async function exportEmployeeBioData({
 
   const rows = [
     ["BAIDAR SECURITY SERVICES"],
-    ["EMPLOYEE BIO DATA FORM"],
+    [title.toUpperCase()],
     [],
     ["Generated On", formatDate(new Date().toISOString())],
     [],
 
     ["PERSONAL INFORMATION"],
-    ["Employee ID", employee.empId],
-    ["Employee Name", formatText(employee.name)],
+    ["ID", employee.empId],
+    ["Name", formatText(employee.name)],
     ["Father Name", formatText(employee.fatherName)],
     ["CNIC", employee.cnic],
     ["Date of Birth", formatDate(employee.birthDate)],

@@ -1,8 +1,5 @@
-// src/components/home/HeroSection.tsx
-
 "use client";
 
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { motion, type Variants } from "framer-motion";
 import {

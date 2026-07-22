@@ -5,12 +5,8 @@ import {
   ArrowRight,
   BarChart3,
   CalendarDays,
-  CalendarMinus,
   ClipboardCheck,
   ShieldCheck,
-  UserCheck,
-  UserX,
-  Users,
 } from "lucide-react";
 
 const modules = [
@@ -43,41 +39,6 @@ const modules = [
     iconBg: "bg-violet-100",
     iconColor: "text-violet-700",
     border: "group-hover:border-violet-300",
-  },
-];
-
-const stats = [
-  {
-    title: "Employees",
-    value: "--",
-    subtitle: "Registered workforce",
-    icon: Users,
-    iconColor: "text-blue-700",
-    bg: "bg-blue-100",
-  },
-  {
-    title: "Present",
-    value: "--",
-    subtitle: "Currently available",
-    icon: UserCheck,
-    iconColor: "text-emerald-700",
-    bg: "bg-emerald-100",
-  },
-  {
-    title: "Absent",
-    value: "--",
-    subtitle: "Not reported today",
-    icon: UserX,
-    iconColor: "text-red-700",
-    bg: "bg-red-100",
-  },
-  {
-    title: "On Leave",
-    value: "--",
-    subtitle: "Approved leave",
-    icon: CalendarMinus,
-    iconColor: "text-amber-700",
-    bg: "bg-amber-100",
   },
 ];
 

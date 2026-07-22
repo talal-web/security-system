@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { Phone, ShieldCheck, BadgeCheck, User, ArrowRight } from "lucide-react";
+import { Phone, ShieldCheck, BadgeCheck, User } from "lucide-react";
 
 import { Employee } from "@/types/employee";
 import { formatText } from "@/utils/employee/employeeFormat";

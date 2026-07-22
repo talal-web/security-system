@@ -870,15 +870,17 @@ export const getMonthlyAttendanceReport = async (req, res) => {
 
     const report = Array.from(employeeMap.values());
 
-    // ======================================
-    // SORT BY EMPLOYEE ID
-    // ======================================
+    // SORT BY EMPLOYEE NUMBER
 
-    report.sort((a, b) =>
-      a.empId.localeCompare(b.empId, undefined, {
-        numeric: true,
-      }),
-    );
+    const getEmployeeNumber = (empId) => {
+      const match = empId?.match(/(\d+)$/);
+
+      return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+    };
+
+    report.sort((a, b) => {
+      return getEmployeeNumber(a.empId) - getEmployeeNumber(b.empId);
+    });
 
     // ======================================
     // RESPONSE

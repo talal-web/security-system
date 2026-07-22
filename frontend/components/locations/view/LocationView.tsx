@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import CreateLocationModal from "@/components/locations/CreateLocationModal";
 import UpdateLocationModal from "@/components/locations/UpdateLocationModal";
+import { exportLocationsExcel } from "@/utils/export/Locations";
 
 import LocationFilters from "./LocationFilters";
 import LocationSector from "./LocationSector";
@@ -56,6 +57,10 @@ export default function LocationView() {
   ).length;
   const inactiveLocations = totalLocations - activeLocations;
 
+  const handleExportLocations = () => {
+    exportLocationsExcel({ locations });
+  };
+
   // Initial loading only
   if (isLoading && locations.length === 0) {
     return (
@@ -103,6 +108,7 @@ export default function LocationView() {
         onStatusChange={setIsActive}
         onClearFilters={handleClearFilters}
         onCreateLocation={() => setIsCreateModalOpen(true)}
+        onExportLocations={handleExportLocations}
         isFetching={isFetching}
         disabled={!!reorderSector}
         totalLocations={totalLocations}

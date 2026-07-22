@@ -1,10 +1,12 @@
 import InfoCard from "./InfoCard";
 import EmployeeHeader from "./EmployeeHeader";
 import EmployeeSection from "./EmployeeSection";
+import EmployeeQuickStats from "./EmployeeQuickStats";
 
 import {
   BadgeCheck,
   BriefcaseBusiness,
+  GraduationCap,
   Cake,
   CalendarDays,
   Clock3,
@@ -39,7 +41,11 @@ export default function EmployeeDetail({ employee }: Props) {
             HEADER
         ========================= */}
 
-        <EmployeeHeader employee={employee} age={age} />
+        <EmployeeHeader employee={employee} />
+
+        {/*Quick Stats */}
+
+        <EmployeeQuickStats employee={employee} />
 
         {/* =========================
             DETAILS
@@ -48,7 +54,7 @@ export default function EmployeeDetail({ employee }: Props) {
           <div className="space-y-8">
             {/* ================= PERSONAL INFO ================= */}
             <EmployeeSection title="Personal Information" color="bg-orange-500">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <InfoCard
                   icon={<CreditCard className="h-5 w-5" />}
                   label="CNIC Number"
@@ -59,6 +65,12 @@ export default function EmployeeDetail({ employee }: Props) {
                   icon={<Cake className="h-5 w-5" />}
                   label="Birth Date"
                   value={formatDate(employee.birthDate)}
+                />
+
+                <InfoCard
+                  icon={<Cake className="h-5 w-5" />}
+                  label="Age"
+                  value={`${age} Years`}
                 />
 
                 <InfoCard
@@ -102,11 +114,14 @@ export default function EmployeeDetail({ employee }: Props) {
             >
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <InfoCard
-                  icon={<BriefcaseBusiness className="h-5 w-5" />}
-                  label="Designation"
-                  value={formatText(employee.designation)}
+                  icon={<ShieldCheck className="h-5 w-5" />}
+                  label="Sector"
+                  value={
+                    employee.sector
+                      ? formatSectorName(employee.sector)
+                      : undefined
+                  }
                 />
-
                 <InfoCard
                   icon={<MapPin className="h-5 w-5" />}
                   label="Current Location"
@@ -116,21 +131,26 @@ export default function EmployeeDetail({ employee }: Props) {
                       : employee.currentLocation?.name
                   }
                 />
+                <InfoCard
+                  icon={<BriefcaseBusiness className="h-5 w-5" />}
+                  label="Designation"
+                  value={formatText(employee.designation)}
+                />
 
                 <InfoCard
-                  icon={<ShieldCheck className="h-5 w-5" />}
-                  label="Sector"
-                  value={
-                    employee.sector
-                      ? formatSectorName(employee.sector)
-                      : undefined
-                  }
+                  icon={<GraduationCap className="h-5 w-5" />}
+                  label="Education"
+                  value={formatText(employee.education ?? undefined)}
                 />
 
                 <InfoCard
                   icon={<Banknote className="h-5 w-5" />}
                   label="Basic Salary"
-                  value={`Rs. ${employee.basicSalary?.toLocaleString()}`}
+                  value={
+                    employee.basicSalary
+                      ? `Rs. ${employee.basicSalary.toLocaleString()}`
+                      : undefined
+                  }
                 />
 
                 <InfoCard

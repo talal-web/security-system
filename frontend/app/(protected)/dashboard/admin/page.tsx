@@ -2,18 +2,15 @@
 
 import Link from "next/link";
 import {
-  Activity,
   ArrowRight,
   BarChart3,
   Building2,
   CalendarDays,
   CheckCircle2,
-  FileText,
   MapPin,
   ShieldCheck,
   UserPlus,
   Users,
-  Eye,
   ClipboardList,
   Clock3,
 } from "lucide-react";

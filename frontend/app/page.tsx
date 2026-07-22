@@ -1,9 +1,7 @@
-// src/app/page.tsx
-
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
@@ -12,15 +10,18 @@ import StatsSection from "@/components/home/StatsSection";
 import LoginModal from "@/components/authentication/LoginModal";
 
 export default function HomePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-
   const [loginOpen, setLoginOpen] = useState(false);
+  const loginRequested = searchParams.get("login") === "true";
 
-  useEffect(() => {
-    if (searchParams.get("login") === "true") {
-      setLoginOpen(true);
+  const handleCloseLogin = () => {
+    setLoginOpen(false);
+
+    if (loginRequested) {
+      router.replace("/", { scroll: false });
     }
-  }, [searchParams]);
+  };
 
   return (
     <>
@@ -32,7 +33,10 @@ export default function HomePage() {
         <FeaturesSection />
       </main>
 
-      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <LoginModal
+        open={loginOpen || loginRequested}
+        onClose={handleCloseLogin}
+      />
     </>
   );
 }

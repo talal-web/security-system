@@ -23,12 +23,9 @@ interface AttendanceSectorTableProps {
 
 export default function AttendanceSectorTable({
   sector,
-  getSectorRows,
   getStatusStyle,
   getShiftStyle,
 }: AttendanceSectorTableProps) {
-  const rows = getSectorRows(sector);
-
   const totalEmployees = sector.locations.reduce(
     (sum, location) => sum + location.totalEmployees,
     0,

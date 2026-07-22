@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 
 import { Loader2, Trash2 } from "lucide-react";
-
 import { toast } from "sonner";
 
 import { useDeleteEmployee } from "@/hooks/employee/useDeleteEmployee";
@@ -18,7 +17,6 @@ export default function DeleteEmployeeButton({ employeeId }: Props) {
   const { removeEmployee, isLoading } = useDeleteEmployee({
     onSuccess: () => {
       toast.success("Employee deleted successfully");
-
       router.push("/employees");
     },
 
@@ -43,14 +41,25 @@ export default function DeleteEmployeeButton({ employeeId }: Props) {
       onClick={handleDelete}
       disabled={isLoading}
       className="
-        inline-flex h-12 items-center justify-center gap-2
-        rounded-2xl bg-red-600 px-5
-        text-sm font-semibold text-white
-        shadow-lg shadow-red-600/30
-        transition-all duration-300
-        hover:scale-[1.02] hover:bg-red-700
+        inline-flex
+        h-11
+        w-full
+        items-center
+        justify-center
+        gap-2
+        rounded-xl
+        bg-red-600
+        px-5
+        text-sm
+        font-semibold
+        text-white
+        transition-all
+        duration-300
+        hover:bg-red-700
+        hover:shadow-lg
         disabled:cursor-not-allowed
         disabled:opacity-70
+        sm:w-auto
       "
     >
       {isLoading ? (
@@ -61,7 +70,7 @@ export default function DeleteEmployeeButton({ employeeId }: Props) {
       ) : (
         <>
           <Trash2 className="h-4 w-4" />
-          Delete
+          Delete Employee
         </>
       )}
     </button>

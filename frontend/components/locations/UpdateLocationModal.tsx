@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { X, MapPin, Loader2 } from "lucide-react";
 
@@ -10,15 +10,11 @@ import { sectorOptions } from "@/constants/location";
 
 import type { LocationSector, UpdateLocationPayload } from "@/types/location";
 
-type UpdateLocationFormState = UpdateLocationPayload & {
+type UpdateLocationFormState = Omit<UpdateLocationPayload, "sector"> & {
+  name: string;
+  address: string;
   sector: LocationSector | "";
-};
-
-const initialFormState: UpdateLocationFormState = {
-  name: "",
-  address: "",
-  sector: "",
-  isActive: true,
+  isActive: boolean;
 };
 
 type Props = {
@@ -42,33 +38,48 @@ export default function UpdateLocationModal({
 
   const { mutate, isPending, isError, error } = useUpdateLocation();
 
-  const [form, setForm] = useState<UpdateLocationFormState>(initialFormState);
+  const [draft, setDraft] = useState<Partial<UpdateLocationFormState>>({});
 
-  // Populate form when location data is loaded
-  useEffect(() => {
-    if (!data) return;
-
-    setForm({
-      name: data.name || "",
-      address: data.address || "",
-      sector: data.sector || "",
-      isActive: data.isActive,
-    });
-  }, [data]);
+  const form: UpdateLocationFormState = {
+    name: draft.name ?? data?.name ?? "",
+    address: draft.address ?? data?.address ?? "",
+    sector: draft.sector ?? data?.sector ?? "",
+    isActive: draft.isActive ?? data?.isActive ?? true,
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
 
-    setForm((prev) => ({
-      ...prev,
-      [name]: name === "isActive" ? value === "true" : value,
-    }));
+    if (name === "isActive") {
+      setDraft((prev) => ({
+        ...prev,
+        isActive: value === "true",
+      }));
+
+      return;
+    }
+
+    if (name === "sector") {
+      setDraft((prev) => ({
+        ...prev,
+        sector: value as LocationSector | "",
+      }));
+
+      return;
+    }
+
+    if (name === "name" || name === "address") {
+      setDraft((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleClose = () => {
-    setForm(initialFormState);
+    setDraft({});
 
     onClose?.();
   };
@@ -116,7 +127,7 @@ export default function UpdateLocationModal({
         }
       >
         {/* HEADER */}
-        <div className="relative border-b border-slate-200 bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-6 text-white">
+        <div className="relative border-b border-slate-200 bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-6 text-white">
           {isModal && (
             <button
               type="button"

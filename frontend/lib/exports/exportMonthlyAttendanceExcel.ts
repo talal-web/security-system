@@ -25,6 +25,21 @@ export async function exportMonthlyAttendanceExcel({
     },
   );
 
+  // Day numbers (1,2,3...)
+  const dayNumbers = Array.from(
+    { length: month.days },
+    (_, index) => index + 1,
+  );
+
+  // Weekday names (Sun, Mon, Tue...)
+  const weekDays = Array.from({ length: month.days }, (_, index) => {
+    const date = new Date(month.year, month.month - 1, index + 1);
+
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+    });
+  });
+
   const rows: Array<Array<string | number>> = [
     ["BAIDAR SECURITY SERVICE"],
     ["MONTHLY ATTENDANCE REPORT"],
@@ -32,17 +47,22 @@ export async function exportMonthlyAttendanceExcel({
     ["Month", `${monthName} ${month.year}`],
     ["Generated", new Date().toLocaleDateString()],
     [],
+
+    // Header Row 1
     [
-      "Employee ID",
-      "Employee Name",
+      "ID",
+      "Name",
       "Father Name",
       "Designation",
-      ...Array.from({ length: month.days }, (_, index) => `Day ${index + 1}`),
+      ...dayNumbers,
       "Present",
       "Leave",
       "Absent",
       "Total",
     ],
+
+    // Header Row 2
+    ["", "", "", "", ...weekDays, "", "", "", ""],
   ];
 
   employees.forEach((employee) => {
@@ -51,10 +71,12 @@ export async function exportMonthlyAttendanceExcel({
       employee.name,
       employee.fatherName,
       employee.designation,
+
       ...Array.from({ length: month.days }, (_, index) => {
         const dayKey = String(index + 1);
         return employee.attendance[dayKey] ?? "-";
       }),
+
       employee.summary.present,
       employee.summary.leave,
       employee.summary.absent,
@@ -71,6 +93,24 @@ export async function exportMonthlyAttendanceExcel({
   rows.push(["Total", overall.total]);
 
   const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+  // Better column widths
+  worksheet["!cols"] = [
+    { wch: 12 }, // ID
+    { wch: 24 }, // Name
+    { wch: 24 }, // Father Name
+    { wch: 18 }, // Designation
+
+    ...Array.from({ length: month.days }, () => ({
+      wch: 5,
+    })),
+
+    { wch: 10 }, // Present
+    { wch: 10 }, // Leave
+    { wch: 10 }, // Absent
+    { wch: 10 }, // Total
+  ];
+
   const workbook = XLSX.utils.book_new();
 
   XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Attendance");
@@ -82,7 +122,7 @@ export async function exportMonthlyAttendanceExcel({
 
   saveAs(
     new Blob([excelBuffer], {
-      type: "application/octet-stream",
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     }),
     `Monthly_Attendance_${month.value}.xlsx`,
   );

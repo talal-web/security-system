@@ -21,7 +21,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
-  const { data, isLoading } = useMe();
+  const { data } = useMe();
   const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
 
   const user = data?.user;

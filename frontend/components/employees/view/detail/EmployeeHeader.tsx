@@ -1,12 +1,5 @@
 import Image from "next/image";
-import {
-  User,
-  Banknote,
-  BriefcaseBusiness,
-  GraduationCap,
-  Cake,
-  MapPin,
-} from "lucide-react";
+import { User, BriefcaseBusiness, MapPin } from "lucide-react";
 
 import EmployeeActions from "./EmployeeActions";
 import StatusBadge from "./StatusBadge";
@@ -17,10 +10,9 @@ import { formatText } from "@/utils/employee/employeeFormat";
 
 interface EmployeeHeaderProps {
   employee: Employee;
-  age: number;
 }
 
-export default function EmployeeHeader({ employee, age }: EmployeeHeaderProps) {
+export default function EmployeeHeader({ employee }: EmployeeHeaderProps) {
   return (
     <div className="relative overflow-hidden bg-linear-to-br from-slate-950 via-slate-900 to-slate-800">
       {/* Background Glow */}
@@ -65,25 +57,9 @@ export default function EmployeeHeader({ employee, age }: EmployeeHeaderProps) {
               <Tag icon={<User className="h-4 w-4" />} text={employee.empId} />
 
               <Tag
-                icon={<Banknote className="h-4 w-4" />}
-                text={
-                  employee.basicSalary
-                    ? `Rs. ${employee.basicSalary.toLocaleString()}`
-                    : undefined
-                }
-              />
-
-              <Tag
                 icon={<BriefcaseBusiness className="h-4 w-4" />}
                 text={formatText(employee.designation)}
               />
-
-              <Tag
-                icon={<GraduationCap className="h-4 w-4" />}
-                text={formatText(employee.education ?? undefined)}
-              />
-
-              <Tag icon={<Cake className="h-4 w-4" />} text={`${age} Years`} />
 
               <Tag
                 icon={<MapPin className="h-4 w-4" />}

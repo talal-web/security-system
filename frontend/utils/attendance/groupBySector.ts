@@ -1,8 +1,16 @@
 import { Attendance } from "./types";
 import { calculateStats } from "./calculateStats";
 
+type GroupedAttendance = Record<
+  string,
+  {
+    records: Attendance[];
+    stats: ReturnType<typeof calculateStats>;
+  }
+>;
+
 export function groupBySector(data: Attendance[]) {
-  return data.reduce((acc: any, item) => {
+  return data.reduce<GroupedAttendance>((acc, item) => {
     const sector = item.location?.sector || "Unknown Sector";
 
     if (!acc[sector]) {

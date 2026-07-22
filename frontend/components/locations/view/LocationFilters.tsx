@@ -8,6 +8,7 @@ import {
   Loader2,
   Filter,
   Plus,
+  FileSpreadsheet,
 } from "lucide-react";
 
 import { sectorOptions } from "@/constants/location";
@@ -24,6 +25,7 @@ interface LocationFiltersProps {
   onStatusChange: (value?: boolean) => void;
   onClearFilters?: () => void;
   onCreateLocation: () => void;
+  onExportLocations: () => void;
 
   isFetching: boolean;
   disabled?: boolean;
@@ -44,6 +46,7 @@ export default function LocationFilters({
   onStatusChange,
   onClearFilters = () => {},
   onCreateLocation,
+  onExportLocations,
 
   isFetching,
   disabled = false,
@@ -99,6 +102,16 @@ export default function LocationFilters({
                 </>
               )}
             </div>
+
+            <button
+              type="button"
+              onClick={onExportLocations}
+              disabled={disabled || totalLocations === 0}
+              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <FileSpreadsheet size={16} className="mr-2" />
+              Export Excel
+            </button>
 
             <button
               type="button"
