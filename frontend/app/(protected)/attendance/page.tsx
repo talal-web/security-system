@@ -47,7 +47,7 @@ export default function AttendanceDashboardPage() {
     <div className="space-y-10 bg-slate-50 p-6">
       {/* ================= HERO ================= */}
 
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-blue-50 via-white to-red-50 shadow-sm">
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-linear-to-br from-blue-50 via-white to-red-50 shadow-sm">
         <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-blue-100 blur-3xl opacity-60" />
 
         <div className="absolute bottom-0 left-0 h-56 w-56 rounded-full bg-red-100 blur-3xl opacity-50" />
