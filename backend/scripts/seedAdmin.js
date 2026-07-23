@@ -1,14 +1,10 @@
-import dns from "dns";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import dotenv from "dotenv";
 
+import configureDNS from "../src/config/dns.js";
 import User from "../src/models/User.js";
 
-dotenv.config();
-
-// Temporary workaround for local DNS issue
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+configureDNS();
 
 const { MONGO_URI, ADMIN_USER_ID, ADMIN_NAME, ADMIN_PASSWORD } = process.env;
 

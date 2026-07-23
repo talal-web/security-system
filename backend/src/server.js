@@ -1,7 +1,8 @@
 // server.js
-
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import path from "path";
 
 import connectDB from "./config/db.js";
@@ -23,12 +24,25 @@ app.set("trust proxy", 1);
 
 connectDB();
 
+app.use(helmet());
+
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
   }),
 );
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: {
+    success: false,
+    message: "Too many requests, please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -43,7 +57,7 @@ app.use((req, res, next) => {
 app.use(morganMiddleware);
 
 app.use("/api/employees", employeeRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
 
 app.use("/api/locations", locationRoutes);
 app.use("/api/attendance", attendanceRoutes);
