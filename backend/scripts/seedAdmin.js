@@ -1,5 +1,4 @@
-// scripts/seedAdmin.js
-
+import dns from "dns";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
@@ -8,35 +7,52 @@ import User from "../src/models/User.js";
 
 dotenv.config();
 
+// Temporary workaround for local DNS issue
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
+const { MONGO_URI, ADMIN_USER_ID, ADMIN_NAME, ADMIN_PASSWORD } = process.env;
+
 const seedAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    if (!MONGO_URI || !ADMIN_USER_ID || !ADMIN_NAME || !ADMIN_PASSWORD) {
+      throw new Error(
+        "Missing required environment variables: MONGO_URI, ADMIN_USER_ID, ADMIN_NAME, ADMIN_PASSWORD.",
+      );
+    }
 
-    console.log("MongoDB Connected");
+    await mongoose.connect(MONGO_URI);
+
+    console.log("✅ MongoDB Connected");
 
     const existingUser = await User.findOne({
-      userId: "ADM001",
+      userId: ADMIN_USER_ID,
     });
 
     if (existingUser) {
-      console.log("Admin already exists");
-      process.exit();
+      console.log(`⚠️ Admin (${ADMIN_USER_ID}) already exists.`);
+
+      await mongoose.connection.close();
+      process.exit(0);
     }
 
-    const hashedPassword = await bcrypt.hash("123456", 10);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
 
     await User.create({
-      userId: "ADM001",
-      name: "Sufyan Bhatti",
+      userId: ADMIN_USER_ID,
+      name: ADMIN_NAME,
       password: hashedPassword,
       role: "admin",
     });
 
-    console.log("Admin created successfully");
+    console.log("✅ Admin created successfully.");
 
-    process.exit();
+    await mongoose.connection.close();
+    process.exit(0);
   } catch (error) {
-    console.log(error);
+    console.error("❌ Failed to seed admin:");
+    console.error(error);
+
+    await mongoose.connection.close().catch(() => {});
     process.exit(1);
   }
 };

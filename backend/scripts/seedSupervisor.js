@@ -1,5 +1,4 @@
-// scripts/seedSupervisors.js
-
+import dns from "dns";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
@@ -8,83 +7,60 @@ import User from "../src/models/User.js";
 
 dotenv.config();
 
-const seedSupervisors = async () => {
+// Temporary workaround for local DNS issue
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
+const { MONGO_URI, SUPERVISOR_USER_ID, SUPERVISOR_NAME, SUPERVISOR_PASSWORD } =
+  process.env;
+
+const seedSupervisor = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-
-    console.log("MongoDB Connected");
-
-    const supervisors = [
-      {
-        userId: "SUP001",
-        name: "Supervisor 1",
-      },
-
-      {
-        userId: "SUP002",
-        name: "Supervisor 2",
-      },
-
-      {
-        userId: "SUP003",
-        name: "Supervisor 3",
-      },
-
-      {
-        userId: "SUP004",
-        name: "Supervisor 4",
-      },
-
-      {
-        userId: "SUP005",
-        name: "Supervisor 5",
-      },
-
-      {
-        userId: "SUP006",
-        name: "Supervisor 6",
-      },
-
-      {
-        userId: "SUP007",
-        name: "Supervisor 7",
-      },
-
-      {
-        userId: "SUP008",
-        name: "Supervisor 8",
-      },
-    ];
-
-    const hashedPassword = await bcrypt.hash("123456", 10);
-
-    for (const supervisor of supervisors) {
-      const existingUser = await User.findOne({
-        userId: supervisor.userId,
-      });
-
-      if (existingUser) {
-        console.log(`${supervisor.userId} already exists`);
-        continue;
-      }
-
-      await User.create({
-        userId: supervisor.userId,
-        name: supervisor.name,
-        password: hashedPassword,
-        role: "supervisor",
-      });
-
-      console.log(`${supervisor.userId} created`);
+    if (
+      !MONGO_URI ||
+      !SUPERVISOR_USER_ID ||
+      !SUPERVISOR_NAME ||
+      !SUPERVISOR_PASSWORD
+    ) {
+      throw new Error(
+        "Missing required environment variables: MONGO_URI, SUPERVISOR_USER_ID, SUPERVISOR_NAME, SUPERVISOR_PASSWORD.",
+      );
     }
 
-    console.log("All supervisors seeded successfully");
+    await mongoose.connect(MONGO_URI);
 
-    process.exit();
+    console.log("✅ MongoDB Connected");
+
+    const existingUser = await User.findOne({
+      userId: SUPERVISOR_USER_ID,
+    });
+
+    if (existingUser) {
+      console.log(`⚠️ Supervisor (${SUPERVISOR_USER_ID}) already exists.`);
+
+      await mongoose.connection.close();
+      process.exit(0);
+    }
+
+    const hashedPassword = await bcrypt.hash(SUPERVISOR_PASSWORD, 10);
+
+    await User.create({
+      userId: SUPERVISOR_USER_ID,
+      name: SUPERVISOR_NAME,
+      password: hashedPassword,
+      role: "supervisor",
+    });
+
+    console.log("✅ Supervisor created successfully.");
+
+    await mongoose.connection.close();
+    process.exit(0);
   } catch (error) {
-    console.log(error);
+    console.error("❌ Failed to seed supervisor:");
+    console.error(error);
+
+    await mongoose.connection.close().catch(() => {});
     process.exit(1);
   }
 };
 
-seedSupervisors();
+seedSupervisor();

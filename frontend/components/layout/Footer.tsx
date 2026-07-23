@@ -13,6 +13,9 @@ const quickLinks = [
 ];
 
 export default function Footer() {
+  const companyPhone =
+    process.env.NEXT_PUBLIC_COMPANY_PHONE || "+92 335 5111150";
+
   return (
     <footer className="border-t border-slate-200/70 bg-slate-50 text-slate-800 print:hidden">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
@@ -85,7 +88,7 @@ export default function Footer() {
 
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-red-500" />
-                <p>{process.env.NEXT_PUBLIC_COMPANY_PHONE}</p>
+                <p>{companyPhone}</p>
               </div>
 
               <div className="flex items-center gap-3">
