@@ -27,28 +27,39 @@ connectDB();
 app.use(helmet());
 
 // Allowed CORS origins
-const allowedOrigins = process.env.FRONTEND_URLS
-  ? process.env.FRONTEND_URLS.split(",").map((origin) => origin.trim())
-  : ["http://localhost:3000"];
+const allowedOrigins = (process.env.FRONTEND_URLS || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
+console.log("✅ Allowed Origins:", allowedOrigins);
 
 app.use(
   cors({
     origin(origin, callback) {
-      // Allow requests with no Origin (Postman, mobile apps, server-to-server)
+      // Allow requests with no Origin (Postman, server-to-server)
       if (!origin) {
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
+      const normalizedOrigin = origin.trim().replace(/\/$/, "");
+
+      if (allowedOrigins.includes(normalizedOrigin)) {
         return callback(null, true);
       }
 
-      return callback(new Error("Not allowed by CORS"));
+      logger.warn({
+        message: "Blocked by CORS",
+        origin: normalizedOrigin,
+      });
+
+      // Reject without throwing a server error
+      return callback(null, false);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
-
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20,
