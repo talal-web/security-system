@@ -36,22 +36,17 @@ export const companies: Company[] = [
 
     status: "Active Contract",
 
-    since: "2024",
+    since: "2021",
 
     description:
-      "Baidar Security Services proudly provides professional security personnel and workforce management solutions for Blue World City. Our team is committed to maintaining a secure, disciplined, and professional environment through trained security guards, operational supervision, and modern security practices.",
+      "Professional security personnel and workforce support for Blue World City.",
 
     services: [
       "Gate Security",
-      "Residential Security",
       "Commercial Security",
-      "Visitor Management",
-      "Access Control",
       "Patrolling",
-      "Emergency Response",
       "Incident Reporting",
       "Parking Security",
-      "Perimeter Monitoring",
     ],
 
     stats: [
@@ -66,10 +61,6 @@ export const companies: Company[] = [
       {
         label: "Service",
         value: "Security",
-      },
-      {
-        label: "Partnership",
-        value: "Ongoing",
       },
     ],
   },

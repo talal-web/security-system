@@ -1,18 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { motion, type Variants } from "framer-motion";
-import {
-  ArrowRight,
-  ShieldCheck,
-  Users,
-  MapPinned,
-  ClipboardCheck,
-  Activity,
-  Clock3,
-  BarChart3,
-  CheckCircle2,
-} from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 
 const fadeUp: Variants = {
   hidden: {
@@ -72,15 +61,15 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
         />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-10">
-        <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
-          <div>
+      <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        <div className="grid items-center gap-10">
+          <div className="mx-auto max-w-3xl xl:mx-0">
             <motion.div
               custom={0}
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="inline-flex items-center gap-3 rounded-full border border-blue-200 bg-white/90 px-5 py-2 shadow-sm"
+              className="inline-flex w-full items-center gap-3 rounded-full border border-blue-200 bg-white/90 px-4 py-2.5 shadow-sm sm:w-auto sm:px-5"
             >
               <ShieldCheck className="h-5 w-5 text-red-500" />
               <span className="text-sm font-semibold tracking-wide text-slate-700">
@@ -93,7 +82,7 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mt-8 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl"
+              className="mt-8 text-4xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl xl:text-7xl"
             >
               Baidar <span className="text-blue-600">Security</span>
               <br />
@@ -105,11 +94,10 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mt-6 max-w-xl text-lg leading-8 text-slate-600"
+              className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg"
             >
               A modern platform for managing guards, attendance, deployment
-              locations, reports and day-to-day security operations with clarity
-              and control.
+              locations, and reports.
             </motion.p>
 
             <motion.div
@@ -122,7 +110,7 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               <button
                 type="button"
                 onClick={onLoginClick}
-                className="group inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-blue-600 to-sky-500 px-7 py-3.5 font-semibold text-white shadow-lg shadow-sky-500/20 transition-all duration-300 hover:-translate-y-1 hover:from-blue-700 hover:to-sky-600"
+                className="group inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-blue-600 to-sky-500 px-7 py-3.5 font-semibold text-white shadow-lg shadow-sky-500/20 transition-all duration-300 hover:-translate-y-1 hover:from-blue-700 hover:to-sky-600 sm:w-auto"
               >
                 Secure Login
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
@@ -131,7 +119,7 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               <button
                 type="button"
                 onClick={onLoginClick}
-                className="inline-flex items-center justify-center rounded-2xl border border-red-200 bg-white px-7 py-3.5 font-semibold text-slate-900 transition-all duration-300 hover:border-red-300 hover:bg-red-50"
+                className="inline-flex w-full items-center justify-center rounded-2xl border border-red-200 bg-white px-7 py-3.5 font-semibold text-slate-900 transition-all duration-300 hover:border-red-300 hover:bg-red-50 sm:w-auto"
               >
                 Open Dashboard
               </button>
@@ -142,7 +130,7 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4"
+              className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
             >
               {stats.map((stat) => (
                 <div
@@ -159,164 +147,8 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               ))}
             </motion.div>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{
-              duration: 0.7,
-              delay: 0.25,
-            }}
-            className="relative"
-          >
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="absolute -left-4 top-8 z-20 hidden rounded-3xl border border-blue-100 bg-white/95 px-4 py-3 shadow-lg lg:flex"
-            >
-              <ShieldCheck className="mr-2 h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
-                  System Status
-                </p>
-                <p className="font-semibold text-blue-600">
-                  All Systems Operational
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.01, rotate: -0.5 }}
-              transition={{ duration: 0.25 }}
-              className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg"
-            >
-              <div className="border-b border-slate-200 bg-slate-50 px-6 py-5 sm:px-8">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900">
-                      Security Dashboard
-                    </h3>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Real-time Operations
-                    </p>
-                  </div>
-                  <Activity className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-
-              <div className="space-y-5 p-6 sm:p-8">
-                <div className="grid grid-cols-2 gap-4">
-                  <DashboardCard
-                    icon={<Users className="h-5 w-5 text-blue-600" />}
-                    title="Employees"
-                    value="125"
-                  />
-                  <DashboardCard
-                    icon={<ClipboardCheck className="h-5 w-5 text-red-600" />}
-                    title="Attendance"
-                    value="98%"
-                  />
-                  <DashboardCard
-                    icon={<MapPinned className="h-5 w-5 text-sky-500" />}
-                    title="Locations"
-                    value="75"
-                  />
-                  <DashboardCard
-                    icon={<Clock3 className="h-5 w-5 text-orange-500" />}
-                    title="Active Shift"
-                    value="124"
-                  />
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="font-medium text-slate-700">
-                      Today&apos;s Attendance
-                    </span>
-                    <span className="font-semibold text-blue-600">96%</span>
-                  </div>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: "96%" }}
-                      transition={{ duration: 1.2, delay: 0.8 }}
-                      className="h-full rounded-full bg-linear-to-r from-blue-500 via-cyan-500 to-red-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <StatusItem text="Employee Database Updated" />
-                  <StatusItem text="Attendance Successfully Recorded" />
-                  <StatusItem text="Deployment Locations Synced" />
-                  <StatusItem text="Security Reports Generated" />
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 5, repeat: Infinity }}
-              className="absolute -bottom-6 right-0 hidden rounded-2xl border border-red-500/20 bg-slate-950/80 p-4 shadow-xl backdrop-blur lg:block"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-red-500/15 p-2.5">
-                  <BarChart3 className="h-5 w-5 text-red-400" />
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                    Performance
-                  </p>
-                  <p className="text-xl font-black text-white">99.2%</p>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
         </div>
       </div>
     </section>
-  );
-}
-
-type DashboardCardProps = {
-  icon: ReactNode;
-  title: string;
-  value: string;
-};
-
-function DashboardCard({ icon, title, value }: DashboardCardProps) {
-  return (
-    <motion.div
-      whileHover={{ y: -4, scale: 1.02 }}
-      transition={{ duration: 0.2 }}
-      className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-300"
-    >
-      <div className="mb-4 flex items-center justify-between">
-        <div className="rounded-xl bg-blue-50 p-2.5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
-          {icon}
-        </div>
-        <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
-          Live
-        </span>
-      </div>
-      <h4 className="text-sm font-medium text-slate-600">{title}</h4>
-      <p className="mt-2 text-2xl font-black text-slate-900">{value}</p>
-    </motion.div>
-  );
-}
-
-type StatusItemProps = {
-  text: string;
-};
-
-function StatusItem({ text }: StatusItemProps) {
-  return (
-    <motion.div
-      whileHover={{ x: 4 }}
-      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition-colors hover:bg-slate-100"
-    >
-      <CheckCircle2 className="h-5 w-5 shrink-0 text-blue-600" />
-      <span className="text-sm text-slate-700">{text}</span>
-    </motion.div>
   );
 }

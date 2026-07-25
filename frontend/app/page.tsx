@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
-import StatsSection from "@/components/home/StatsSection";
 
 import LoginModal from "@/components/authentication/LoginModal";
 
@@ -33,13 +32,11 @@ function HomePageContent() {
 
   return (
     <>
-      <main className="min-h-screen overflow-hidden bg-slate-50 text-slate-900">
+      <div className="overflow-x-hidden bg-slate-50 text-slate-900">
         <HeroSection onLoginClick={() => setLoginOpen(true)} />
 
-        <StatsSection />
-
         <FeaturesSection />
-      </main>
+      </div>
 
       <LoginModal
         open={loginOpen || loginRequested}
