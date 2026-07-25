@@ -39,8 +39,8 @@ export default function Footer() {
             </div>
 
             <p className="mt-4 text-sm text-slate-600">
-              A modern platform for managing guards, attendance, deployment
-              locations, and reports.
+              A modern platform for managing guards, attendance, locations, and
+              reports.
             </p>
           </div>
 
