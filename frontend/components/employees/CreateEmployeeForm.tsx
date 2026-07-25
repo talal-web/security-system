@@ -282,13 +282,24 @@ export default function CreateEmployeeForm() {
           {...register("birthDate")}
         />
 
-        <Input
-          icon={<MapPin />}
-          label="Address"
-          placeholder="Street 54, G10/3, Islamabad, Pakistan"
-          error={errors.address?.message}
-          {...register("address")}
-        />
+        <div className="md:col-span-2 lg:col-span-3">
+          <label className="mb-2 block text-sm font-medium text-slate-700">
+            Address
+          </label>
+
+          <textarea
+            rows={3}
+            placeholder="House No. 12, Street 54, G-10/3, Islamabad, Pakistan"
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+            {...register("address")}
+          />
+
+          {errors.address?.message && (
+            <p className="mt-1 text-xs text-red-600">
+              {errors.address.message}
+            </p>
+          )}
+        </div>
 
         <Input
           icon={<Phone />}

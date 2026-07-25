@@ -35,26 +35,20 @@ export default function EmployeeDetail({ employee }: Props) {
   const age = calculateAge(employee.birthDate);
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
-      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)]">
-        {/* =========================
-            HEADER
-        ========================= */}
-
+    <div className="mx-auto w-full max-w-7xl px-0 py-3 sm:px-2 sm:py-4 lg:px-6">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl sm:rounded-3xl">
+        {/* Header */}
         <EmployeeHeader employee={employee} />
 
-        {/*Quick Stats */}
-
+        {/* Quick Stats */}
         <EmployeeQuickStats employee={employee} />
 
-        {/* =========================
-            DETAILS
-        ========================= */}
-        <div className="p-4 sm:p-6 lg:p-8">
-          <div className="space-y-8">
-            {/* ================= PERSONAL INFO ================= */}
+        {/* Details */}
+        <div className="p-2 sm:p-5 lg:p-7">
+          <div className="space-y-6 lg:space-y-8">
+            {/* ================= PERSONAL ================= */}
             <EmployeeSection title="Personal Information" color="bg-orange-500">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <InfoCard
                   icon={<CreditCard className="h-5 w-5" />}
                   label="CNIC Number"
@@ -81,10 +75,10 @@ export default function EmployeeDetail({ employee }: Props) {
               </div>
             </EmployeeSection>
 
-            {/* ================= CONTACT INFO ================= */}
+            {/* ================= CONTACT ================= */}
             <EmployeeSection title="Contact Information" color="bg-blue-500">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                <div className="md:col-span-2 xl:col-span-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="sm:col-span-2 xl:col-span-3">
                   <InfoCard
                     icon={<MapPin className="h-5 w-5" />}
                     label="Residential Address"
@@ -107,12 +101,12 @@ export default function EmployeeDetail({ employee }: Props) {
               </div>
             </EmployeeSection>
 
-            {/* ================= EMPLOYMENT INFO ================= */}
+            {/* ================= EMPLOYMENT ================= */}
             <EmployeeSection
               title="Employment Information"
               color="bg-emerald-500"
             >
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <InfoCard
                   icon={<ShieldCheck className="h-5 w-5" />}
                   label="Sector"
@@ -122,6 +116,7 @@ export default function EmployeeDetail({ employee }: Props) {
                       : undefined
                   }
                 />
+
                 <InfoCard
                   icon={<MapPin className="h-5 w-5" />}
                   label="Current Location"
@@ -131,6 +126,7 @@ export default function EmployeeDetail({ employee }: Props) {
                       : employee.currentLocation?.name
                   }
                 />
+
                 <InfoCard
                   icon={<BriefcaseBusiness className="h-5 w-5" />}
                   label="Designation"
@@ -180,8 +176,8 @@ export default function EmployeeDetail({ employee }: Props) {
             {/* ================= NOTES ================= */}
             {employee.notes && (
               <EmployeeSection title="Additional Notes" color="bg-slate-900">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 sm:rounded-2xl sm:p-5">
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700 sm:leading-7">
                     {employee.notes}
                   </p>
                 </div>

@@ -23,11 +23,11 @@ export default function EmployeeQuickStats({ employee }: Props) {
 
   return (
     <section className="border-b border-slate-200 bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid md:grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <StatCard
           title="Current Location"
           value={location}
-          icon={<MapPin className="h-6 w-6" />}
+          icon={<MapPin className="h-5 w-5" />}
           iconBg="bg-blue-600"
         />
 
@@ -36,21 +36,21 @@ export default function EmployeeQuickStats({ employee }: Props) {
           value={
             employee.sector ? formatSectorName(employee.sector) : undefined
           }
-          icon={<Building2 className="h-6 w-6" />}
+          icon={<Building2 className="h-5 w-5" />}
           iconBg="bg-indigo-600"
         />
 
         <StatCard
           title="Designation"
           value={formatText(employee.designation)}
-          icon={<BriefcaseBusiness className="h-6 w-6" />}
+          icon={<BriefcaseBusiness className="h-5 w-5" />}
           iconBg="bg-violet-600"
         />
 
         <StatCard
           title="Status"
           value={formatText(employee.status)}
-          icon={<ShieldCheck className="h-6 w-6" />}
+          icon={<ShieldCheck className="h-5 w-5" />}
           iconBg={
             employee.status === "active" ? "bg-emerald-600" : "bg-red-600"
           }

@@ -30,7 +30,7 @@ export default function EmployeeDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10">
+    <main className="min-h-screen bg-slate-50 px-4 py-6">
       <EmployeeDetail employee={employee} />
     </main>
   );

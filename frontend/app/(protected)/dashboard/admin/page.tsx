@@ -95,61 +95,47 @@ export default function AdminDashboardPage() {
         <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-6 lg:p-8">
           {/* Hero */}
 
-          <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-xl">
+          <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:rounded-3xl">
             <div className="absolute inset-0 bg-linear-to-r from-blue-600/5 via-transparent to-red-500/5" />
 
-            <div className="absolute -left-24 -bottom-24 h-72 w-72 rounded-full bg-blue-200/30 blur-3xl" />
+            <div className="relative z-10 p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                {/* Left */}
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+                    <ShieldCheck className="h-4 w-4" />
+                    Admin Dashboard
+                  </div>
 
-            <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-red-200/30 blur-3xl" />
+                  <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
+                    Welcome back,{" "}
+                    <span className="bg-linear-to-r from-blue-600 to-red-500 bg-clip-text text-transparent">
+                      {isLoading ? "Loading..." : isError ? "Admin" : userName}
+                    </span>
+                  </h1>
 
-            <div className="relative z-10 p-8 lg:p-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-700">
-                <ShieldCheck className="h-4 w-4" />
-                Baidar Security Service
-              </div>
+                  <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
+                    Manage employees, attendance, and locations from one place.
+                  </p>
+                </div>
 
-              <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900">
-                Welcome Back{" "}
-                <span className="bg-linear-to-r from-blue-600 to-red-500 bg-clip-text text-transparent">
-                  {isLoading ? "Loading..." : isError ? "Admin" : userName}
-                </span>
-              </h1>
+                {/* Actions */}
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link
+                    href="/attendance/session"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-red-500 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                  >
+                    Start Attendance
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
 
-              <p className="mt-4 max-w-3xl text-slate-600">
-                Manage employees, mark attendance, deployment locations and
-                operational reports from one centralized security management
-                dashboard.
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Link
-                  href="/attendance"
-                  className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-red-500 px-6 py-3 font-semibold text-white shadow-lg transition hover:scale-[1.03]"
-                >
-                  Start Attendance
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-
-                <Link
-                  href="/employees/create"
-                  className="rounded-xl border border-blue-200 bg-white px-6 py-3 font-semibold text-blue-700 transition hover:bg-blue-50"
-                >
-                  Add Employee
-                </Link>
-
-                <Link
-                  href="/employees/view"
-                  className="rounded-xl border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  View Employees
-                </Link>
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                <QuickBadge label="Employee Management" />
-                <QuickBadge label="Attendance Tracking" />
-                <QuickBadge label="Location Management" />
-                <QuickBadge label="Security Operations" />
+                  <Link
+                    href="/employees/create"
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    Add Employee
+                  </Link>
+                </div>
               </div>
             </div>
           </section>
@@ -390,13 +376,5 @@ function StatusItem({ label, status }: { label: string; status: string }) {
         {status}
       </span>
     </div>
-  );
-}
-
-function QuickBadge({ label }: { label: string }) {
-  return (
-    <span className="rounded-full border border-blue-100 bg-linear-to-r from-blue-50 to-red-50 px-4 py-2 text-xs font-semibold text-slate-700">
-      {label}
-    </span>
   );
 }

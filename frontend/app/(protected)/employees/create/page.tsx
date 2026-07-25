@@ -4,7 +4,7 @@ import CreateEmployeeForm from "@/components/employees/CreateEmployeeForm";
 
 export default function CreateEmployeePage() {
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-28">
+    <main className="min-h-screen bg-slate-50 px-4 py-10">
       <div className="mx-auto max-w-5xl">
         <CreateEmployeeForm />
       </div>
