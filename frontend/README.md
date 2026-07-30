@@ -1,5 +1,37 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Deployment Readiness
+
+This frontend is ready for production deployment after setting the environment variables below.
+
+### Required Environment Variables
+
+Create/update `.env.production` (or your platform environment settings):
+
+```bash
+NEXT_PUBLIC_API_URL=https://your-backend-domain/api
+NEXT_PUBLIC_COMPANY_PHONE=+92 335 5111150
+```
+
+Notes:
+
+- `NEXT_PUBLIC_API_URL` defaults to `http://localhost:5000/api` if not set.
+- `NEXT_PUBLIC_COMPANY_PHONE` is optional and has a fallback value in the UI.
+
+### Production Commands
+
+```bash
+npm ci
+npm run build
+npm run start
+```
+
+If port `3000` is in use:
+
+```bash
+npm run start -- -p 3001
+```
+
 ## Getting Started
 
 First, run the development server:

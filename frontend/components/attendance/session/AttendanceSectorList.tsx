@@ -4,11 +4,15 @@ import AttendanceSectorCard from "./AttendanceSectorCard";
 
 import type {
   AttendanceFormEmployee,
+  AttendanceFormLocation,
   AttendanceFormSector,
 } from "@/types/attendance-session";
 
 interface AttendanceSectorListProps {
   sectors: AttendanceFormSector[];
+
+  sectorLocations: Record<string, AttendanceFormLocation[]>;
+
   onEmployeeChange: (
     employeeId: string,
     field: keyof AttendanceFormEmployee,
@@ -18,6 +22,7 @@ interface AttendanceSectorListProps {
 
 export default function AttendanceSectorList({
   sectors,
+  sectorLocations,
   onEmployeeChange,
 }: AttendanceSectorListProps) {
   if (sectors.length === 0) {
@@ -37,7 +42,7 @@ export default function AttendanceSectorList({
           <AttendanceSectorCard
             key={presentSector.sector}
             sector={presentSector}
-            allLocations={presentSector.locations}
+            allLocations={sectorLocations[presentSector.sector] ?? []}
             onEmployeeChange={onEmployeeChange}
           />
         );

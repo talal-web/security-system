@@ -5,7 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 
-import { educationOptions, designationOptions } from "@/constants/employee";
+import {
+  educationOptions,
+  designationOptions,
+} from "@/constants/employee/employeeOptions";
 import { sectorOptions } from "@/constants/location";
 import { useLocations } from "@/hooks/location/useLocation";
 

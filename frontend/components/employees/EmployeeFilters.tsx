@@ -11,7 +11,10 @@ import {
   X,
 } from "lucide-react";
 
-import { designationOptions, educationOptions } from "@/constants/employee";
+import {
+  designationOptions,
+  educationOptions,
+} from "@/constants/employee/employeeOptions";
 import { sectorOptions } from "@/constants/location";
 import { shiftOptions } from "@/constants/shiftOptions";
 

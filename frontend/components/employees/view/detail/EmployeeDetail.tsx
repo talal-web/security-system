@@ -2,6 +2,7 @@ import InfoCard from "./InfoCard";
 import EmployeeHeader from "./EmployeeHeader";
 import EmployeeSection from "./EmployeeSection";
 import EmployeeQuickStats from "./EmployeeQuickStats";
+import EmployeeDocumentCard from "./EmployeeDocumentCard";
 
 import {
   BadgeCheck,
@@ -169,6 +170,28 @@ export default function EmployeeDetail({ employee }: Props) {
                       ? formatDate(employee.exitDate)
                       : "Currently Working"
                   }
+                />
+              </div>
+            </EmployeeSection>
+
+            <EmployeeSection title="Documents" color="bg-indigo-500">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <EmployeeDocumentCard
+                  title="Profile Picture"
+                  imageUrl={employee.profileImage}
+                  fileName={`${employee.empId}-profile.jpg`}
+                />
+
+                <EmployeeDocumentCard
+                  title="CNIC Front"
+                  imageUrl={employee.cnicFrontImage}
+                  fileName={`${employee.empId}-cnic-front.jpg`}
+                />
+
+                <EmployeeDocumentCard
+                  title="CNIC Back"
+                  imageUrl={employee.cnicBackImage}
+                  fileName={`${employee.empId}-cnic-back.jpg`}
                 />
               </div>
             </EmployeeSection>

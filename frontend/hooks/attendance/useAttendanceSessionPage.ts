@@ -112,6 +112,24 @@ export function useAttendanceSessionPage() {
     [sectors],
   );
 
+  const sectorLocations = useMemo(() => {
+    if (!data?.sectors) return {};
+
+    return data.sectors.reduce<Record<string, AttendanceFormLocation[]>>(
+      (acc, sector) => {
+        acc[sector.sector] = sector.locations.map(
+          (location): AttendanceFormLocation => ({
+            ...location,
+            employees: [],
+          }),
+        );
+
+        return acc;
+      },
+      {},
+    );
+  }, [data]);
+
   // ======================================
   // DASHBOARD STATS
   // ======================================
@@ -306,6 +324,7 @@ export function useAttendanceSessionPage() {
     leaveEmployees,
 
     allEmployees,
+    sectorLocations,
     visibleEmployeeCount,
 
     markAttendanceMutation,

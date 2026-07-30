@@ -2,6 +2,7 @@ import Employee from "../models/Employee.js";
 import Location from "../models/Location.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 import generateEmpId from "../utils/generateEmpId.js";
+import { normalizeCnic, normalizePhone } from "../utils/normalize.js";
 
 // ======================================
 // CREATE EMPLOYEE
@@ -42,8 +43,16 @@ export const createEmployee = async (req, res, next) => {
       throw new Error("Required fields are missing");
     }
 
-    const cleanedCnic = cnic.replace(/-/g, "");
+    // =========================
+    // Normalize Data
+    // =========================
+    const cleanedCnic = normalizeCnic(cnic);
+    const cleanedPhone1 = normalizePhone(phone1);
+    const cleanedPhone2 = normalizePhone(phone2);
 
+    // =========================
+    // Check Duplicate CNIC
+    // =========================
     const existing = await Employee.findOne({ cnic: cleanedCnic });
 
     if (existing) {
@@ -83,7 +92,7 @@ export const createEmployee = async (req, res, next) => {
     }
 
     // =========================
-    // CREATE EMPLOYEE
+    // Create Employee
     // =========================
     const employee = await Employee.create({
       empId,
@@ -95,8 +104,8 @@ export const createEmployee = async (req, res, next) => {
       cnic: cleanedCnic,
       address,
 
-      phone1,
-      phone2,
+      phone1: cleanedPhone1,
+      phone2: cleanedPhone2,
 
       education,
       designation,
@@ -107,7 +116,7 @@ export const createEmployee = async (req, res, next) => {
 
       status: status || "active",
 
-      defaultShift: defaultShift || "null",
+      defaultShift: defaultShift || null,
 
       entryDate,
       exitDate,
@@ -355,13 +364,13 @@ export const updateEmployee = async (req, res, next) => {
     }
 
     // =========================
-    // CNIC CHECK
+    // Normalize & Validate CNIC
     // =========================
     if (req.body.cnic) {
-      const cleaned = req.body.cnic.replace(/-/g, "");
+      const cleanedCnic = normalizeCnic(req.body.cnic);
 
       const existing = await Employee.findOne({
-        cnic: cleaned,
+        cnic: cleanedCnic,
         _id: { $ne: req.params.id },
       });
 
@@ -370,11 +379,22 @@ export const updateEmployee = async (req, res, next) => {
         throw new Error("Another employee already uses this CNIC");
       }
 
-      req.body.cnic = cleaned;
+      req.body.cnic = cleanedCnic;
     }
 
     // =========================
-    // UPDATE FIELDS
+    // Normalize Phone Numbers
+    // =========================
+    if (req.body.phone1 !== undefined) {
+      req.body.phone1 = normalizePhone(req.body.phone1);
+    }
+
+    if (req.body.phone2 !== undefined) {
+      req.body.phone2 = normalizePhone(req.body.phone2);
+    }
+
+    // =========================
+    // Update Fields
     // =========================
     const allowedFields = [
       "name",
@@ -414,13 +434,16 @@ export const updateEmployee = async (req, res, next) => {
       employee[field] = req.body[field];
     }
 
+    // =========================
+    // Current Location
+    // =========================
     if (req.body.currentLocation !== undefined) {
       employee.currentLocation =
         String(req.body.currentLocation).trim() || null;
     }
 
     // =========================
-    // PROFILE IMAGE UPDATE
+    // Profile Image Update
     // =========================
     if (req.files?.profileImage?.[0]) {
       const result = await uploadToCloudinary(req.files.profileImage[0].buffer);

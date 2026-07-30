@@ -1,6 +1,6 @@
 // src/app/employees/create/page.tsx
 
-import CreateEmployeeForm from "@/components/employees/CreateEmployeeForm";
+import CreateEmployeeForm from "@/components/employees/create/CreateEmployeeForm";
 
 export default function CreateEmployeePage() {
   return (

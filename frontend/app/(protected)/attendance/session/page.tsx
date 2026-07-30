@@ -51,6 +51,7 @@ export default function AttendanceSessionPage() {
 
       <AttendanceSectorList
         sectors={attendance.presentSectors}
+        sectorLocations={attendance.sectorLocations}
         onEmployeeChange={attendance.handleEmployeeChange}
       />
 

@@ -17,11 +17,11 @@ export default function AttendanceHeader({
   alreadyMarked,
 }: AttendanceHeaderProps) {
   return (
-    <div className="overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-red-50 shadow-sm">
+    <div className="overflow-hidden rounded-3xl border border-blue-100 bg-linear-to-r from-blue-50 via-white to-red-50 shadow-sm">
       <div className="flex flex-col gap-6 p-6 lg:flex-row lg:items-center lg:justify-between">
         {/* Left */}
         <div className="flex items-start gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-600 to-blue-700 text-white shadow-lg">
             <ClipboardCheck className="h-7 w-7" />
           </div>
 

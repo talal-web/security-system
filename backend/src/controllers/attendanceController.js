@@ -385,43 +385,52 @@ export const getAttendanceSession = async (req, res) => {
     const employees = await Employee.find({
       status: "active",
     })
-      .select(
-        "empId name fatherName designation sector defaultShift currentLocation",
-      )
+      .select("empId name fatherName designation defaultShift currentLocation")
       .lean();
 
     // ==========================================
-    // LOCATION MAP
+    // CREATE LOCATION MAP
     // ==========================================
     const locationMap = new Map();
 
     for (const location of locations) {
       locationMap.set(location._id.toString(), {
         _id: location._id,
+
         name: location.name,
+
+        sector: location.sector,
+
         sortOrder: location.sortOrder,
+
         isActive: Boolean(location.isActive),
+
         employeeCount: 0,
+
         employees: [],
       });
     }
 
     // ==========================================
-    // ATTACH EMPLOYEES TO LOCATIONS
+    // ASSIGN EMPLOYEES TO LOCATIONS
     // ==========================================
     for (const employee of employees) {
       if (!employee.currentLocation) continue;
 
       const location = locationMap.get(employee.currentLocation.toString());
 
+      // employee location inactive/deleted
       if (!location) continue;
 
       location.employees.push({
         employeeId: employee._id,
 
         empId: employee.empId,
+
         name: employee.name,
+
         fatherName: employee.fatherName,
+
         designation: employee.designation,
 
         defaultShift: employee.defaultShift,
@@ -441,8 +450,12 @@ export const getAttendanceSession = async (req, res) => {
       if (!sectorMap.has(sector)) {
         sectorMap.set(sector, {
           sector,
+
           totalLocations: 0,
+
           totalEmployees: 0,
+
+          // contains ALL active locations
           locations: [],
         });
       }
@@ -453,7 +466,7 @@ export const getAttendanceSession = async (req, res) => {
 
       sectorData.locations.push(locationData);
 
-      sectorData.totalLocations++;
+      sectorData.totalLocations += 1;
 
       sectorData.totalEmployees += locationData.employeeCount;
     }
@@ -477,7 +490,9 @@ export const getAttendanceSession = async (req, res) => {
 
       stats: {
         totalEmployees: employees.length,
+
         totalLocations: locations.length,
+
         totalSectors: sectors.length,
       },
 
@@ -486,6 +501,7 @@ export const getAttendanceSession = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
+
       message: error.message,
     });
   }
