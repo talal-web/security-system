@@ -1,4 +1,8 @@
 import winston from "winston";
+import fs from "fs";
+
+// Ensure logs directory exists (required for file transports)
+fs.mkdirSync("logs", { recursive: true });
 
 const logger = winston.createLogger({
   level: "info",
