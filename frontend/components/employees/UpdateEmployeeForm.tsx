@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 
@@ -9,8 +9,8 @@ import {
   educationOptions,
   designationOptions,
 } from "@/constants/employee/employeeOptions";
-import { sectorOptions } from "@/constants/location";
-import { useLocations } from "@/hooks/location/useLocation";
+import { useEmployeeLocations } from "@/hooks/employee/create/useEmployeeLocations";
+import SectorSelect from "../sectors/SectorSelect";
 
 import {
   User,
@@ -54,7 +54,7 @@ type FormValues = {
   education?: EducationLevel | "";
   designation: EmployeeDesignation;
 
-  sector?: SectorOptions | "";
+  sector?: string | undefined;
   currentLocation: string;
 
   defaultShift?: EmployeeShift | "";
@@ -72,22 +72,17 @@ type Props = {
   employee: Employee;
 };
 
-const normalizeSector = (sector?: string | null): SectorOptions | "" => {
-  if (!sector) return "";
+const normalizeSector = (
+  sector?: SectorOptions | string | null,
+): string | undefined => {
+  if (!sector) return undefined;
+  if (typeof sector === "object") return sector.code;
 
-  const normalized = sector
-    .toLowerCase()
-    .replace(/\s+/g, "_")
-    .replace(/-+/g, "_");
-
-  return sectorOptions.some((option) => option.value === normalized)
-    ? (normalized as SectorOptions)
-    : "";
+  return sector.toLowerCase().replace(/\s+/g, "_").replace(/-+/g, "_");
 };
 
 export default function UpdateEmployeeForm({ employee }: Props) {
   const router = useRouter();
-  const { data: locationsData } = useLocations();
 
   const { handleUpdateEmployee, loading } = useUpdateEmployee();
 
@@ -140,20 +135,13 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     name: "sector",
   });
 
-  const locationOptions = useMemo(() => {
-    return (
-      locationsData
-        ?.filter(
-          (location) =>
-            location.isActive &&
-            normalizeSector(location.sector) === normalizeSector(watchedSector),
-        )
-        .map((location) => ({
-          label: location.name,
-          value: location._id,
-        })) || []
-    );
-  }, [locationsData, watchedSector]);
+  const {
+    options: locationOptions,
+    disabled: isLocationSelectDisabled,
+    placeholder: locationPlaceholder,
+    statusMessage: locationStatusMessage,
+    isLoading: isLocationsLoading,
+  } = useEmployeeLocations(watchedSector as string | undefined);
   const age = watchedBirthDate ? calculateAge(watchedBirthDate) : 0;
 
   useEffect(() => {
@@ -324,18 +312,18 @@ export default function UpdateEmployeeForm({ employee }: Props) {
           options={designationOptions}
           {...register("designation")}
         />
-        <Select
-          icon={<MapPin />}
-          label="Sector"
-          placeholder="Select Sector"
-          options={sectorOptions}
+        <SectorSelect
           {...register("sector")}
+          className="w-full rounded-lg px-3 py-2"
         />
+
         <Select
           icon={<MapPin />}
           label="Current Location"
-          placeholder="Select Location"
+          placeholder={locationPlaceholder}
           options={locationOptions}
+          disabled={isLocationSelectDisabled}
+          aria-busy={isLocationsLoading}
           {...register("currentLocation")}
         />
         <Select
@@ -378,6 +366,12 @@ export default function UpdateEmployeeForm({ employee }: Props) {
           options={["active", "inactive"]}
           {...register("status")}
         />
+
+        {locationStatusMessage && (
+          <div className="md:col-span-2 lg:col-span-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            {locationStatusMessage}
+          </div>
+        )}
 
         {/* SUBMIT */}
         <div className="md:col-span-2 lg:col-span-3">

@@ -8,16 +8,16 @@ import {
 } from "@/utils/attendance/attendanceMapper";
 
 import type {
-  AttendanceGlobalStats,
-  AttendanceNonPresentEmployee,
-  AttendanceSector,
-} from "@/types/attendance";
+  AttendanceReportAbsentLeaveEmployee,
+  AttendanceReportGlobalStats,
+  AttendanceReportSector,
+} from "@/types/attendance-report";
 
 interface ExportAttendanceParams {
-  globalStats?: AttendanceGlobalStats;
-  presentSectors: AttendanceSector[];
-  absentEmployees: AttendanceNonPresentEmployee[];
-  leaveEmployees: AttendanceNonPresentEmployee[];
+  globalStats?: AttendanceReportGlobalStats;
+  presentSectors: AttendanceReportSector[];
+  absentEmployees: AttendanceReportAbsentLeaveEmployee[];
+  leaveEmployees: AttendanceReportAbsentLeaveEmployee[];
   date: string;
 }
 

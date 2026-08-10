@@ -1,15 +1,12 @@
 "use client";
 
-import type {
-  AttendanceEmployee,
-  AttendanceNonPresentEmployee,
-  AttendanceStatus,
-} from "@/types/attendance";
+import type { AttendanceStatus } from "@/types/attendance";
+import type { AttendanceReportAbsentLeaveEmployee } from "@/types/attendance-report";
 
 interface AttendanceEmployeeTableProps {
   title: string;
   status: AttendanceStatus;
-  employees: (AttendanceEmployee | AttendanceNonPresentEmployee)[];
+  employees: AttendanceReportAbsentLeaveEmployee[];
 }
 
 export default function AttendanceEmployeeTable({

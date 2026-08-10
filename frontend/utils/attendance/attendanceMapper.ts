@@ -1,11 +1,11 @@
+import type { AttendanceExportRow } from "@/types/attendance";
 import type {
-  AttendanceExportRow,
-  AttendanceNonPresentEmployee,
-  AttendanceSector,
-} from "@/types/attendance";
+  AttendanceReportAbsentLeaveEmployee,
+  AttendanceReportSector,
+} from "@/types/attendance-report";
 
 export function mapAttendanceEmployee(
-  employee: AttendanceNonPresentEmployee,
+  employee: AttendanceReportAbsentLeaveEmployee,
   status: "absent" | "leave",
 ): AttendanceExportRow {
   return {
@@ -17,7 +17,7 @@ export function mapAttendanceEmployee(
     designation: employee.designation ?? "-",
     sector: employee.sector ?? "-",
     location: employee.location ?? "-",
-    shift: employee.shift ?? "-",
+    shift: employee.shift ?? undefined,
 
     status,
     remarks: employee.remarks || "",
@@ -26,7 +26,7 @@ export function mapAttendanceEmployee(
 }
 
 export function mapPresentEmployees(
-  presentSectors: AttendanceSector[],
+  presentSectors: AttendanceReportSector[],
 ): AttendanceExportRow[] {
   return presentSectors.flatMap((sector) =>
     sector.locations.flatMap((location) =>
@@ -35,6 +35,7 @@ export function mapPresentEmployees(
         designation: record.designation ?? "-",
         sector: sector.sector,
         location: location.name,
+        shift: record.shift ?? undefined,
       })),
     ),
   );

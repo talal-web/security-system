@@ -1,4 +1,6 @@
 // server.js
+import "dotenv/config";
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -10,17 +12,21 @@ import employeeRoutes from "./routes/employeeRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import locationRoutes from "./routes/locationRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
+import sectorRoutes from "./routes/sectorRoutes.js";
 
 import morganMiddleware from "./middleware/morganMiddleware.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import logger from "./config/logger.js";
 import authRoutes from "./routes/authRoutes.js";
 import cookieParser from "cookie-parser";
+import { validateEnv } from "./config/env.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.set("trust proxy", 1);
+
+validateEnv();
 
 connectDB();
 
@@ -86,12 +92,21 @@ app.use(morganMiddleware);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/locations", locationRoutes);
+app.use("/api/sectors", sectorRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/upload", uploadRoutes);
 
-// Health check
+// Health check routes
 app.get("/", (req, res) => {
   res.send("Server Running...");
+});
+
+app.get("/healthz", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "security-company-api",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.use((req, res) => {

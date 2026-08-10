@@ -331,10 +331,9 @@ export const getEmployees = async (req, res, next) => {
 
 export const getEmployeeById = async (req, res, next) => {
   try {
-    const employee = await Employee.findById(req.params.id).populate(
-      "currentLocation",
-      "name",
-    );
+    const employee = await Employee.findById(req.params.id)
+      .populate("currentLocation", "name")
+      .populate("sector", "name");
 
     if (!employee) {
       res.status(404);

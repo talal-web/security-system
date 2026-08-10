@@ -1,15 +1,20 @@
 "use client";
 
-import { Calendar, Search, Send } from "lucide-react";
+import { Calendar, MapPin, Search, Send } from "lucide-react";
 
 interface AttendanceFiltersProps {
   dateValue: string;
   query: string;
   statusFilter: "all" | "present" | "absent" | "leave";
+
   isSubmitting: boolean;
+  isSavingLocations: boolean;
+
   onDateChange: (value: string) => void;
   onQueryChange: (value: string) => void;
   onStatusFilterChange: (value: "all" | "present" | "absent" | "leave") => void;
+
+  onSaveLocations: () => void;
   onSubmit: () => void;
 }
 
@@ -17,10 +22,15 @@ export default function AttendanceFilters({
   dateValue,
   query,
   statusFilter,
+
   isSubmitting,
+  isSavingLocations,
+
   onDateChange,
   onQueryChange,
   onStatusFilterChange,
+
+  onSaveLocations,
   onSubmit,
 }: AttendanceFiltersProps) {
   return (
@@ -32,8 +42,8 @@ export default function AttendanceFilters({
           </h2>
 
           <p className="text-sm text-slate-500">
-            Search employees, filter attendance, and update each person
-            directly.
+            Search employees, filter attendance, update locations, and submit
+            attendance.
           </p>
         </div>
       </div>
@@ -78,6 +88,16 @@ export default function AttendanceFilters({
       </div>
 
       <div className="flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-5">
+        <button
+          type="button"
+          onClick={onSaveLocations}
+          disabled={isSavingLocations}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <MapPin className="h-4 w-4" />
+          {isSavingLocations ? "Saving..." : "Save Locations"}
+        </button>
+
         <button
           type="button"
           onClick={onSubmit}

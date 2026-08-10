@@ -1,6 +1,7 @@
 import Attendance from "../models/Attendance.js";
 import Employee from "../models/Employee.js";
 import Location from "../models/Location.js";
+import { buildAttendanceSession } from "../services/attendanceSession.service.js";
 
 // POST /api/attendance
 const normalizeDate = (date) => {
@@ -9,6 +10,26 @@ const normalizeDate = (date) => {
     throw new Error("Invalid date format");
   }
   return parsed.toISOString().split("T")[0];
+};
+
+const toSnapshotSectorId = (sector) => {
+  if (!sector) {
+    return "";
+  }
+
+  if (typeof sector === "string") {
+    return sector;
+  }
+
+  if (sector._id) {
+    return sector._id.toString();
+  }
+
+  if (typeof sector.toString === "function") {
+    return sector.toString();
+  }
+
+  return "";
 };
 
 // GET /api/attendance
@@ -21,16 +42,17 @@ export const getAttendanceReport = async (req, res) => {
     if (status) match.status = status;
     if (shift) match.shift = shift;
 
-    if (date) {
-      match.date = normalizeDate(date);
-    } else {
-      match.date = normalizeDate(new Date());
-    }
+    match.date = date ? normalizeDate(date) : normalizeDate(new Date());
 
     const data = await Attendance.aggregate([
+      // ==========================================
+      // MATCH ATTENDANCE
+      // ==========================================
       { $match: match },
 
+      // ==========================================
       // JOIN LOCATION
+      // ==========================================
       {
         $lookup: {
           from: "locations",
@@ -39,6 +61,7 @@ export const getAttendanceReport = async (req, res) => {
           as: "location",
         },
       },
+
       {
         $unwind: {
           path: "$location",
@@ -46,6 +69,83 @@ export const getAttendanceReport = async (req, res) => {
         },
       },
 
+      // ==========================================
+      // RESOLVE SNAPSHOT SECTOR ID
+      // ==========================================
+      {
+        $addFields: {
+          snapshotSectorId: {
+            $convert: {
+              input: "$locationSnapshot.sector",
+              to: "objectId",
+              onError: null,
+              onNull: null,
+            },
+          },
+        },
+      },
+
+      // ==========================================
+      // JOIN CURRENT LOCATION SECTOR
+      // ==========================================
+      {
+        $lookup: {
+          from: "sectors",
+          localField: "location.sector",
+          foreignField: "_id",
+          as: "locationSector",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$locationSector",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // ==========================================
+      // JOIN SNAPSHOT SECTOR
+      // ==========================================
+      {
+        $lookup: {
+          from: "sectors",
+          localField: "snapshotSectorId",
+          foreignField: "_id",
+          as: "snapshotSector",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$snapshotSector",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // ==========================================
+      // RESOLVE FINAL SECTOR
+      // ==========================================
+      {
+        $addFields: {
+          resolvedSectorId: {
+            $ifNull: ["$location.sector", "$snapshotSectorId"],
+          },
+
+          resolvedSectorName: {
+            $ifNull: [
+              "$locationSector.name",
+              "$snapshotSector.name",
+              "$locationSnapshot.sector",
+              "Unassigned",
+            ],
+          },
+        },
+      },
+
+      // ==========================================
+      // REPORT FACETS
+      // ==========================================
       {
         $facet: {
           // ======================================
@@ -137,21 +237,28 @@ export const getAttendanceReport = async (req, res) => {
 
             {
               $sort: {
-                "locationSnapshot.sector": 1,
+                resolvedSectorName: 1,
                 "location.sortOrder": 1,
                 "employeeSnapshot.empId": 1,
               },
             },
 
+            // ------------------------------------
+            // GROUP EMPLOYEES BY SECTOR + LOCATION
+            // ------------------------------------
             {
               $group: {
                 _id: {
-                  sector: "$locationSnapshot.sector",
+                  sectorId: "$resolvedSectorId",
                   locationId: "$locationSnapshot.locationId",
                 },
 
+                sectorId: {
+                  $first: "$resolvedSectorId",
+                },
+
                 sector: {
-                  $first: "$locationSnapshot.sector",
+                  $first: "$resolvedSectorName",
                 },
 
                 locationId: {
@@ -200,6 +307,9 @@ export const getAttendanceReport = async (req, res) => {
               },
             },
 
+            // ------------------------------------
+            // SORT LOCATIONS
+            // ------------------------------------
             {
               $sort: {
                 sector: 1,
@@ -207,9 +317,20 @@ export const getAttendanceReport = async (req, res) => {
               },
             },
 
+            // ------------------------------------
+            // GROUP LOCATIONS BY SECTOR
+            // ------------------------------------
             {
               $group: {
-                _id: "$sector",
+                _id: "$sectorId",
+
+                sectorId: {
+                  $first: "$sectorId",
+                },
+
+                sector: {
+                  $first: "$sector",
+                },
 
                 locations: {
                   $push: {
@@ -231,10 +352,17 @@ export const getAttendanceReport = async (req, res) => {
               },
             },
 
+            // ------------------------------------
+            // FINAL SECTOR SHAPE
+            // ------------------------------------
             {
               $project: {
                 _id: 0,
-                sector: "$_id",
+
+                sectorId: 1,
+
+                sector: 1,
+
                 locations: 1,
               },
             },
@@ -261,18 +389,27 @@ export const getAttendanceReport = async (req, res) => {
                 _id: 0,
 
                 attendanceId: "$_id",
+
                 employeeId: "$employee",
 
                 empId: "$employeeSnapshot.empId",
+
                 name: "$employeeSnapshot.name",
+
                 fatherName: "$employeeSnapshot.fatherName",
+
                 designation: "$employeeSnapshot.designation",
 
-                sector: "$locationSnapshot.sector",
+                sectorId: "$resolvedSectorId",
+
+                sector: "$resolvedSectorName",
+
                 location: "$locationSnapshot.name",
+
                 shift: "$shift",
 
                 date: "$date",
+
                 remarks: "$remarks",
               },
             },
@@ -299,18 +436,27 @@ export const getAttendanceReport = async (req, res) => {
                 _id: 0,
 
                 attendanceId: "$_id",
+
                 employeeId: "$employee",
 
                 empId: "$employeeSnapshot.empId",
+
                 name: "$employeeSnapshot.name",
+
                 fatherName: "$employeeSnapshot.fatherName",
+
                 designation: "$employeeSnapshot.designation",
 
-                sector: "$locationSnapshot.sector",
+                sectorId: "$resolvedSectorId",
+
+                sector: "$resolvedSectorName",
+
                 location: "$locationSnapshot.name",
+
                 shift: "$shift",
 
                 date: "$date",
+
                 remarks: "$remarks",
               },
             },
@@ -325,11 +471,14 @@ export const getAttendanceReport = async (req, res) => {
       },
     ]);
 
+    const report = data[0];
+
     return res.status(200).json({
       success: true,
       message: "Attendance report fetched successfully",
+
       data: {
-        globalStats: data[0].globalStats[0] || {
+        globalStats: report.globalStats[0] || {
           total: 0,
           present: 0,
           absent: 0,
@@ -338,11 +487,11 @@ export const getAttendanceReport = async (req, res) => {
           night: 0,
         },
 
-        presentSectors: data[0].presentSectors,
+        presentSectors: report.presentSectors,
 
-        absentEmployees: data[0].absentEmployees,
+        absentEmployees: report.absentEmployees,
 
-        leaveEmployees: data[0].leaveEmployees,
+        leaveEmployees: report.leaveEmployees,
       },
     });
   } catch (error) {
@@ -359,144 +508,12 @@ export const getAttendanceReport = async (req, res) => {
 
 export const getAttendanceSession = async (req, res) => {
   try {
-    const attendanceDate = normalizeDate(new Date());
+    const session = await buildAttendanceSession();
 
-    const attendanceExists = await Attendance.exists({
-      date: attendanceDate,
-    });
-
-    // ==========================================
-    // GET ACTIVE LOCATIONS
-    // ==========================================
-    const locations = await Location.find({
-      isActive: true,
-    })
-      .select("name sector sortOrder isActive")
-      .sort({
-        sector: 1,
-        sortOrder: 1,
-        name: 1,
-      })
-      .lean();
-
-    // ==========================================
-    // GET ACTIVE EMPLOYEES
-    // ==========================================
-    const employees = await Employee.find({
-      status: "active",
-    })
-      .select("empId name fatherName designation defaultShift currentLocation")
-      .lean();
-
-    // ==========================================
-    // CREATE LOCATION MAP
-    // ==========================================
-    const locationMap = new Map();
-
-    for (const location of locations) {
-      locationMap.set(location._id.toString(), {
-        _id: location._id,
-
-        name: location.name,
-
-        sector: location.sector,
-
-        sortOrder: location.sortOrder,
-
-        isActive: Boolean(location.isActive),
-
-        employeeCount: 0,
-
-        employees: [],
-      });
-    }
-
-    // ==========================================
-    // ASSIGN EMPLOYEES TO LOCATIONS
-    // ==========================================
-    for (const employee of employees) {
-      if (!employee.currentLocation) continue;
-
-      const location = locationMap.get(employee.currentLocation.toString());
-
-      // employee location inactive/deleted
-      if (!location) continue;
-
-      location.employees.push({
-        employeeId: employee._id,
-
-        empId: employee.empId,
-
-        name: employee.name,
-
-        fatherName: employee.fatherName,
-
-        designation: employee.designation,
-
-        defaultShift: employee.defaultShift,
-      });
-
-      location.employeeCount++;
-    }
-
-    // ==========================================
-    // GROUP LOCATIONS BY SECTOR
-    // ==========================================
-    const sectorMap = new Map();
-
-    for (const location of locations) {
-      const sector = location.sector || "Unassigned";
-
-      if (!sectorMap.has(sector)) {
-        sectorMap.set(sector, {
-          sector,
-
-          totalLocations: 0,
-
-          totalEmployees: 0,
-
-          // contains ALL active locations
-          locations: [],
-        });
-      }
-
-      const sectorData = sectorMap.get(sector);
-
-      const locationData = locationMap.get(location._id.toString());
-
-      sectorData.locations.push(locationData);
-
-      sectorData.totalLocations += 1;
-
-      sectorData.totalEmployees += locationData.employeeCount;
-    }
-
-    // ==========================================
-    // FINAL SECTORS
-    // ==========================================
-    const sectors = Array.from(sectorMap.values()).sort((a, b) =>
-      a.sector.localeCompare(b.sector),
-    );
-
-    // ==========================================
-    // RESPONSE
-    // ==========================================
     return res.status(200).json({
       success: true,
 
-      attendanceDate,
-
-      alreadyMarked: Boolean(attendanceExists),
-
-      stats: {
-        totalEmployees: employees.length,
-
-        totalLocations: locations.length,
-
-        totalSectors: sectors.length,
-      },
-
-      sectors,
+      ...session,
     });
   } catch (error) {
     return res.status(500).json({
@@ -541,11 +558,20 @@ export const submitAttendanceSession = async (req, res) => {
       .select(
         "empId name fatherName designation defaultShift sector currentLocation",
       )
-      .populate("currentLocation", "name sector isActive");
+      .populate({
+        path: "currentLocation",
+        select: "name sector isActive",
+        populate: {
+          path: "sector",
+          select: "_id name",
+        },
+      });
 
     const locationDocs = await Location.find({
       _id: { $in: locationIds },
-    }).select("name sector isActive");
+    })
+      .select("name sector isActive")
+      .populate("sector", "_id name");
 
     const employeeMap = new Map(
       employeeDocs.map((emp) => [emp._id.toString(), emp]),
@@ -621,13 +647,13 @@ export const submitAttendanceSession = async (req, res) => {
           ? {
               locationId: location._id,
               name: location.name,
-              sector: location.sector,
+              sector: toSnapshotSectorId(location.sector),
             }
           : employee.currentLocation
             ? {
                 locationId: employee.currentLocation._id,
                 name: employee.currentLocation.name,
-                sector: employee.currentLocation.sector,
+                sector: toSnapshotSectorId(employee.currentLocation.sector),
               }
             : {
                 locationId: null,
@@ -918,6 +944,145 @@ export const getMonthlyAttendanceReport = async (req, res) => {
 
         employees: report,
       },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updateEmployeeLocations = async (req, res) => {
+  try {
+    const { employees } = req.body;
+
+    // ==========================================
+    // VALIDATION
+    // ==========================================
+
+    if (!Array.isArray(employees) || employees.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Employees data is required",
+      });
+    }
+
+    // ==========================================
+    // LOAD EMPLOYEES
+    // ==========================================
+
+    const employeeIds = employees.map((emp) => emp.employeeId);
+
+    const employeeDocs = await Employee.find({
+      _id: { $in: employeeIds },
+      status: "active",
+    })
+      .select("currentLocation")
+      .lean();
+
+    const employeeMap = new Map(
+      employeeDocs.map((emp) => [emp._id.toString(), emp]),
+    );
+
+    // ==========================================
+    // LOAD LOCATIONS
+    // ==========================================
+
+    const locationIds = [
+      ...new Set(employees.map((emp) => emp.locationId).filter(Boolean)),
+    ];
+
+    const locationDocs = await Location.find({
+      _id: { $in: locationIds },
+      isActive: true,
+    })
+      .select("_id")
+      .lean();
+
+    const locationMap = new Map(
+      locationDocs.map((loc) => [loc._id.toString(), loc]),
+    );
+
+    // ==========================================
+    // VALIDATE + BUILD OPERATIONS
+    // ==========================================
+
+    const invalidEmployees = [];
+
+    const operations = [];
+
+    for (const item of employees) {
+      const employee = employeeMap.get(item.employeeId);
+
+      if (!employee) {
+        invalidEmployees.push({
+          employeeId: item.employeeId,
+          missing: ["Employee not found"],
+        });
+        continue;
+      }
+
+      const location = locationMap.get(item.locationId);
+
+      if (!location) {
+        invalidEmployees.push({
+          employeeId: item.employeeId,
+          missing: ["Location not found or inactive"],
+        });
+        continue;
+      }
+
+      const currentLocation = employee.currentLocation?.toString();
+
+      if (currentLocation === item.locationId) {
+        continue;
+      }
+
+      operations.push({
+        updateOne: {
+          filter: {
+            _id: item.employeeId,
+          },
+          update: {
+            $set: {
+              currentLocation: item.locationId,
+            },
+          },
+        },
+      });
+    }
+
+    // ==========================================
+    // RETURN VALIDATION ERRORS
+    // ==========================================
+
+    if (invalidEmployees.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Some employees have invalid locations.",
+        employees: invalidEmployees,
+      });
+    }
+
+    // ==========================================
+    // UPDATE EMPLOYEES
+    // ==========================================
+
+    if (operations.length) {
+      await Employee.bulkWrite(operations);
+    }
+
+    // ==========================================
+    // RETURN UPDATED SESSION
+    // ==========================================
+
+    const session = await buildAttendanceSession();
+
+    return res.status(200).json({
+      success: true,
+      message: "Employee locations updated successfully.",
+      ...session,
     });
   } catch (error) {
     return res.status(500).json({

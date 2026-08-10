@@ -26,7 +26,6 @@ import {
   formatDate,
   formatText,
 } from "@/utils/employee/employeeFormat";
-import { formatSectorName } from "@/utils/formatSectorName";
 
 type Props = {
   employee: Employee;
@@ -111,11 +110,7 @@ export default function EmployeeDetail({ employee }: Props) {
                 <InfoCard
                   icon={<ShieldCheck className="h-5 w-5" />}
                   label="Sector"
-                  value={
-                    employee.sector
-                      ? formatSectorName(employee.sector)
-                      : undefined
-                  }
+                  value={employee.sector ? employee.sector.name : undefined}
                 />
 
                 <InfoCard

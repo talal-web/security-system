@@ -15,15 +15,18 @@ interface AttendanceSectorListProps {
 
   onEmployeeChange: (
     employeeId: string,
-    field: keyof AttendanceFormEmployee,
+    field: Exclude<keyof AttendanceFormEmployee, "selectedLocation">,
     value: unknown,
   ) => void;
+
+  onEmployeeLocationChange: (employeeId: string, locationId: string) => void;
 }
 
 export default function AttendanceSectorList({
   sectors,
   sectorLocations,
   onEmployeeChange,
+  onEmployeeLocationChange,
 }: AttendanceSectorListProps) {
   if (sectors.length === 0) {
     return (
@@ -37,16 +40,17 @@ export default function AttendanceSectorList({
 
   return (
     <div className="space-y-6">
-      {sectors.map((presentSector) => {
-        return (
-          <AttendanceSectorCard
-            key={presentSector.sector}
-            sector={presentSector}
-            allLocations={sectorLocations[presentSector.sector] ?? []}
-            onEmployeeChange={onEmployeeChange}
-          />
-        );
-      })}
+      {sectors.map((presentSector) => (
+        <AttendanceSectorCard
+          key={presentSector.sector._id ?? "unassigned"}
+          sector={presentSector}
+          allLocations={
+            sectorLocations[presentSector.sector._id ?? "unassigned"] ?? []
+          }
+          onEmployeeChange={onEmployeeChange}
+          onEmployeeLocationChange={onEmployeeLocationChange}
+        />
+      ))}
     </div>
   );
 }

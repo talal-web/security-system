@@ -15,7 +15,7 @@ import {
 import {
   CreateLocationPayload,
   UpdateLocationPayload,
-  LocationSector,
+  LocationSectorId,
 } from "@/types/location";
 
 // ================= GET ALL LOCATIONS =================
@@ -26,7 +26,7 @@ export const useLocations = ({
   enabled,
 }: {
   search?: string;
-  sector?: LocationSector;
+  sector?: LocationSectorId;
   isActive?: boolean;
   enabled?: boolean;
 } = {}) => {

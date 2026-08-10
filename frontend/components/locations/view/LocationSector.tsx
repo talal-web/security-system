@@ -2,20 +2,20 @@
 
 import { ArrowUpDown, Building2, Check, X } from "lucide-react";
 
-import type { ILocation, LocationSector } from "@/types/location";
+import type { ILocation, LocationSectorId } from "@/types/location";
 
 import LocationCard from "./LocationCard";
 import LocationSortableList from "../reorder/LocationSortableList";
 
 interface LocationSectorProps {
-  sectorName: string;
+  sectorId: string;
   sectorLabel: string;
   items: ILocation[];
 
-  reorderSector: LocationSector | null;
+  reorderSector: LocationSectorId | null;
   reorderItems: ILocation[];
 
-  setReorderSector: (sector: LocationSector | null) => void;
+  setReorderSector: (sector: LocationSectorId | null) => void;
   setReorderItems: React.Dispatch<React.SetStateAction<ILocation[]>>;
 
   handleSaveOrder: () => void;
@@ -25,7 +25,7 @@ interface LocationSectorProps {
 }
 
 export default function LocationSector({
-  sectorName,
+  sectorId,
   sectorLabel,
   items,
 
@@ -40,7 +40,7 @@ export default function LocationSector({
 
   onEdit,
 }: LocationSectorProps) {
-  const isReordering = reorderSector === sectorName;
+  const isReordering = reorderSector === sectorId;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -89,7 +89,7 @@ export default function LocationSector({
             type="button"
             disabled={items.length <= 1}
             onClick={() => {
-              setReorderSector(sectorName as LocationSector);
+              setReorderSector(sectorId);
 
               setReorderItems(
                 [...items].sort((a, b) => a.sortOrder - b.sortOrder),

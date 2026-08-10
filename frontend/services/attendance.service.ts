@@ -3,10 +3,11 @@ import { getApiErrorMessage } from "@/lib/apiError";
 
 import type {
   AttendanceFilters,
-  AttendanceResponse,
-  MonthlyAttendanceResponse,
   MonthlyAttendanceFilters,
+  MonthlyAttendanceResponse,
 } from "@/types/attendance";
+
+import type { AttendanceReportResponse } from "@/types/attendance-report";
 
 // ======================================
 // DAILY ATTENDANCE REPORT
@@ -14,9 +15,9 @@ import type {
 
 export async function getAttendanceReport(
   filters?: AttendanceFilters,
-): Promise<AttendanceResponse> {
+): Promise<AttendanceReportResponse> {
   try {
-    const res = await api.get("/attendance/report", {
+    const res = await api.get<AttendanceReportResponse>("/attendance/report", {
       params: {
         status: filters?.status,
         shift: filters?.shift,
@@ -38,9 +39,12 @@ export async function getMonthlyAttendanceReport(
   filters: MonthlyAttendanceFilters,
 ): Promise<MonthlyAttendanceResponse> {
   try {
-    const res = await api.get("/attendance/report/monthly", {
-      params: filters,
-    });
+    const res = await api.get<MonthlyAttendanceResponse>(
+      "/attendance/report/monthly",
+      {
+        params: filters,
+      },
+    );
 
     return res.data;
   } catch (error) {

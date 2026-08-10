@@ -1,16 +1,13 @@
 import { useState } from "react";
 
 import { useCreateLocation } from "@/hooks/location/useLocation";
-
-import { sectorOptions } from "@/constants/location";
-
-import { LocationSector } from "@/types/location";
+import SectorSelect from "@/components/sectors/SectorSelect";
 
 export default function CreateLocationForm() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
 
-  const [sector, setSector] = useState<LocationSector | "">("");
+  const [sector, setSector] = useState("");
 
   const { mutate, isPending, isError, error } = useCreateLocation();
 
@@ -95,20 +92,13 @@ export default function CreateLocationForm() {
               Sector *
             </label>
 
-            <select
+            <SectorSelect
+              showLabel={false}
               value={sector}
-              onChange={(e) => setSector(e.target.value as LocationSector)}
+              onChange={(e) => setSector(e.target.value)}
               className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 outline-none transition focus:border-blue-500"
               required
-            >
-              <option value="">Select Sector</option>
-
-              {sectorOptions.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
+            />
           </div>
         </div>
 

@@ -1,24 +1,25 @@
 "use client";
 
 import { useState } from "react";
+
 import { useAttendanceReport } from "@/hooks/attendance/useAttendanceReport";
+import { useAttendanceExport } from "@/hooks/attendance/useAttendanceExport";
+
 import AttendanceSectorTable from "./AttendanceSectorTable";
-import ViewAttendanceFilters from "./AttendanceFilters";
+import AttendanceFilters from "./AttendanceFilters";
 import AttendanceStats from "./AttendanceStats";
 import AttendanceEmployeeTable from "./AttendanceEmployeeTable";
-import { useAttendanceExport } from "@/hooks/attendance/useAttendanceExport";
+
 import { getSectorRows } from "@/utils/attendance/attendanceHelper";
+import type { AttendanceFilters as AttendanceFiltersType } from "@/types/attendance";
 import {
   getShiftStyle,
   getStatusStyle,
 } from "@/utils/attendance/attendanceStyles";
-
-import type { AttendanceFilters } from "@/types/attendance";
-
 import { getTodayDate } from "@/utils/attendance/date";
 
 export default function AttendanceList() {
-  const [filters, setFilters] = useState<AttendanceFilters>(() => ({
+  const [filters, setFilters] = useState<AttendanceFiltersType>(() => ({
     date: getTodayDate(),
   }));
 
@@ -34,32 +35,51 @@ export default function AttendanceList() {
 
   const { exportAll, isExporting } = useAttendanceExport();
 
+  // ======================================
+  // LOADING
+  // ======================================
+
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+      <div className="flex min-h-100 items-center justify-center">
+        <p className="text-sm text-slate-500">Loading attendance report...</p>
       </div>
     );
   }
+
+  // ======================================
+  // ERROR
+  // ======================================
 
   if (error) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-600">
-        {error.message || "Failed to load attendance."}
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+        <p className="text-sm font-medium text-red-600">
+          {error.message || "Failed to load attendance."}
+        </p>
       </div>
     );
   }
 
+  // ======================================
+  // RENDER
+  // ======================================
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* ================= HEADER ================= */}
+
       {globalStats && <AttendanceStats stats={globalStats} />}
 
       {/* ================= FILTERS ================= */}
-      <ViewAttendanceFilters filters={filters} setFilters={setFilters} />
+
+      <AttendanceFilters filters={filters} setFilters={setFilters} />
+
+      {/* ================= EXPORT ================= */}
 
       <div className="flex items-center justify-end">
         <button
+          type="button"
           onClick={() =>
             exportAll({
               globalStats,
@@ -70,26 +90,29 @@ export default function AttendanceList() {
             })
           }
           disabled={isExporting}
-          className="ml-4 rounded bg-indigo-600 px-3 py-1 text-white disabled:opacity-50"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isExporting ? "Exporting..." : "Export All"}
         </button>
       </div>
 
-      {/* ================= SECTORS ================= */}
+      {/* ================= PRESENT SECTORS ================= */}
+
       {presentSectors.length > 0 ? (
-        presentSectors.map((sector) => (
-          <AttendanceSectorTable
-            key={sector.sector}
-            sector={sector}
-            getSectorRows={getSectorRows}
-            getStatusStyle={getStatusStyle}
-            getShiftStyle={getShiftStyle}
-          />
-        ))
+        <div className="space-y-6">
+          {presentSectors.map((sector) => (
+            <AttendanceSectorTable
+              key={sector.sectorId || sector.sector}
+              sector={sector}
+              getSectorRows={getSectorRows}
+              getStatusStyle={getStatusStyle}
+              getShiftStyle={getShiftStyle}
+            />
+          ))}
+        </div>
       ) : (
-        <div className="rounded-xl border bg-white p-10 text-center text-gray-500">
-          No present employees found
+        <div className="rounded-xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
+          No present employees found.
         </div>
       )}
 

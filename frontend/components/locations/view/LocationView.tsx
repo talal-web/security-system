@@ -103,6 +103,7 @@ export default function LocationView() {
         search={search}
         onSearchChange={setSearch}
         sector={sector}
+        selectedSectorLabel={sector ? sectorLabelMap[sector] : undefined}
         onSectorChange={setSector}
         isActive={isActive}
         onStatusChange={setIsActive}
@@ -132,11 +133,15 @@ export default function LocationView() {
           </div>
         ) : (
           <div className="space-y-8">
-            {Object.entries(groupedLocations).map(([sectorName, items]) => (
+            {Object.entries(groupedLocations).map(([sectorId, items]) => (
               <LocationSector
-                key={sectorName}
-                sectorName={sectorName}
-                sectorLabel={sectorLabelMap[sectorName] || sectorName}
+                key={sectorId}
+                sectorId={sectorId}
+                sectorLabel={
+                  sectorLabelMap[sectorId] ||
+                  items[0]?.sector.name ||
+                  "Unknown Sector"
+                }
                 items={items}
                 reorderSector={reorderSector}
                 reorderItems={reorderItems}

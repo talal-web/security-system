@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import {
   Search,
   ShieldCheck,
@@ -15,7 +17,7 @@ import {
   designationOptions,
   educationOptions,
 } from "@/constants/employee/employeeOptions";
-import { sectorOptions } from "@/constants/location";
+import { useSectors } from "@/hooks/sector/useSector";
 import { shiftOptions } from "@/constants/shiftOptions";
 
 import type { EmployeeFilters } from "@/types/employee-filters";
@@ -28,6 +30,21 @@ type Props = {
 
 export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
   const hasFilters = Object.values(filters).some(Boolean);
+
+  const { data: sectorResponse, isLoading: isLoadingSectors } = useSectors({
+    isActive: true,
+  });
+
+  const sectorOptions = useMemo(
+    () =>
+      (sectorResponse?.data ?? [])
+        .filter((sector) => Boolean(sector._id))
+        .map((sector) => ({
+          value: sector._id,
+          label: sector.name,
+        })),
+    [sectorResponse],
+  );
 
   return (
     <div>
@@ -102,9 +119,12 @@ export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
           <select
             value={filters.sector ?? ""}
             onChange={(e) => onChange("sector", e.target.value)}
+            disabled={isLoadingSectors}
             className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-orange-500 focus:bg-white"
           >
-            <option value="">All Sectors</option>
+            <option value="">
+              {isLoadingSectors ? "Loading sectors..." : "All Sectors"}
+            </option>
 
             {sectorOptions.map((sector) => (
               <option key={sector.value} value={sector.value}>

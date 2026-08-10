@@ -41,9 +41,7 @@ export const employeeSchema = z.object({
 
   sector: z.preprocess(
     (value) => (value === "" ? undefined : value),
-    z
-      .enum(["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d", "rawalpindi"])
-      .optional(),
+    z.string().optional(),
   ),
 
   currentLocation: z.preprocess(

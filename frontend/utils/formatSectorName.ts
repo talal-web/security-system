@@ -1,12 +1,15 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import type { Sector } from "@/types/sector";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const formatSectorName = (sector: string) => {
-  return sector
+export const formatSectorName = (sector: Sector | string) => {
+  const code = typeof sector === "object" ? sector.name : sector;
+  return code
     .split("_")
     .map((part) => {
       // Keep numbers as-is

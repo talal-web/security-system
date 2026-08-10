@@ -9,10 +9,10 @@ import {
 
 import type {
   AttendanceFilters,
-  AttendanceResponse,
   MonthlyAttendanceFilters,
   MonthlyAttendanceResponse,
 } from "@/types/attendance";
+import type { AttendanceReportResponse } from "@/types/attendance-report";
 
 // ============================
 // QUERY KEYS
@@ -55,7 +55,7 @@ export const attendanceKeys = {
 // ============================
 
 export function useAttendanceReport(filters?: AttendanceFilters) {
-  return useQuery<AttendanceResponse, Error>({
+  return useQuery<AttendanceReportResponse, Error>({
     queryKey: attendanceKeys.list(filters),
     queryFn: () => getAttendanceReport(filters),
     staleTime: 1000 * 60,

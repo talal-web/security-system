@@ -41,9 +41,11 @@ export default function AttendanceSessionPage() {
         query={attendance.query}
         statusFilter={attendance.statusFilter}
         isSubmitting={attendance.markAttendanceMutation.isPending}
+        isSavingLocations={attendance.updateEmployeeLocationsMutation.isPending}
         onDateChange={attendance.setDate}
         onQueryChange={attendance.setQuery}
         onStatusFilterChange={attendance.setStatusFilter}
+        onSaveLocations={attendance.handleSaveLocations}
         onSubmit={attendance.handleSubmit}
       />
 
@@ -53,6 +55,7 @@ export default function AttendanceSessionPage() {
         sectors={attendance.presentSectors}
         sectorLocations={attendance.sectorLocations}
         onEmployeeChange={attendance.handleEmployeeChange}
+        onEmployeeLocationChange={attendance.handleEmployeeLocationChange}
       />
 
       <AttendanceAbsentLeaveList

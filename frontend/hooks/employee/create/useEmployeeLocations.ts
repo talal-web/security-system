@@ -1,30 +1,17 @@
 import { useMemo } from "react";
 
 import { useLocations } from "@/hooks/location/useLocation";
-import type { LocationSector } from "@/types/location";
 
-const LOCATION_SECTORS: readonly LocationSector[] = [
-  "zone_1_a",
-  "zone_1_b",
-  "zone_1_c",
-  "zone_1_d",
-  "rawalpindi",
-];
-
-export const useEmployeeLocations = (sector?: string) => {
-  const normalizedSector = LOCATION_SECTORS.includes(sector as LocationSector)
-    ? (sector as LocationSector)
-    : undefined;
-
+export const useEmployeeLocations = (sectorId?: string) => {
   const {
     data: locations = [],
     isLoading,
     isError,
     error,
   } = useLocations({
-    sector: normalizedSector,
+    sector: sectorId,
     isActive: true,
-    enabled: Boolean(normalizedSector),
+    enabled: Boolean(sectorId),
   });
 
   const options = useMemo(
@@ -36,9 +23,9 @@ export const useEmployeeLocations = (sector?: string) => {
     [locations],
   );
 
-  const disabled = !sector || isLoading || isError || options.length === 0;
+  const disabled = !sectorId || isLoading || isError || options.length === 0;
 
-  const placeholder = !sector
+  const placeholder = !sectorId
     ? "Select Sector First"
     : isLoading
       ? "Loading Locations..."
@@ -48,7 +35,7 @@ export const useEmployeeLocations = (sector?: string) => {
           ? "No Active Locations in This Sector"
           : "Select Location";
 
-  const statusMessage = !sector
+  const statusMessage = !sectorId
     ? "Select a sector to load available locations."
     : isLoading
       ? "Loading available locations..."

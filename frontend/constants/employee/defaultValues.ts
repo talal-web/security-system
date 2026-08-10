@@ -2,7 +2,6 @@ import {
   EducationLevel,
   EmployeeDesignation,
   EmployeeShift,
-  SectorOptions,
 } from "@/types/employee";
 
 export type EmployeeFormValues = {
@@ -15,7 +14,7 @@ export type EmployeeFormValues = {
   phone2: string;
   education?: EducationLevel | "";
   designation: EmployeeDesignation;
-  sector?: SectorOptions | "";
+  sector?: string | "";
   currentLocation?: string;
   defaultShift?: EmployeeShift | "";
   basicSalary?: number;
@@ -38,7 +37,7 @@ export const defaultEmployeeValues: EmployeeFormValues = {
   defaultShift: "",
   sector: "",
   currentLocation: "",
-  basicSalary: 0,
+  basicSalary: 22000,
   reference: "",
   status: "active",
   entryDate: "",

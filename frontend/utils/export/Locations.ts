@@ -2,7 +2,6 @@ import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 
 import type { ILocation } from "@/types/location";
-import { formatSectorName } from "../formatSectorName";
 
 interface ExportLocationsExcelOptions {
   locations: ILocation[];
@@ -28,11 +27,13 @@ export async function exportLocationsExcel({
 
   const grouped = locations.reduce(
     (acc, location) => {
-      if (!acc[location.sector]) {
-        acc[location.sector] = [];
+      const sectorId = location.sector._id;
+
+      if (!acc[sectorId]) {
+        acc[sectorId] = [];
       }
 
-      acc[location.sector].push(location);
+      acc[sectorId].push(location);
 
       return acc;
     },
@@ -49,7 +50,12 @@ export async function exportLocationsExcel({
   // HEADER
   // ======================================
 
-  rows.push(["#", ...sectors.map((sector) => formatSectorName(sector))]);
+  rows.push([
+    "#",
+    ...sectors.map(
+      (sector) => grouped[sector][0]?.sector.name ?? "Unknown Sector",
+    ),
+  ]);
 
   const maxRows = Math.max(
     ...sectors.map((sector) => grouped[sector].length),

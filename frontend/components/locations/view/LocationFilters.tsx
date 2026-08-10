@@ -11,15 +11,15 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 
-import { sectorOptions } from "@/constants/location";
-import { LocationSector } from "@/types/location";
+import SectorFilterSelect from "@/components/sectors/SectorFilterSelect";
 
 interface LocationFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
 
-  sector?: LocationSector;
-  onSectorChange: (value?: LocationSector) => void;
+  sector?: string;
+  selectedSectorLabel?: string;
+  onSectorChange: (value?: string) => void;
 
   isActive?: boolean;
   onStatusChange: (value?: boolean) => void;
@@ -40,6 +40,7 @@ export default function LocationFilters({
   onSearchChange,
 
   sector,
+  selectedSectorLabel,
   onSectorChange,
 
   isActive,
@@ -237,45 +238,31 @@ export default function LocationFilters({
               Sector
             </label>
 
-            <select
-              value={sector ?? ""}
+            <SectorFilterSelect
+              value={sector}
               disabled={disabled}
-              onChange={(e) =>
-                onSectorChange(
-                  e.target.value
-                    ? (e.target.value as LocationSector)
-                    : undefined,
-                )
-              }
+              onChange={onSectorChange}
               className="
-                h-12
-                w-full
-                rounded-2xl
-                border
-                border-slate-200
-                bg-slate-50
-                px-4
-                text-sm
-                outline-none
-                transition-all
-                duration-200
-                hover:border-slate-300
-                focus:border-blue-500
-                focus:bg-white
-                focus:ring-4
-                focus:ring-blue-100
-                disabled:cursor-not-allowed
-                disabled:opacity-60
-              "
-            >
-              <option value="">All Sectors</option>
-
-              {sectorOptions.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
+    h-12
+    w-full
+    rounded-2xl
+    border
+    border-slate-200
+    bg-slate-50
+    px-4
+    text-sm
+    outline-none
+    transition-all
+    duration-200
+    hover:border-slate-300
+    focus:border-blue-500
+    focus:bg-white
+    focus:ring-4
+    focus:ring-blue-100
+    disabled:cursor-not-allowed
+    disabled:opacity-60
+  "
+            />
           </div>
 
           {/* STATUS */}
@@ -362,10 +349,7 @@ export default function LocationFilters({
 
                   {sector && (
                     <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">
-                      {
-                        sectorOptions.find((item) => item.value === sector)
-                          ?.label
-                      }
+                      {selectedSectorLabel ?? "Selected sector"}
                     </span>
                   )}
 

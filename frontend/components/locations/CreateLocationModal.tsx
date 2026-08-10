@@ -5,9 +5,7 @@ import { useState } from "react";
 import { X, MapPin } from "lucide-react";
 
 import { useCreateLocation } from "@/hooks/location/useLocation";
-import { sectorOptions } from "@/constants/location";
-
-import { LocationSector } from "@/types/location";
+import SectorSelect from "@/components/sectors/SectorSelect";
 
 type Props = {
   open: boolean;
@@ -17,7 +15,7 @@ type Props = {
 export default function CreateLocationModal({ open, onClose }: Props) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [sector, setSector] = useState<LocationSector | "">("");
+  const [sector, setSector] = useState("");
 
   const { mutate, isPending, isError, error } = useCreateLocation();
 
@@ -49,7 +47,7 @@ export default function CreateLocationModal({ open, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200">
         {/* HEADER */}
-        <div className="relative border-b border-slate-200 bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-6 text-white">
+        <div className="relative border-b border-slate-200 bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-6 text-white">
           <button
             onClick={onClose}
             className="absolute right-4 top-4 rounded-xl p-2 transition hover:bg-white/10"
@@ -117,20 +115,13 @@ export default function CreateLocationModal({ open, onClose }: Props) {
                 Sector *
               </label>
 
-              <select
+              <SectorSelect
+                showLabel={false}
                 value={sector}
-                onChange={(e) => setSector(e.target.value as LocationSector)}
+                onChange={(e) => setSector(e.target.value)}
                 className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
                 required
-              >
-                <option value="">Select Sector</option>
-
-                {sectorOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           </div>
 

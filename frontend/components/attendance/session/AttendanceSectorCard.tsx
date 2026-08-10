@@ -7,53 +7,67 @@ import type {
   AttendanceFormSector,
 } from "@/types/attendance-session";
 
-import { formatSectorName } from "@/utils/formatSectorName";
-
 interface AttendanceSectorCardProps {
   sector: AttendanceFormSector;
+
   allLocations: AttendanceFormSector["locations"];
+
   onEmployeeChange: (
     employeeId: string,
-    field: keyof AttendanceFormEmployee,
+    field: Exclude<keyof AttendanceFormEmployee, "selectedLocation">,
     value: unknown,
   ) => void;
+
+  onEmployeeLocationChange: (employeeId: string, locationId: string) => void;
 }
 
 export default function AttendanceSectorCard({
   sector,
   allLocations,
   onEmployeeChange,
+  onEmployeeLocationChange,
 }: AttendanceSectorCardProps) {
   const employees = sector.locations.flatMap((location) => location.employees);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">
-              {formatSectorName(sector.sector)}
-            </h2>
+    <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+      {/* ================================
+          SECTOR HEADER
+      ================================= */}
+      <div className="border-b bg-slate-50 px-4 py-3">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            {sector.sector.name}
+          </h2>
 
-            <p className="text-sm text-slate-500">
-              {sector.totalEmployees} Employees • {sector.totalLocations}{" "}
-              Locations
-            </p>
-          </div>
+          <p className="text-sm text-slate-500">
+            {sector.totalEmployees} Employees • {sector.totalLocations}{" "}
+            Locations
+          </p>
         </div>
       </div>
 
+      {/* ================================
+          EMPLOYEES
+      ================================= */}
       <div className="p-4">
-        <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-          {employees.map((employee) => (
-            <AttendanceEmployeeCard
-              key={employee.employeeId}
-              employee={employee}
-              locations={allLocations}
-              onUpdate={onEmployeeChange}
-            />
-          ))}
-        </div>
+        {employees.length === 0 ? (
+          <p className="py-4 text-center text-sm text-slate-500">
+            No employees assigned to this sector.
+          </p>
+        ) : (
+          <div className="grid gap-2 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5">
+            {employees.map((employee) => (
+              <AttendanceEmployeeCard
+                key={employee.employeeId}
+                employee={employee}
+                locations={allLocations}
+                onUpdate={onEmployeeChange}
+                onLocationChange={onEmployeeLocationChange}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

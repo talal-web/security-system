@@ -5,15 +5,14 @@ import { useState } from "react";
 import { X, MapPin, Loader2 } from "lucide-react";
 
 import { useLocation, useUpdateLocation } from "@/hooks/location/useLocation";
+import SectorSelect from "@/components/sectors/SectorSelect";
 
-import { sectorOptions } from "@/constants/location";
-
-import type { LocationSector, UpdateLocationPayload } from "@/types/location";
+import type { LocationSectorId, UpdateLocationPayload } from "@/types/location";
 
 type UpdateLocationFormState = Omit<UpdateLocationPayload, "sector"> & {
   name: string;
   address: string;
-  sector: LocationSector | "";
+  sector: LocationSectorId | "";
   isActive: boolean;
 };
 
@@ -43,7 +42,7 @@ export default function UpdateLocationModal({
   const form: UpdateLocationFormState = {
     name: draft.name ?? data?.name ?? "",
     address: draft.address ?? data?.address ?? "",
-    sector: draft.sector ?? data?.sector ?? "",
+    sector: draft.sector ?? data?.sector?._id ?? "",
     isActive: draft.isActive ?? data?.isActive ?? true,
   };
 
@@ -64,7 +63,7 @@ export default function UpdateLocationModal({
     if (name === "sector") {
       setDraft((prev) => ({
         ...prev,
-        sector: value as LocationSector | "",
+        sector: value,
       }));
 
       return;
@@ -206,21 +205,14 @@ export default function UpdateLocationModal({
                   Sector *
                 </label>
 
-                <select
+                <SectorSelect
+                  showLabel={false}
                   name="sector"
                   value={form.sector}
                   onChange={handleChange}
                   className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
                   required
-                >
-                  <option value="">Select Sector</option>
-
-                  {sectorOptions.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               {/* STATUS */}

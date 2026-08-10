@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { sectorOptions } from "@/constants/location";
+import { useSectors } from "@/hooks/sector/useSector";
 
 import { useLocations } from "./useLocation";
 import { useReorderLocations } from "./useReorderLocation";
 
-import type { ILocation, LocationSector } from "@/types/location";
+import type { ILocation, LocationSectorId } from "@/types/location";
 
 export function useLocationView() {
   // ==========================
@@ -16,13 +16,13 @@ export function useLocationView() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [sector, setSector] = useState<LocationSector>();
+  const [sector, setSector] = useState<LocationSectorId>();
   const [isActive, setIsActive] = useState<boolean | undefined>(true);
 
   // ==========================
   // REORDER
   // ==========================
-  const [reorderSector, setReorderSector] = useState<LocationSector | null>(
+  const [reorderSector, setReorderSector] = useState<LocationSectorId | null>(
     null,
   );
 
@@ -54,6 +54,8 @@ export function useLocationView() {
     isActive,
   });
 
+  const { data: sectorResponse } = useSectors();
+
   // ==========================
   // REORDER MUTATION
   // ==========================
@@ -65,11 +67,13 @@ export function useLocationView() {
   // ==========================
   const groupedLocations = useMemo(() => {
     return locations.reduce((acc: Record<string, ILocation[]>, location) => {
-      if (!acc[location.sector]) {
-        acc[location.sector] = [];
+      const sectorId = location.sector._id;
+
+      if (!acc[sectorId]) {
+        acc[sectorId] = [];
       }
 
-      acc[location.sector].push(location);
+      acc[sectorId].push(location);
 
       return acc;
     }, {});
@@ -79,14 +83,16 @@ export function useLocationView() {
   // LABEL MAP
   // ==========================
   const sectorLabelMap = useMemo(() => {
-    return sectorOptions.reduce(
-      (acc, item) => {
-        acc[item.value] = item.label;
+    const sectors = sectorResponse?.data ?? [];
+
+    return sectors.reduce(
+      (acc, currentSector) => {
+        acc[currentSector._id] = currentSector.name;
         return acc;
       },
       {} as Record<string, string>,
     );
-  }, []);
+  }, [sectorResponse]);
 
   // ==========================
   // SAVE ORDER

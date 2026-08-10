@@ -1,5 +1,3 @@
-// models/location.model.js
-
 import mongoose from "mongoose";
 
 const locationSchema = new mongoose.Schema(
@@ -17,9 +15,10 @@ const locationSchema = new mongoose.Schema(
     },
 
     sector: {
-      type: String,
-      enum: ["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d", "rawalpindi"],
-      required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Sector",
+      required: [true, "Sector is required"],
+      index: true,
     },
 
     sortOrder: {

@@ -3,12 +3,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getAttendanceSession,
   markAttendanceSession,
+  updateEmployeeLocations,
 } from "@/services/attendance-session.service";
 
 import type {
-  AttendanceSessionResponse,
   MarkAttendanceSessionPayload,
   MarkAttendanceSessionResponse,
+  UpdateEmployeeLocationsPayload,
+  UpdateEmployeeLocationsResponse,
 } from "@/types/attendance-session";
 
 // ======================================
@@ -24,9 +26,29 @@ export const attendanceSessionKeys = {
 // ======================================
 
 export function useAttendanceSession() {
-  return useQuery<AttendanceSessionResponse>({
+  return useQuery({
     queryKey: attendanceSessionKeys.all,
     queryFn: getAttendanceSession,
+  });
+}
+
+// ======================================
+// UPDATE EMPLOYEE LOCATIONS
+// ======================================
+
+export function useUpdateEmployeeLocations() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    UpdateEmployeeLocationsResponse,
+    Error,
+    UpdateEmployeeLocationsPayload
+  >({
+    mutationFn: updateEmployeeLocations,
+
+    onSuccess: (data) => {
+      queryClient.setQueryData(attendanceSessionKeys.all, data);
+    },
   });
 }
 

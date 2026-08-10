@@ -1,6 +1,7 @@
 // controllers/location.controller.js
 
 import Location from "../models/Location.js";
+import Sector from "../models/Sector.js";
 
 /**
  * Create Location
@@ -9,8 +10,39 @@ export const createLocation = async (req, res) => {
   try {
     const { name, address, sector } = req.body;
 
+    const trimmedName = name?.trim();
+    const trimmedAddress = address?.trim() || "";
+
+    if (!trimmedName) {
+      return res.status(400).json({
+        success: false,
+        message: "Location name is required",
+      });
+    }
+
+    if (!sector) {
+      return res.status(400).json({
+        success: false,
+        message: "Sector is required",
+      });
+    }
+
+    // Verify sector exists
+    const sectorExists = await Sector.exists({
+      _id: sector,
+      isActive: true,
+    });
+
+    if (!sectorExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Sector not found",
+      });
+    }
+
+    // Check duplicate location in same sector
     const existing = await Location.findOne({
-      name: name.trim(),
+      name: trimmedName,
       sector,
     });
 
@@ -21,7 +53,7 @@ export const createLocation = async (req, res) => {
       });
     }
 
-    // Get the highest sort order
+    // Next sort order
     const lastLocation = await Location.findOne()
       .sort({ sortOrder: -1 })
       .select("sortOrder")
@@ -29,12 +61,14 @@ export const createLocation = async (req, res) => {
 
     const sortOrder = lastLocation ? lastLocation.sortOrder + 1 : 1;
 
-    const location = await Location.create({
-      name: name.trim(),
-      address: address?.trim() || "",
+    let location = await Location.create({
+      name: trimmedName,
+      address: trimmedAddress,
       sector,
       sortOrder,
     });
+
+    location = await location.populate("sector", "name code");
 
     return res.status(201).json({
       success: true,
@@ -48,7 +82,9 @@ export const createLocation = async (req, res) => {
     });
   }
 };
-
+/**
+ * Get All Locations
+ */
 /**
  * Get All Locations
  */
@@ -58,7 +94,7 @@ export const getLocations = async (req, res) => {
 
     const query = {};
 
-    if (search) {
+    if (search?.trim()) {
       query.name = {
         $regex: search.trim(),
         $options: "i",
@@ -73,10 +109,16 @@ export const getLocations = async (req, res) => {
       query.isActive = isActive === "true";
     }
 
-    const locations = await Location.find(query).sort({
-      sortOrder: 1,
-      name: 1, // fallback if sortOrder is duplicated
-    });
+    const locations = await Location.find(query)
+      .populate({
+        path: "sector",
+        select: "name code sortOrder isActive",
+      })
+      .sort({
+        sortOrder: 1,
+        name: 1,
+      })
+      .lean();
 
     return res.status(200).json({
       success: true,
@@ -96,7 +138,12 @@ export const getLocations = async (req, res) => {
  */
 export const getLocationById = async (req, res) => {
   try {
-    const location = await Location.findById(req.params.id);
+    const location = await Location.findById(req.params.id)
+      .populate({
+        path: "sector",
+        select: "name code sortOrder isActive",
+      })
+      .lean();
 
     if (!location) {
       return res.status(404).json({
@@ -122,13 +169,56 @@ export const getLocationById = async (req, res) => {
  */
 export const updateLocation = async (req, res) => {
   try {
-    const { name, sector } = req.body;
+    const { name, address, sector, isActive } = req.body;
 
-    // Check if another location already exists with same name and sector
+    const updateData = {};
+
+    if (name !== undefined) {
+      updateData.name = name.trim();
+    }
+
+    if (address !== undefined) {
+      updateData.address = address.trim();
+    }
+
+    if (isActive !== undefined) {
+      updateData.isActive = isActive;
+    }
+
+    if (sector !== undefined) {
+      const sectorExists = await Sector.exists({
+        _id: sector,
+        isActive: true,
+      });
+
+      if (!sectorExists) {
+        return res.status(404).json({
+          success: false,
+          message: "Sector not found",
+        });
+      }
+
+      updateData.sector = sector;
+    }
+
+    // Get current location
+    const currentLocation = await Location.findById(req.params.id);
+
+    if (!currentLocation) {
+      return res.status(404).json({
+        success: false,
+        message: "Location not found",
+      });
+    }
+
+    const finalName = updateData.name ?? currentLocation.name;
+    const finalSector = updateData.sector ?? currentLocation.sector;
+
+    // Check duplicate
     const existing = await Location.findOne({
-      name,
-      sector,
-      _id: { $ne: req.params.id }, // exclude current record
+      _id: { $ne: req.params.id },
+      name: finalName,
+      sector: finalSector,
     });
 
     if (existing) {
@@ -138,17 +228,17 @@ export const updateLocation = async (req, res) => {
       });
     }
 
-    const location = await Location.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
+    const location = await Location.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).populate({
+      path: "sector",
+      select: "name code sortOrder isActive",
     });
-
-    if (!location) {
-      return res.status(404).json({
-        success: false,
-        message: "Location not found",
-      });
-    }
 
     return res.status(200).json({
       success: true,
@@ -166,9 +256,12 @@ export const updateLocation = async (req, res) => {
 /**
  * Delete Location
  */
+/**
+ * Delete Location
+ */
 export const deleteLocation = async (req, res) => {
   try {
-    const location = await Location.findByIdAndDelete(req.params.id);
+    const location = await Location.findById(req.params.id);
 
     if (!location) {
       return res.status(404).json({
@@ -177,9 +270,11 @@ export const deleteLocation = async (req, res) => {
       });
     }
 
+    await location.deleteOne();
+
     return res.status(200).json({
       success: true,
-      message: "Location deleted",
+      message: "Location deleted successfully",
     });
   } catch (error) {
     return res.status(500).json({
@@ -189,6 +284,9 @@ export const deleteLocation = async (req, res) => {
   }
 };
 
+/**
+ * Reorder Locations
+ */
 export const reorderLocations = async (req, res) => {
   try {
     const { sector, locations } = req.body;
@@ -207,9 +305,22 @@ export const reorderLocations = async (req, res) => {
       });
     }
 
+    // Verify sector exists
+    const sectorExists = await Sector.exists({
+      _id: sector,
+      isActive: true,
+    });
+
+    if (!sectorExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Sector not found.",
+      });
+    }
+
     // Verify all locations belong to the given sector
     const existingLocations = await Location.find({
-      _id: { $in: locations.map((location) => location._id) },
+      _id: { $in: locations.map(({ _id }) => _id) },
       sector,
     }).select("_id");
 

@@ -26,8 +26,7 @@ export function updateEmployee(
               ...emp,
               status,
               shift: emp.defaultShift ?? null,
-              selectedLocation:
-                emp.selectedLocation ?? emp.currentLocation?._id ?? null,
+              selectedLocation: emp.selectedLocation ?? null,
             };
           }
 

@@ -8,7 +8,7 @@ import {
   CreateLocationPayload,
   UpdateLocationPayload,
   ReorderLocationsPayload,
-  LocationSector,
+  LocationSectorId,
 } from "@/types/location";
 
 // ================= CREATE LOCATION =================
@@ -31,7 +31,7 @@ export const getLocations = async ({
   isActive,
 }: {
   search?: string;
-  sector?: LocationSector;
+  sector?: LocationSectorId;
   isActive?: boolean;
 } = {}): Promise<ILocation[]> => {
   try {

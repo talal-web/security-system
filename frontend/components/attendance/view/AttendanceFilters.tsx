@@ -15,7 +15,7 @@ interface AttendanceFiltersProps {
   setFilters: React.Dispatch<React.SetStateAction<AttendanceFilters>>;
 }
 
-export default function ViewAttendanceFilters({
+export default function AttendanceFilters({
   filters,
   setFilters,
 }: AttendanceFiltersProps) {
@@ -28,40 +28,39 @@ export default function ViewAttendanceFilters({
 
   const clearFilters = () => {
     setFilters({
-      date: getTodayDate(),
+      date: today,
     });
   };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       {/* Header */}
-      <div className="border-b border-slate-100 bg-linear-to-r from-blue-50 to-white px-5 py-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-blue-100 p-2 text-blue-700">
-              <Filter className="h-5 w-5" />
-            </div>
-
-            <div>
-              <h3 className="text-sm font-semibold text-slate-900">
-                Attendance Filters
-              </h3>
-
-              <p className="text-xs text-slate-500">
-                Refine attendance records by status, shift, or date.
-              </p>
-            </div>
+      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <Filter className="h-5 w-5" />
           </div>
 
-          {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 transition hover:bg-red-100"
-            >
-              Clear Filters
-            </button>
-          )}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900">
+              Attendance Filters
+            </h3>
+
+            <p className="text-xs text-slate-500">
+              Refine attendance records by status, shift, or date.
+            </p>
+          </div>
         </div>
+
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 transition hover:bg-red-100"
+          >
+            Clear Filters
+          </button>
+        )}
       </div>
 
       {/* Filters */}

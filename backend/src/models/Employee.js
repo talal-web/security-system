@@ -118,9 +118,8 @@ const employeeSchema = new mongoose.Schema(
       default: "",
     },
     sector: {
-      type: String,
-      enum: ["zone_1_a", "zone_1_b", "zone_1_c", "zone_1_d", "rawalpindi"],
-      default: null,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Sector",
     },
 
     currentLocation: {

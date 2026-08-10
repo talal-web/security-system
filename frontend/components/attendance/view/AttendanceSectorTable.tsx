@@ -1,19 +1,14 @@
 "use client";
 
-import type {
-  AttendanceSector,
-  AttendanceShift,
-  AttendanceStatus,
-} from "@/types/attendance";
-
-import { formatSectorName } from "@/utils/formatSectorName";
+import type { AttendanceShift, AttendanceStatus } from "@/types/attendance";
+import type { AttendanceReportSector } from "@/types/attendance-report";
 
 interface AttendanceSectorTableProps {
-  sector: AttendanceSector;
+  sector: AttendanceReportSector;
 
-  getSectorRows: (sector: AttendanceSector) => {
-    location: AttendanceSector["locations"][number];
-    record: AttendanceSector["locations"][number]["records"][number];
+  getSectorRows: (sector: AttendanceReportSector) => {
+    location: AttendanceReportSector["locations"][number];
+    record: AttendanceReportSector["locations"][number]["records"][number];
   }[];
 
   getStatusStyle: (status: AttendanceStatus) => string;
@@ -31,9 +26,7 @@ export default function AttendanceSectorTable({
     0,
   );
 
-  const sectorTitle = sector.sector?.trim()
-    ? formatSectorName(sector.sector)
-    : "No Sector";
+  const sectorTitle = sector.sector?.trim() ? sector.sector : "No Sector";
 
   return (
     <div className="rounded-xl border bg-white shadow-sm">
@@ -42,7 +35,9 @@ export default function AttendanceSectorTable({
         <div>
           <h2 className="font-semibold text-gray-900">{sectorTitle}</h2>
 
-          <p className="text-xs text-gray-500">Employee Attendance Records</p>
+          <p className="text-xs text-gray-500">
+            {sector.sectorId || "Unassigned"} • Employee Attendance Records
+          </p>
         </div>
 
         <span className="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
@@ -52,7 +47,7 @@ export default function AttendanceSectorTable({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-[950px] w-full text-sm">
+        <table className="min-w-237.5 w-full text-sm">
           <thead className="bg-gray-50 text-left text-xs font-semibold uppercase text-gray-600">
             <tr>
               <th className="w-16 px-4 py-3 text-center">#</th>
@@ -123,7 +118,11 @@ export default function AttendanceSectorTable({
                         </td>
 
                         <td className="px-4 py-3">
-                          <span className={getShiftStyle(record.shift)}>
+                          <span
+                            className={getShiftStyle(
+                              record.shift || ("" as AttendanceShift),
+                            )}
+                          >
                             {shiftText}
                           </span>
                         </td>

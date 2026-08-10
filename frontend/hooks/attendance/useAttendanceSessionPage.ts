@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   useAttendanceSession,
   useMarkAttendanceSession,
+  useUpdateEmployeeLocations,
 } from "@/hooks/attendance/useAttendanceSession";
 
 import type {
@@ -24,6 +25,8 @@ export function useAttendanceSessionPage() {
   const { data, isLoading, error } = useAttendanceSession();
 
   const markAttendanceMutation = useMarkAttendanceSession();
+
+  const updateEmployeeLocationsMutation = useUpdateEmployeeLocations();
 
   // ======================================
   // STATE
@@ -72,12 +75,6 @@ export function useAttendanceSessionPage() {
             (emp): AttendanceFormEmployee => ({
               ...emp,
 
-              currentLocation: {
-                _id: location._id,
-                name: location.name,
-                isActive: location.isActive,
-              },
-
               selectedLocation: location._id,
 
               status: "present",
@@ -117,7 +114,7 @@ export function useAttendanceSessionPage() {
 
     return data.sectors.reduce<Record<string, AttendanceFormLocation[]>>(
       (acc, sector) => {
-        acc[sector.sector] = sector.locations.map(
+        acc[sector.sector._id ?? "unassigned"] = sector.locations.map(
           (location): AttendanceFormLocation => ({
             ...location,
             employees: [],
@@ -258,9 +255,77 @@ export function useAttendanceSessionPage() {
   ) => {
     setSectors((prev) => updateEmployee(prev, employeeId, field, value));
   };
+
+  const handleEmployeeLocationChange = (
+    employeeId: string,
+    locationId: string,
+  ) => {
+    setSectors((prev) => {
+      let employee: AttendanceFormEmployee | null = null;
+
+      // Remove employee from current location
+      const next = prev.map((sector) => ({
+        ...sector,
+        locations: sector.locations.map((location) => {
+          const remaining = location.employees.filter((emp) => {
+            if (emp.employeeId !== employeeId) return true;
+
+            employee = {
+              ...emp,
+              selectedLocation: locationId,
+            };
+
+            return false;
+          });
+
+          return {
+            ...location,
+            employeeCount: remaining.length,
+            employees: remaining,
+          };
+        }),
+      }));
+
+      if (!employee) return prev;
+
+      // Add employee to new location
+      return next.map((sector) => ({
+        ...sector,
+        locations: sector.locations.map((location) => {
+          if (location._id !== locationId) return location;
+
+          return {
+            ...location,
+            employeeCount: location.employeeCount + 1,
+            employees: [...location.employees, employee!],
+          };
+        }),
+      }));
+    });
+  };
+
   // ======================================
   // SUBMIT
   // ======================================
+
+  const handleSaveLocations = async () => {
+    try {
+      await updateEmployeeLocationsMutation.mutateAsync({
+        employees: allEmployees.map((emp) => ({
+          employeeId: emp.employeeId,
+          locationId: emp.selectedLocation!,
+        })),
+      });
+
+      toast.success("Employee locations updated successfully.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to update employee locations.",
+      );
+    }
+  };
 
   const handleSubmit = async () => {
     try {
@@ -329,6 +394,9 @@ export function useAttendanceSessionPage() {
 
     markAttendanceMutation,
     handleEmployeeChange,
+    handleEmployeeLocationChange,
     handleSubmit,
+    updateEmployeeLocationsMutation,
+    handleSaveLocations,
   };
 }

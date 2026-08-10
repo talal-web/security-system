@@ -2,6 +2,8 @@
 
 import { ILocation } from "./location";
 
+import { Sector } from "./sector";
+
 export type EmployeeStatus = "active" | "inactive";
 
 export type EmployeeShift = "day" | "night";
@@ -14,12 +16,7 @@ export type EducationLevel =
   | "bs"
   | "master";
 
-export type SectorOptions =
-  | "zone_1_a"
-  | "zone_1_b"
-  | "zone_1_c"
-  | "zone_1_d"
-  | "rawalpindi";
+export type SectorOptions = Sector;
 
 export type EmployeeDesignation =
   | "guard"
@@ -83,7 +80,7 @@ export interface EmployeeFilters {
 
   designation?: EmployeeDesignation;
 
-  sector?: SectorOptions;
+  sector?: string;
 
   education?: EducationLevel;
 

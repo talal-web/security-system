@@ -29,6 +29,7 @@ import {
 import { useCreateEmployee } from "@/hooks/employee/create/useCreateEmployee";
 import { useEmployeeLocations } from "@/hooks/employee/create/useEmployeeLocations";
 import { useImagePreview } from "@/hooks/employee/create/useImagePreview";
+import SectorSelect from "@/components/sectors/SectorSelect";
 
 import { employeeSchema } from "@/utils/employee/employeeSchema";
 
@@ -36,8 +37,6 @@ import {
   educationOptions,
   designationOptions,
 } from "@/constants/employee/employeeOptions";
-
-import { sectorOptions } from "@/constants/location";
 import { shiftOptions } from "@/constants/shiftOptions";
 import {
   defaultEmployeeValues,
@@ -113,7 +112,7 @@ export default function CreateEmployeeForm() {
       <div className="mx-auto max-w-7xl">
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           {/* HEADER */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+          <div className="relative overflow-hidden bg-linear-to-r from-orange-500 via-amber-500 to-yellow-500 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur">
@@ -320,13 +319,9 @@ export default function CreateEmployeeForm() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  <Select
-                    icon={<MapPin />}
-                    label="Sector"
-                    placeholder="Select sector"
-                    options={sectorOptions}
-                    error={errors.sector?.message}
+                  <SectorSelect
                     {...register("sector")}
+                    className="w-full rounded-lg px-3 py-2"
                   />
 
                   <Select
@@ -508,7 +503,7 @@ export default function CreateEmployeeForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 text-sm font-semibold text-white transition hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-200 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto sm:min-w-[180px]"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 text-sm font-semibold text-white transition hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-200 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto sm:min-w-45"
               >
                 <Save className="h-4 w-4" />
                 {loading ? "Creating..." : "Create Employee"}

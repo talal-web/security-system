@@ -1,11 +1,13 @@
 // types/location.type.ts
 
-export type LocationSector =
-  | "zone_1_a"
-  | "zone_1_b"
-  | "zone_1_c"
-  | "zone_1_d"
-  | "rawalpindi";
+import type { Sector } from "@/types/sector";
+
+export type LocationSectorId = string;
+
+export type LocationSectorSummary = Pick<
+  Sector,
+  "_id" | "name" | "code" | "sortOrder" | "isActive"
+>;
 
 export interface ILocation {
   _id: string;
@@ -14,7 +16,7 @@ export interface ILocation {
 
   address: string;
 
-  sector: LocationSector;
+  sector: LocationSectorSummary;
 
   sortOrder: number;
 
@@ -30,7 +32,7 @@ export interface CreateLocationPayload {
 
   address?: string;
 
-  sector: LocationSector;
+  sector: LocationSectorId;
 }
 
 export interface UpdateLocationPayload {
@@ -38,7 +40,7 @@ export interface UpdateLocationPayload {
 
   address?: string;
 
-  sector?: LocationSector;
+  sector?: LocationSectorId;
 
   isActive?: boolean;
 }
@@ -56,7 +58,7 @@ export interface ReorderLocationItem {
  * Payload for drag & drop reorder API
  */
 export interface ReorderLocationsPayload {
-  sector: LocationSector;
+  sector: LocationSectorId;
 
   locations: ReorderLocationItem[];
 }

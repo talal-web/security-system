@@ -6,24 +6,65 @@ import jwt from "jsonwebtoken";
 
 export const login = async (req, res) => {
   try {
-    const { userId, password } = req.body;
+    const { userId: rawUserId, password } = req.body;
 
+    // Validate input
+    if (!rawUserId || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and password are required",
+      });
+    }
+
+    // Normalize User ID
+    const userId = rawUserId.trim().toUpperCase();
+
+    console.log(`🔐 Login attempt: ${userId}`);
+
+    // Find user
     const user = await User.findOne({ userId });
 
     if (!user) {
+      console.log(`❌ User not found: ${userId}`);
+
       return res.status(401).json({
+        success: false,
         message: "Invalid credentials",
+      });
+    }
+
+    // Check password
+    if (!user.password) {
+      console.error(`❌ Password not configured: ${userId}`);
+
+      return res.status(500).json({
+        success: false,
+        message: "User account is incorrectly configured",
       });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
+      console.log(`❌ Incorrect password: ${userId}`);
+
       return res.status(401).json({
+        success: false,
         message: "Invalid credentials",
       });
     }
 
+    // Check JWT secret
+    if (!process.env.JWT_SECRET) {
+      console.error("❌ JWT_SECRET is missing");
+
+      return res.status(500).json({
+        success: false,
+        message: "Authentication service is not configured",
+      });
+    }
+
+    // Create token
     const token = jwt.sign(
       {
         id: user._id,
@@ -36,16 +77,20 @@ export const login = async (req, res) => {
       },
     );
 
-    const cookieOptions = {
+    // Cookie settings
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 60 * 60 * 1000, // 1 hour
-    };
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 60 * 60 * 1000,
+    });
 
-    res.cookie("token", token, cookieOptions);
+    console.log(`✅ Login successful: ${userId}`);
 
-    res.status(200).json({
+    return res.status(200).json({
+      success: true,
       message: "Login successful",
       user: {
         id: user._id,
@@ -55,8 +100,11 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
+    console.error("🔥 Login error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
     });
   }
 };
