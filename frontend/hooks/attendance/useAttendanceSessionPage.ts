@@ -75,6 +75,8 @@ export function useAttendanceSessionPage() {
             (emp): AttendanceFormEmployee => ({
               ...emp,
 
+              sector: sector.sector._id ?? null,
+              currentLocation: location._id,
               selectedLocation: location._id,
 
               status: "present",

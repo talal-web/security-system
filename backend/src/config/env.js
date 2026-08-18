@@ -1,13 +1,20 @@
 const REQUIRED_ENV_VARS = ["MONGO_URI", "JWT_SECRET"];
 
-const OPTIONAL_IN_PRODUCTION = [
+const REQUIRED_IN_PRODUCTION = [
+  ...REQUIRED_ENV_VARS,
+  "FRONTEND_URLS",
   "CLOUDINARY_CLOUD_NAME",
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
 ];
 
 export const validateEnv = () => {
-  const missingRequired = REQUIRED_ENV_VARS.filter(
+  const required =
+    process.env.NODE_ENV === "production"
+      ? REQUIRED_IN_PRODUCTION
+      : REQUIRED_ENV_VARS;
+
+  const missingRequired = required.filter(
     (key) => !process.env[key] || !process.env[key].trim(),
   );
 
@@ -15,19 +22,5 @@ export const validateEnv = () => {
     throw new Error(
       `Missing required environment variables: ${missingRequired.join(", ")}`,
     );
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    const missingOptional = OPTIONAL_IN_PRODUCTION.filter(
-      (key) => !process.env[key] || !process.env[key].trim(),
-    );
-
-    if (missingOptional.length > 0) {
-      console.warn(
-        `Warning: missing Cloudinary env vars in production: ${missingOptional.join(
-          ", ",
-        )}`,
-      );
-    }
   }
 };

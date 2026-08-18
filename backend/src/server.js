@@ -141,9 +141,9 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   logger.info({
     message: "Server started successfully",
-    url: `http://localhost:${PORT}`,
+    url: `http://0.0.0.0:${PORT}`,
   });
 });

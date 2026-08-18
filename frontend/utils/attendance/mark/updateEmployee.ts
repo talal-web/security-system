@@ -26,7 +26,7 @@ export function updateEmployee(
               ...emp,
               status,
               shift: emp.defaultShift ?? null,
-              selectedLocation: emp.selectedLocation ?? null,
+              selectedLocation: emp.selectedLocation ?? emp.currentLocation,
             };
           }
 
@@ -35,6 +35,24 @@ export function updateEmployee(
             status,
             shift: null,
             selectedLocation: null,
+            currentLocation: emp.currentLocation,
+          };
+        }
+
+        if (field === "currentLocation") {
+          const nextLocation = value as string | null;
+
+          return {
+            ...emp,
+            currentLocation: nextLocation,
+            selectedLocation: nextLocation ?? emp.selectedLocation,
+          };
+        }
+
+        if (field === "sector") {
+          return {
+            ...emp,
+            sector: value as string | null,
           };
         }
 

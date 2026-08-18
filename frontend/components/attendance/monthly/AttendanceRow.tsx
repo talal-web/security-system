@@ -3,6 +3,8 @@ import type {
   MonthlyAttendanceStatus,
 } from "@/types/attendance";
 
+import { formatText } from "@/utils/employee/employeeFormat";
+
 interface MonthlyAttendanceRowProps {
   employee: MonthlyAttendanceEmployee;
   days: number[];
@@ -47,7 +49,7 @@ export default function MonthlyAttendanceRow({
       </td>
 
       <td className="sticky left-112.5 z-30 border bg-white px-3 py-2 whitespace-nowrap">
-        {employee.designation}
+        {formatText(employee.designation?.replace(/_/g, " "))}
       </td>
 
       {/* ====================================== */}

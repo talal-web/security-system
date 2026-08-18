@@ -72,6 +72,8 @@ export interface AttendanceSessionResponse {
 // ======================================
 
 export interface AttendanceFormEmployee extends AttendanceSessionEmployee {
+  sector: string | null;
+  currentLocation: string | null;
   selectedLocation: string | null;
   status: AttendanceStatus;
   shift: AttendanceShift | null;

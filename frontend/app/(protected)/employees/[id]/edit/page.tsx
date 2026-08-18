@@ -4,7 +4,7 @@ import { use } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 
-import UpdateEmployeeForm from "@/components/employees/UpdateEmployeeForm";
+import UpdateEmployeeForm from "@/components/employees/update/UpdateEmployeeForm";
 import { getEmployeeById } from "@/services/employee.service";
 
 export default function EditEmployeePage({
@@ -37,7 +37,7 @@ export default function EditEmployeePage({
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10">
-      <UpdateEmployeeForm employee={data} />
+      <UpdateEmployeeForm key={data._id} employee={data} />
     </main>
   );
 }

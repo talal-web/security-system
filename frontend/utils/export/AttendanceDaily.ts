@@ -1,4 +1,5 @@
 import { formatSectorName } from "../formatSectorName";
+import { formatText } from "../employee/employeeFormat";
 
 import type {
   AttendanceExportRow,
@@ -11,6 +12,31 @@ interface ExportAttendanceToExcelOptions {
   globalStats?: AttendanceGlobalStats;
 }
 
+const formatAttendanceStatus = (status?: string) => {
+  const statusMap: Record<string, string> = {
+    present: "Present",
+    absent: "Absent",
+    leave: "Leave",
+  };
+
+  return statusMap[status ?? ""] ?? "-";
+};
+
+const formatAttendanceShift = (shift?: string) => {
+  const shiftMap: Record<string, string> = {
+    day: "Day",
+    night: "Night",
+  };
+
+  return shiftMap[shift ?? ""] ?? "-";
+};
+
+const formatAttendanceDesignation = (designation?: string) => {
+  if (!designation) return "-";
+
+  return formatText(designation.replace(/_/g, " "));
+};
+
 export async function exportAttendanceToExcel({
   employees,
   title,
@@ -21,14 +47,14 @@ export async function exportAttendanceToExcel({
 
   const data = employees.map((employee, index) => ({
     "#": index + 1,
-    Sector: formatSectorName(employee.sector ?? "-"),
+    Sector: formatSectorName(employee.sector),
     Location: employee.location ?? "-",
     ID: employee.empId,
     Name: employee.name,
     "Father Name": employee.fatherName,
-    Designation: employee.designation,
-    Shift: employee.shift ?? "-",
-    Status: employee.status,
+    Designation: formatAttendanceDesignation(employee.designation),
+    Shift: formatAttendanceShift(employee.shift),
+    Status: formatAttendanceStatus(employee.status),
   }));
 
   const worksheet = XLSX.utils.json_to_sheet([]);

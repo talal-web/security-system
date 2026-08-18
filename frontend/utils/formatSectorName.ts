@@ -7,10 +7,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const formatSectorName = (sector: Sector | string) => {
-  const code = typeof sector === "object" ? sector.name : sector;
+export const formatSectorName = (
+  sector: Sector | string | null | undefined,
+) => {
+  const code = typeof sector === "object" ? sector?.name : sector;
+
+  if (!code || typeof code !== "string") return "-";
+
   return code
+    .trim()
     .split("_")
+    .filter(Boolean)
     .map((part) => {
       // Keep numbers as-is
       if (/^\d+$/.test(part)) return part;

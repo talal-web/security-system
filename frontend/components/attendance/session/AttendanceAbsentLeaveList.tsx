@@ -45,7 +45,7 @@ export default function AttendanceAbsentLeaveList({
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 lg:grid-cols-4 xl:grid-cols-5">
         {employees.map((employee) => (
           <AttendanceAbsentLeaveCard
             key={employee.employeeId}

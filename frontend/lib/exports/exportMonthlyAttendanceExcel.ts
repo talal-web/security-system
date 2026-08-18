@@ -7,6 +7,8 @@ import type {
   MonthlyAttendanceOverall,
 } from "@/types/attendance";
 
+import { formatText } from "@/utils/employee/employeeFormat";
+
 interface ExportMonthlyAttendanceExcelOptions {
   month: MonthlyAttendanceMonth;
   overall: MonthlyAttendanceOverall;
@@ -66,11 +68,12 @@ export async function exportMonthlyAttendanceExcel({
   ];
 
   employees.forEach((employee) => {
+    const designation = formatText(employee.designation?.replace(/_/g, " "));
     rows.push([
       employee.empId,
       employee.name,
       employee.fatherName,
-      employee.designation,
+      designation,
 
       ...Array.from({ length: month.days }, (_, index) => {
         const dayKey = String(index + 1);
