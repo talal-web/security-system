@@ -7,6 +7,7 @@ import {
   useAttendanceSession,
   useMarkAttendanceSession,
   useUpdateEmployeeLocations,
+  useUpdateEmployeeShifts,
 } from "@/hooks/attendance/useAttendanceSession";
 
 import type {
@@ -16,6 +17,11 @@ import type {
 } from "@/types/attendance-session";
 
 import { updateEmployee } from "@/utils/attendance/mark/updateEmployee";
+
+type AttendanceConfirmationAction =
+  | "saveLocations"
+  | "saveShifts"
+  | "submitAttendance";
 
 export function useAttendanceSessionPage() {
   // ======================================
@@ -27,6 +33,8 @@ export function useAttendanceSessionPage() {
   const markAttendanceMutation = useMarkAttendanceSession();
 
   const updateEmployeeLocationsMutation = useUpdateEmployeeLocations();
+
+  const updateEmployeeShiftsMutation = useUpdateEmployeeShifts();
 
   // ======================================
   // STATE
@@ -41,6 +49,9 @@ export function useAttendanceSessionPage() {
   >("all");
 
   const [sectors, setSectors] = useState<AttendanceFormSector[]>([]);
+
+  const [confirmationAction, setConfirmationAction] =
+    useState<AttendanceConfirmationAction | null>(null);
 
   // ======================================
   // DATE
@@ -111,6 +122,10 @@ export function useAttendanceSessionPage() {
     [sectors],
   );
 
+  // ======================================
+  // SECTOR LOCATIONS
+  // ======================================
+
   const sectorLocations = useMemo(() => {
     if (!data?.sectors) return {};
 
@@ -145,10 +160,6 @@ export function useAttendanceSessionPage() {
     }),
     [allEmployees],
   );
-
-  // ======================================
-  // SELECTION
-  // ======================================
 
   // ======================================
   // SEARCH
@@ -250,6 +261,71 @@ export function useAttendanceSessionPage() {
       leaveEmployees.length,
     [presentSectors, absentEmployees, leaveEmployees],
   );
+
+  const isConfirmationPending = useMemo(() => {
+    if (confirmationAction === "saveLocations") {
+      return updateEmployeeLocationsMutation.isPending;
+    }
+
+    if (confirmationAction === "saveShifts") {
+      return updateEmployeeShiftsMutation.isPending;
+    }
+
+    if (confirmationAction === "submitAttendance") {
+      return markAttendanceMutation.isPending;
+    }
+
+    return false;
+  }, [
+    confirmationAction,
+    markAttendanceMutation.isPending,
+    updateEmployeeLocationsMutation.isPending,
+    updateEmployeeShiftsMutation.isPending,
+  ]);
+
+  const confirmationModal = useMemo(() => {
+    if (confirmationAction === "saveLocations") {
+      return {
+        open: true,
+        title: "Save Employee Locations?",
+        description:
+          "This will update the current locations of all present employees based on the selections in this attendance session.",
+        confirmText: "Save Locations",
+      };
+    }
+
+    if (confirmationAction === "saveShifts") {
+      return {
+        open: true,
+        title: "Save Employee Shifts?",
+        description:
+          "This will update the default shift of all present employees using the shift currently selected in this attendance session.",
+        confirmText: "Save Shifts",
+      };
+    }
+
+    if (confirmationAction === "submitAttendance") {
+      return {
+        open: true,
+        title: "Submit Attendance?",
+        description:
+          "Verify each employee's status, location, and shift before submitting. Only present employees will keep location and shift values; absent and leave employees will be submitted with both set to null.",
+        confirmText: "Submit Attendance",
+      };
+    }
+
+    return {
+      open: false,
+      title: "",
+      description: "",
+      confirmText: "Confirm",
+    };
+  }, [confirmationAction]);
+
+  // ======================================
+  // EMPLOYEE CHANGE
+  // ======================================
+
   const handleEmployeeChange = (
     employeeId: string,
     field: keyof AttendanceFormEmployee,
@@ -257,6 +333,10 @@ export function useAttendanceSessionPage() {
   ) => {
     setSectors((prev) => updateEmployee(prev, employeeId, field, value));
   };
+
+  // ======================================
+  // EMPLOYEE LOCATION CHANGE
+  // ======================================
 
   const handleEmployeeLocationChange = (
     employeeId: string,
@@ -307,16 +387,18 @@ export function useAttendanceSessionPage() {
   };
 
   // ======================================
-  // SUBMIT
+  // SAVE LOCATIONS
   // ======================================
 
   const handleSaveLocations = async () => {
     try {
       await updateEmployeeLocationsMutation.mutateAsync({
-        employees: allEmployees.map((emp) => ({
-          employeeId: emp.employeeId,
-          locationId: emp.selectedLocation!,
-        })),
+        employees: allEmployees
+          .filter((emp) => emp.status === "present")
+          .map((emp) => ({
+            employeeId: emp.employeeId,
+            locationId: emp.selectedLocation!,
+          })),
       });
 
       toast.success("Employee locations updated successfully.");
@@ -328,6 +410,46 @@ export function useAttendanceSessionPage() {
       );
     }
   };
+
+  // ======================================
+  // SAVE SHIFTS
+  // ======================================
+
+  const handleSaveShifts = async () => {
+    const presentEmployees = allEmployees.filter(
+      (emp) => emp.status === "present",
+    );
+
+    const employeesWithoutLocation = presentEmployees.filter(
+      (emp) => !emp.selectedLocation,
+    );
+
+    if (employeesWithoutLocation.length) {
+      toast.error("Please select a location for all present employees.");
+      return;
+    }
+
+    try {
+      await updateEmployeeShiftsMutation.mutateAsync({
+        employees: presentEmployees.map((emp) => ({
+          employeeId: emp.employeeId,
+          shift: emp.shift!,
+        })),
+      });
+
+      toast.success("Employee shifts updated successfully.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to update employee shifts.",
+      );
+    }
+  };
+
+  // ======================================
+  // SUBMIT ATTENDANCE
+  // ======================================
 
   const handleSubmit = async () => {
     try {
@@ -359,6 +481,48 @@ export function useAttendanceSessionPage() {
           : "Failed to submit attendance.",
       );
     }
+  };
+
+  const openSaveLocationsConfirmation = () => {
+    if (isConfirmationPending) return;
+
+    setConfirmationAction("saveLocations");
+  };
+
+  const openSaveShiftsConfirmation = () => {
+    if (isConfirmationPending) return;
+
+    setConfirmationAction("saveShifts");
+  };
+
+  const openSubmitAttendanceConfirmation = () => {
+    if (isConfirmationPending) return;
+
+    setConfirmationAction("submitAttendance");
+  };
+
+  const closeConfirmationModal = () => {
+    if (isConfirmationPending) return;
+
+    setConfirmationAction(null);
+  };
+
+  const confirmAttendanceAction = async () => {
+    if (!confirmationAction || isConfirmationPending) return;
+
+    if (confirmationAction === "saveLocations") {
+      await handleSaveLocations();
+    }
+
+    if (confirmationAction === "saveShifts") {
+      await handleSaveShifts();
+    }
+
+    if (confirmationAction === "submitAttendance") {
+      await handleSubmit();
+    }
+
+    setConfirmationAction(null);
   };
 
   // ======================================
@@ -394,11 +558,29 @@ export function useAttendanceSessionPage() {
     sectorLocations,
     visibleEmployeeCount,
 
-    markAttendanceMutation,
+    // Confirmation
+    confirmationModal,
+    isConfirmationPending,
+    openSaveLocationsConfirmation,
+    openSaveShiftsConfirmation,
+    openSubmitAttendanceConfirmation,
+    closeConfirmationModal,
+    confirmAttendanceAction,
+
+    // Employee
     handleEmployeeChange,
     handleEmployeeLocationChange,
+
+    // Attendance
+    markAttendanceMutation,
     handleSubmit,
+
+    // Locations
     updateEmployeeLocationsMutation,
     handleSaveLocations,
+
+    // Shifts
+    updateEmployeeShiftsMutation,
+    handleSaveShifts,
   };
 }

@@ -60,10 +60,41 @@ export function useEmployeeDirectory() {
   );
 
   const handleFilterChange = (key: keyof EmployeeFilters, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value as EmployeeFilters[keyof EmployeeFilters],
-    }));
+    setFilters((prev) => {
+      const normalizedValue =
+        value === ""
+          ? undefined
+          : (value as EmployeeFilters[keyof EmployeeFilters]);
+
+      // Avoid contradictory filters: unassigned sector cannot be combined
+      // with a specific sector ID.
+      if (key === "unassigned") {
+        return {
+          ...prev,
+          unassigned: normalizedValue as EmployeeFilters["unassigned"],
+          sector:
+            value === "sector"
+              ? undefined
+              : (prev.sector as EmployeeFilters["sector"]),
+        };
+      }
+
+      if (key === "sector") {
+        return {
+          ...prev,
+          sector: normalizedValue as EmployeeFilters["sector"],
+          unassigned:
+            normalizedValue !== undefined && prev.unassigned === "sector"
+              ? undefined
+              : prev.unassigned,
+        };
+      }
+
+      return {
+        ...prev,
+        [key]: normalizedValue,
+      };
+    });
   };
 
   const handleClearFilters = () => {

@@ -4,6 +4,7 @@ import {
   getAttendanceSession,
   markAttendanceSession,
   updateEmployeeLocations,
+  updateEmployeeShifts,
 } from "@/services/attendance-session.service";
 
 import type {
@@ -11,6 +12,8 @@ import type {
   MarkAttendanceSessionResponse,
   UpdateEmployeeLocationsPayload,
   UpdateEmployeeLocationsResponse,
+  UpdateEmployeeShiftsPayload,
+  UpdateEmployeeShiftsResponse,
 } from "@/types/attendance-session";
 
 // ======================================
@@ -45,6 +48,26 @@ export function useUpdateEmployeeLocations() {
     UpdateEmployeeLocationsPayload
   >({
     mutationFn: updateEmployeeLocations,
+
+    onSuccess: (data) => {
+      queryClient.setQueryData(attendanceSessionKeys.all, data);
+    },
+  });
+}
+
+// ======================================
+// UPDATE EMPLOYEE SHIFTS
+// ======================================
+
+export function useUpdateEmployeeShifts() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    UpdateEmployeeShiftsResponse,
+    Error,
+    UpdateEmployeeShiftsPayload
+  >({
+    mutationFn: updateEmployeeShifts,
 
     onSuccess: (data) => {
       queryClient.setQueryData(attendanceSessionKeys.all, data);

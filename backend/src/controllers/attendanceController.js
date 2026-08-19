@@ -953,6 +953,7 @@ export const getMonthlyAttendanceReport = async (req, res) => {
   }
 };
 
+// Update currentLocation in Attendance Session
 export const updateEmployeeLocations = async (req, res) => {
   try {
     const { employees } = req.body;
@@ -1082,6 +1083,162 @@ export const updateEmployeeLocations = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Employee locations updated successfully.",
+      ...session,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Update defaultShit in Attendance Session
+export const updateEmployeeShifts = async (req, res) => {
+  try {
+    const { employees } = req.body;
+
+    // ==========================================
+    // VALIDATION
+    // ==========================================
+
+    if (!Array.isArray(employees) || employees.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Employees data is required",
+      });
+    }
+
+    // ==========================================
+    // VALIDATE SHIFT VALUES
+    // ==========================================
+
+    const validShifts = ["day", "night"];
+
+    const invalidEmployees = [];
+
+    for (const item of employees) {
+      if (!item.employeeId) {
+        invalidEmployees.push({
+          employeeId: item.employeeId ?? null,
+          missing: ["Employee ID is required"],
+        });
+
+        continue;
+      }
+
+      if (!validShifts.includes(item.shift)) {
+        invalidEmployees.push({
+          employeeId: item.employeeId,
+          missing: ["Shift must be either day or night"],
+        });
+      }
+    }
+
+    // ==========================================
+    // RETURN VALIDATION ERRORS
+    // ==========================================
+
+    if (invalidEmployees.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Some employees have invalid shifts.",
+        employees: invalidEmployees,
+      });
+    }
+
+    // ==========================================
+    // LOAD EMPLOYEES
+    // ==========================================
+
+    const employeeIds = employees.map((emp) => emp.employeeId);
+
+    const employeeDocs = await Employee.find({
+      _id: { $in: employeeIds },
+      status: "active",
+    })
+      .select("defaultShift")
+      .lean();
+
+    const employeeMap = new Map(
+      employeeDocs.map((emp) => [emp._id.toString(), emp]),
+    );
+
+    // ==========================================
+    // VALIDATE EMPLOYEES
+    // ==========================================
+
+    for (const item of employees) {
+      const employee = employeeMap.get(item.employeeId);
+
+      if (!employee) {
+        invalidEmployees.push({
+          employeeId: item.employeeId,
+          missing: ["Employee not found or inactive"],
+        });
+      }
+    }
+
+    // ==========================================
+    // RETURN EMPLOYEE VALIDATION ERRORS
+    // ==========================================
+
+    if (invalidEmployees.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Some employees are invalid.",
+        employees: invalidEmployees,
+      });
+    }
+
+    // ==========================================
+    // BUILD OPERATIONS
+    // ==========================================
+
+    const operations = [];
+
+    for (const item of employees) {
+      const employee = employeeMap.get(item.employeeId);
+
+      const defaultShift = employee.defaultShift;
+
+      // No change required
+      if (defaultShift === item.shift) {
+        continue;
+      }
+
+      operations.push({
+        updateOne: {
+          filter: {
+            _id: item.employeeId,
+            status: "active",
+          },
+          update: {
+            $set: {
+              defaultShift: item.shift,
+            },
+          },
+        },
+      });
+    }
+
+    // ==========================================
+    // UPDATE EMPLOYEES
+    // ==========================================
+
+    if (operations.length) {
+      await Employee.bulkWrite(operations);
+    }
+
+    // ==========================================
+    // RETURN UPDATED SESSION
+    // ==========================================
+
+    const session = await buildAttendanceSession();
+
+    return res.status(200).json({
+      success: true,
+      message: "Employee shifts updated successfully.",
       ...session,
     });
   } catch (error) {

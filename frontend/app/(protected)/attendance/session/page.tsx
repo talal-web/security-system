@@ -42,11 +42,20 @@ export default function AttendanceSessionPage() {
         statusFilter={attendance.statusFilter}
         isSubmitting={attendance.markAttendanceMutation.isPending}
         isSavingLocations={attendance.updateEmployeeLocationsMutation.isPending}
+        isSavingShifts={attendance.updateEmployeeShiftsMutation.isPending}
+        confirmationModalOpen={attendance.confirmationModal.open}
+        confirmationTitle={attendance.confirmationModal.title}
+        confirmationDescription={attendance.confirmationModal.description}
+        confirmationConfirmText={attendance.confirmationModal.confirmText}
+        confirmationIsLoading={attendance.isConfirmationPending}
         onDateChange={attendance.setDate}
         onQueryChange={attendance.setQuery}
         onStatusFilterChange={attendance.setStatusFilter}
-        onSaveLocations={attendance.handleSaveLocations}
-        onSubmit={attendance.handleSubmit}
+        onSaveLocations={attendance.openSaveLocationsConfirmation}
+        onSaveShifts={attendance.openSaveShiftsConfirmation}
+        onSubmit={attendance.openSubmitAttendanceConfirmation}
+        onConfirmAction={attendance.confirmAttendanceAction}
+        onCancelConfirmation={attendance.closeConfirmationModal}
       />
 
       <AttendanceStats {...attendance.stats} />

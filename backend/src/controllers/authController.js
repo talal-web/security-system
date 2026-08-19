@@ -3,6 +3,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import logger from "../config/logger.js";
 
 export const login = async (req, res) => {
   try {
@@ -19,13 +20,13 @@ export const login = async (req, res) => {
     // Normalize User ID
     const userId = rawUserId.trim().toUpperCase();
 
-    console.log(`🔐 Login attempt: ${userId}`);
+    logger.info({ message: "Login attempt", userId });
 
     // Find user
     const user = await User.findOne({ userId });
 
     if (!user) {
-      console.log(`❌ User not found: ${userId}`);
+      logger.warn({ message: "Login failed: user not found", userId });
 
       return res.status(401).json({
         success: false,
@@ -35,7 +36,10 @@ export const login = async (req, res) => {
 
     // Check password
     if (!user.password) {
-      console.error(`❌ Password not configured: ${userId}`);
+      logger.error({
+        message: "Login failed: password not configured",
+        userId,
+      });
 
       return res.status(500).json({
         success: false,
@@ -46,7 +50,7 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      console.log(`❌ Incorrect password: ${userId}`);
+      logger.warn({ message: "Login failed: incorrect password", userId });
 
       return res.status(401).json({
         success: false,
@@ -56,7 +60,7 @@ export const login = async (req, res) => {
 
     // Check JWT secret
     if (!process.env.JWT_SECRET) {
-      console.error("❌ JWT_SECRET is missing");
+      logger.error({ message: "JWT_SECRET is missing" });
 
       return res.status(500).json({
         success: false,
@@ -87,7 +91,7 @@ export const login = async (req, res) => {
       maxAge: 60 * 60 * 1000,
     });
 
-    console.log(`✅ Login successful: ${userId}`);
+    logger.info({ message: "Login successful", userId });
 
     return res.status(200).json({
       success: true,
@@ -100,7 +104,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("🔥 Login error:", error);
+    logger.error({ message: "Login error", error: error.message });
 
     return res.status(500).json({
       success: false,

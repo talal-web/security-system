@@ -1,5 +1,6 @@
 import express from "express";
 import upload from "../config/multer.js";
+import logger from "../config/logger.js";
 
 const router = express.Router();
 
@@ -28,7 +29,7 @@ router.post("/upload", upload.single("image"), (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Upload Error:", error);
+    logger.error({ message: "Upload error", error: error.message });
 
     res.status(500).json({
       success: false,

@@ -1,5 +1,6 @@
 import Employee from "../models/Employee.js";
 import Location from "../models/Location.js";
+import mongoose from "mongoose";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 import generateEmpId from "../utils/generateEmpId.js";
 import { normalizeCnic, normalizePhone } from "../utils/normalize.js";
@@ -142,20 +143,25 @@ export const createEmployee = async (req, res, next) => {
 
 export const getEmployees = async (req, res, next) => {
   try {
-    const {
-      status,
-      designation,
-      sector,
-      education,
-      currentLocation,
-      search,
-      entryFrom,
-      entryTo,
-      hasExited,
-      basicSalary,
-      defaultShift,
-      unassigned,
-    } = req.query;
+    const normalizeQueryValue = (value) => {
+      if (typeof value !== "string") return undefined;
+
+      const trimmed = value.trim();
+      return trimmed === "" ? undefined : trimmed;
+    };
+
+    const status = normalizeQueryValue(req.query.status);
+    const designation = normalizeQueryValue(req.query.designation);
+    const sector = normalizeQueryValue(req.query.sector);
+    const education = normalizeQueryValue(req.query.education);
+    const currentLocation = normalizeQueryValue(req.query.currentLocation);
+    const search = normalizeQueryValue(req.query.search);
+    const entryFrom = normalizeQueryValue(req.query.entryFrom);
+    const entryTo = normalizeQueryValue(req.query.entryTo);
+    const hasExited = normalizeQueryValue(req.query.hasExited);
+    const basicSalary = normalizeQueryValue(req.query.basicSalary);
+    const defaultShift = normalizeQueryValue(req.query.defaultShift);
+    const unassigned = normalizeQueryValue(req.query.unassigned);
 
     const filter = {};
     const andConditions = [];
@@ -180,7 +186,14 @@ export const getEmployees = async (req, res, next) => {
     // SECTOR
     // ======================
 
-    if (sector) {
+    if (sector && unassigned !== "sector") {
+      if (!mongoose.Types.ObjectId.isValid(sector)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid sector.",
+        });
+      }
+
       filter.sector = sector;
     }
 
@@ -222,7 +235,7 @@ export const getEmployees = async (req, res, next) => {
 
     if (unassigned === "sector") {
       andConditions.push({
-        $or: [{ sector: null }, { sector: "" }, { sector: { $exists: false } }],
+        $or: [{ sector: null }, { sector: { $exists: false } }],
       });
     }
 

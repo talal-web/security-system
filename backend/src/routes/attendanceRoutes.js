@@ -6,6 +6,7 @@ import {
   getAttendanceSession,
   submitAttendanceSession,
   updateEmployeeLocations,
+  updateEmployeeShifts,
 } from "../controllers/attendanceController.js";
 
 const router = express.Router();
@@ -15,6 +16,9 @@ router.get("/session", getAttendanceSession);
 
 // Update employee current locations
 router.patch("/session/locations", updateEmployeeLocations);
+
+// Update employee default shift
+router.patch("/session/shifts", updateEmployeeShifts);
 
 // Submit/update attendance session
 router.post("/session", submitAttendanceSession);

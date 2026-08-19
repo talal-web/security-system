@@ -7,6 +7,8 @@ import type {
   MarkAttendanceSessionResponse,
   UpdateEmployeeLocationsPayload,
   UpdateEmployeeLocationsResponse,
+  UpdateEmployeeShiftsPayload,
+  UpdateEmployeeShiftsResponse,
 } from "@/types/attendance-session";
 
 // ======================================
@@ -33,6 +35,25 @@ export async function updateEmployeeLocations(
   try {
     const res = await api.patch<UpdateEmployeeLocationsResponse>(
       "/attendance/session/locations",
+      payload,
+    );
+
+    return res.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error));
+  }
+}
+
+// ======================================
+// UPDATE EMPLOYEE SHIFTS
+// ======================================
+
+export async function updateEmployeeShifts(
+  payload: UpdateEmployeeShiftsPayload,
+): Promise<UpdateEmployeeShiftsResponse> {
+  try {
+    const res = await api.patch<UpdateEmployeeShiftsResponse>(
+      "/attendance/session/shifts",
       payload,
     );
 

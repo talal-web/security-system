@@ -38,7 +38,7 @@ const allowedOrigins = (process.env.FRONTEND_URLS || "http://localhost:3000")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
-console.log("✅ Allowed Origins:", allowedOrigins);
+logger.info({ message: "Allowed CORS origins", origins: allowedOrigins });
 
 app.use(
   cors({

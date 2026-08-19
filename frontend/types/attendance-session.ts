@@ -120,6 +120,23 @@ export interface UpdateEmployeeLocationsResponse extends AttendanceSessionRespon
 }
 
 // ======================================
+// PATCH /api/attendance/session/shifts
+// ======================================
+
+export interface UpdateEmployeeShiftPayload {
+  employeeId: string;
+  shift: AttendanceShift;
+}
+
+export interface UpdateEmployeeShiftsPayload {
+  employees: UpdateEmployeeShiftPayload[];
+}
+
+export interface UpdateEmployeeShiftsResponse extends AttendanceSessionResponse {
+  message: string;
+}
+
+// ======================================
 // POST /api/attendance/session
 // ======================================
 
