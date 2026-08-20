@@ -1,6 +1,3 @@
-import { formatSectorName } from "../formatSectorName";
-import { formatText } from "../employee/employeeFormat";
-
 import type {
   AttendanceExportRow,
   AttendanceGlobalStats,
@@ -31,12 +28,6 @@ const formatAttendanceShift = (shift?: string) => {
   return shiftMap[shift ?? ""] ?? "-";
 };
 
-const formatAttendanceDesignation = (designation?: string) => {
-  if (!designation) return "-";
-
-  return formatText(designation.replace(/_/g, " "));
-};
-
 export async function exportAttendanceToExcel({
   employees,
   title,
@@ -45,21 +36,14 @@ export async function exportAttendanceToExcel({
   const XLSX = await import("xlsx");
   const { saveAs } = await import("file-saver");
 
-  const data = employees.map((employee, index) => ({
-    "#": index + 1,
-    Sector: formatSectorName(employee.sector),
-    Location: employee.location ?? "-",
-    ID: employee.empId,
-    Name: employee.name,
-    "Father Name": employee.fatherName,
-    Designation: formatAttendanceDesignation(employee.designation),
-    Shift: formatAttendanceShift(employee.shift),
-    Status: formatAttendanceStatus(employee.status),
-  }));
+  const worksheet = XLSX.utils.aoa_to_sheet([]);
 
-  const worksheet = XLSX.utils.json_to_sheet([]);
+  let currentRow = 0;
 
-  // Summary section
+  // ============================================================
+  // ATTENDANCE SUMMARY
+  // ============================================================
+
   if (globalStats) {
     XLSX.utils.sheet_add_aoa(
       worksheet,
@@ -70,20 +54,155 @@ export async function exportAttendanceToExcel({
         ["Present", globalStats.present],
         ["Leave", globalStats.leave],
         ["Total Employees", globalStats.total],
-        [],
       ],
-      { origin: "A1" },
+      {
+        origin: `A${currentRow + 1}`,
+      },
     );
+
+    // One blank row after summary
+    currentRow += 7;
   }
 
-  // Attendance table
-  XLSX.utils.sheet_add_json(worksheet, data, {
-    origin: globalStats ? "B10" : "A1",
-    skipHeader: false,
+  // ============================================================
+  // GROUP EMPLOYEES BY SECTOR + LOCATION
+  // ============================================================
+
+  const groupedEmployees = new Map<
+    string,
+    Map<string, AttendanceExportRow[]>
+  >();
+
+  for (const employee of employees) {
+    const sector = employee.sector ?? "-";
+    const location = employee.location ?? "-";
+
+    if (!groupedEmployees.has(sector)) {
+      groupedEmployees.set(sector, new Map());
+    }
+
+    const locationMap = groupedEmployees.get(sector)!;
+
+    if (!locationMap.has(location)) {
+      locationMap.set(location, []);
+    }
+
+    locationMap.get(location)!.push(employee);
+  }
+
+  // ============================================================
+  // EMPLOYEE TABLE HEADER — ONLY ONCE
+  // ============================================================
+
+  const headers = ["#", "Name", "Father Name", "Shift", "Status"];
+
+  XLSX.utils.sheet_add_aoa(worksheet, [headers], {
+    origin: `A${currentRow + 1}`,
   });
 
+  currentRow += 1;
+
+  // ============================================================
+  // CREATE LOCATION GROUPS
+  // ============================================================
+
+  for (const [, locationMap] of groupedEmployees) {
+    for (const [location, locationEmployees] of locationMap) {
+      // --------------------------------------------------------
+      // Location
+      // --------------------------------------------------------
+
+      XLSX.utils.sheet_add_aoa(worksheet, [[location]], {
+        origin: `A${currentRow + 1}`,
+      });
+
+      currentRow += 1;
+
+      // --------------------------------------------------------
+      // Employees
+      // --------------------------------------------------------
+
+      const tableData = locationEmployees.map((employee, index) => [
+        index + 1,
+        employee.name ?? "-",
+        employee.fatherName ?? "-",
+        formatAttendanceShift(employee.shift),
+        formatAttendanceStatus(employee.status),
+      ]);
+
+      XLSX.utils.sheet_add_aoa(worksheet, tableData, {
+        origin: `A${currentRow + 1}`,
+      });
+
+      currentRow += tableData.length;
+
+      // One blank row between locations
+      currentRow += 1;
+    }
+  }
+  // CREATE LOCATION GROUPS
+  // ============================================================
+
+  let employeeNumber = 1;
+
+  for (const [, locationMap] of groupedEmployees) {
+    for (const [location, locationEmployees] of locationMap) {
+      // --------------------------------------------------------
+      // Location
+      // --------------------------------------------------------
+
+      XLSX.utils.sheet_add_aoa(worksheet, [[`${location}`]], {
+        origin: `A${currentRow + 1}`,
+      });
+
+      currentRow += 1;
+
+      // --------------------------------------------------------
+      // Employees
+      // --------------------------------------------------------
+
+      const tableData = locationEmployees.map((employee) => [
+        employeeNumber++,
+        employee.name ?? "-",
+        employee.fatherName ?? "-",
+        formatAttendanceShift(employee.shift),
+        formatAttendanceStatus(employee.status),
+      ]);
+
+      XLSX.utils.sheet_add_aoa(worksheet, tableData, {
+        origin: `A${currentRow + 1}`,
+      });
+
+      currentRow += tableData.length;
+
+      // One blank row between locations
+      currentRow += 1;
+    }
+  }
+
+  // ============================================================
+  // COLUMN WIDTHS
+  // ============================================================
+
+  worksheet["!cols"] = [
+    { wch: 6 }, // #
+    { wch: 22 }, // Name
+    { wch: 22 }, // Father Name
+    { wch: 12 }, // Shift
+    { wch: 14 }, // Status
+  ];
+
+  // ============================================================
+  // CREATE WORKBOOK
+  // ============================================================
+
   const workbook = XLSX.utils.book_new();
+
   XLSX.utils.book_append_sheet(workbook, worksheet, title);
+
+  // ============================================================
+  // GENERATE EXCEL FILE
+  // ============================================================
 
   const excelBuffer = XLSX.write(workbook, {
     bookType: "xlsx",

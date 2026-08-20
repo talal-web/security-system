@@ -15,7 +15,7 @@ NEXT_PUBLIC_COMPANY_PHONE=+92 335 5111150
 
 Notes:
 
-- `NEXT_PUBLIC_API_URL` defaults to `http://localhost:5000/api` if not set.
+- `NEXT_PUBLIC_API_URL` is required for production builds. The app only falls back to `http://localhost:5000/api` during development.
 - `NEXT_PUBLIC_COMPANY_PHONE` is optional and has a fallback value in the UI.
 
 ### Production Commands
