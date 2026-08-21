@@ -1,14 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Download } from "lucide-react";
 
 import EmployeeCard from "@/components/employees/view/EmployeeCard";
 import EmployeeFilters from "@/components/employees/EmployeeFilters";
 
 import { useEmployeeDirectory } from "@/hooks/employee/useEmployeeDirectory";
+import { exportEmployeesDirectory } from "@/utils/export/EmployeesDirectory";
 
 export default function EmployeesPage() {
+  const [exporting, setExporting] = useState(false);
+
   const {
     filters,
     showFilters,
@@ -25,6 +29,17 @@ export default function EmployeesPage() {
     handleFilterChange,
     handleClearFilters,
   } = useEmployeeDirectory();
+
+  const handleExport = async () => {
+    if (exporting || employees.length === 0) return;
+
+    try {
+      setExporting(true);
+      await exportEmployeesDirectory({ employees });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -86,7 +101,7 @@ export default function EmployeesPage() {
                 />
 
                 <span className=" sm:inline">
-                  {isFetching ? "Load.." : "Live"}
+                  {isFetching ? "Searching..." : "Live"}
                 </span>
               </span>
             </div>
@@ -122,6 +137,22 @@ export default function EmployeesPage() {
                   {activeFilterCount}
                 </span>
               )}
+            </button>
+            {/* EXPORT */}
+            <button
+              onClick={handleExport}
+              disabled={exporting || employees.length === 0}
+              title="Export Employees"
+              aria-label="Export Employees"
+              className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:flex sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-3"
+            >
+              <Download
+                className={`h-4 w-4 ${exporting ? "animate-bounce" : ""}`}
+              />
+
+              <span className="text-sm font-semibold">
+                {exporting ? "Exporting..." : "Export"}
+              </span>
             </button>
 
             {/* ADD EMPLOYEE */}
