@@ -148,7 +148,12 @@ export const getMe = async (req, res) => {
     });
 
     res.status(200).json({
-      user,
+      user: {
+        id: user._id.toString(),
+        name: user.name,
+        role: user.role,
+        userId: user.userId,
+      },
     });
   } catch (error) {
     res.status(500).json({

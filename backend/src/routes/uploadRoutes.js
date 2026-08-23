@@ -1,6 +1,7 @@
 import express from "express";
 import upload from "../config/multer.js";
 import logger from "../config/logger.js";
+import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 
 const router = express.Router();
 
@@ -8,9 +9,8 @@ const router = express.Router();
  * POST /api/upload
  * Upload single image to Cloudinary
  */
-router.post("/upload", upload.single("image"), (req, res) => {
+router.post("/upload", upload.single("image"), async (req, res) => {
   try {
-    // multer-storage-cloudinary automatically uploads file
     const file = req.file;
 
     if (!file) {
@@ -20,12 +20,14 @@ router.post("/upload", upload.single("image"), (req, res) => {
       });
     }
 
+    const result = await uploadToCloudinary(file.buffer);
+
     res.status(200).json({
       success: true,
       message: "Image uploaded successfully",
       data: {
-        url: file.path, // Cloudinary URL
-        public_id: file.filename, // Cloudinary ID (useful for delete/update)
+        url: result.secure_url,
+        public_id: result.public_id,
       },
     });
   } catch (error) {
