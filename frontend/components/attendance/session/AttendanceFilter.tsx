@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, MapPin, Search, Send, SunMoon } from "lucide-react";
+import { Calendar, Save, Search, Send } from "lucide-react";
 
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
@@ -10,20 +10,21 @@ interface AttendanceFiltersProps {
   statusFilter: "all" | "present" | "absent" | "leave";
 
   isSubmitting: boolean;
-  isSavingLocations: boolean;
-  isSavingShifts: boolean;
+  isSavingSettings: boolean;
   confirmationModalOpen: boolean;
   confirmationTitle: string;
   confirmationDescription: string;
   confirmationConfirmText: string;
+  confirmationCancelText: string;
   confirmationIsLoading: boolean;
+  draftStatus: "idle" | "saving" | "saved";
 
   onDateChange: (value: string) => void;
   onQueryChange: (value: string) => void;
   onStatusFilterChange: (value: "all" | "present" | "absent" | "leave") => void;
 
-  onSaveLocations: () => void;
-  onSaveShifts: () => void;
+  onSaveSettings: () => void;
+  onSaveDraft: () => void;
   onSubmit: () => void;
   onConfirmAction: () => void;
   onCancelConfirmation: () => void;
@@ -35,20 +36,21 @@ export default function AttendanceFilters({
   statusFilter,
 
   isSubmitting,
-  isSavingLocations,
-  isSavingShifts,
+  isSavingSettings,
   confirmationModalOpen,
   confirmationTitle,
   confirmationDescription,
   confirmationConfirmText,
+  confirmationCancelText,
   confirmationIsLoading,
+  draftStatus,
 
   onDateChange,
   onQueryChange,
   onStatusFilterChange,
 
-  onSaveLocations,
-  onSaveShifts,
+  onSaveSettings,
+  onSaveDraft,
   onSubmit,
   onConfirmAction,
   onCancelConfirmation,
@@ -113,35 +115,41 @@ export default function AttendanceFilters({
 
         {/* Actions */}
         <div className="flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-5">
-          {/* Save Locations */}
+          <span className="mr-auto self-center text-xs text-slate-500">
+            {draftStatus === "saving" && "Saving draft..."}
+            {draftStatus === "saved" && "Draft saved"}
+          </span>
+
+          {/* Save Draft */}
           <button
             type="button"
-            onClick={onSaveLocations}
-            disabled={isSavingLocations || isSavingShifts || isSubmitting}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={onSaveDraft}
+            disabled={
+              isSubmitting || isSavingSettings || draftStatus === "saving"
+            }
+            className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-6 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <MapPin className="h-4 w-4" />
-
-            {isSavingLocations ? "Saving..." : "Save Locations"}
+            <Save className="h-4 w-4" />
+            Save Draft
           </button>
 
-          {/* Save Shifts */}
+          {/* Save Settings */}
           <button
             type="button"
-            onClick={onSaveShifts}
-            disabled={isSavingShifts || isSavingLocations || isSubmitting}
+            onClick={onSaveSettings}
+            disabled={isSavingSettings || isSubmitting}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <SunMoon className="h-4 w-4" />
+            <Save className="h-4 w-4" />
 
-            {isSavingShifts ? "Saving..." : "Save Shifts"}
+            {isSavingSettings ? "Saving..." : "Save Changes"}
           </button>
 
           {/* Submit Attendance */}
           <button
             type="button"
             onClick={onSubmit}
-            disabled={isSubmitting || isSavingLocations || isSavingShifts}
+            disabled={isSubmitting || isSavingSettings}
             className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
@@ -156,6 +164,7 @@ export default function AttendanceFilters({
         title={confirmationTitle}
         description={confirmationDescription}
         confirmText={confirmationConfirmText}
+        cancelText={confirmationCancelText}
         isLoading={confirmationIsLoading}
         onConfirm={onConfirmAction}
         onCancel={onCancelConfirmation}

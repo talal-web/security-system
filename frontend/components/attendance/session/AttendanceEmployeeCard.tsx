@@ -116,8 +116,8 @@ function getShiftTagStyles(shift: AttendanceShift | null) {
   if (shift === "day") {
     return {
       wrapper:
-        "border-blue-200 bg-blue-50 text-blue-700 hover:border-blue-300 hover:bg-blue-100",
-      icon: "text-blue-500",
+        "border-amber-300 bg-amber-100 text-amber-800 shadow-sm hover:border-amber-400 hover:bg-amber-200",
+      icon: "text-amber-600",
       label: "Day",
     };
   }
@@ -125,8 +125,8 @@ function getShiftTagStyles(shift: AttendanceShift | null) {
   if (shift === "night") {
     return {
       wrapper:
-        "border-indigo-200 bg-indigo-50 text-indigo-700 hover:border-indigo-300 hover:bg-indigo-100",
-      icon: "text-indigo-500",
+        "border-indigo-700 bg-indigo-700 text-white shadow-sm hover:border-indigo-800 hover:bg-indigo-800",
+      icon: "text-indigo-100",
       label: "Night",
     };
   }
@@ -309,7 +309,7 @@ export default function AttendanceEmployeeCard({
                   aria-pressed={isActive}
                   className={[
                     "flex flex-1 items-center justify-center",
-                    "rounded-[4px]",
+                    "rounded-sm",
                     "text-[11px] font-bold",
                     "transition-all duration-150",
                     "focus:z-10 focus:outline-none",

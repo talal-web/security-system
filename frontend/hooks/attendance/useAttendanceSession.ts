@@ -40,18 +40,12 @@ export function useAttendanceSession() {
 // ======================================
 
 export function useUpdateEmployeeLocations() {
-  const queryClient = useQueryClient();
-
   return useMutation<
     UpdateEmployeeLocationsResponse,
     Error,
     UpdateEmployeeLocationsPayload
   >({
     mutationFn: updateEmployeeLocations,
-
-    onSuccess: (data) => {
-      queryClient.setQueryData(attendanceSessionKeys.all, data);
-    },
   });
 }
 
@@ -60,18 +54,12 @@ export function useUpdateEmployeeLocations() {
 // ======================================
 
 export function useUpdateEmployeeShifts() {
-  const queryClient = useQueryClient();
-
   return useMutation<
     UpdateEmployeeShiftsResponse,
     Error,
     UpdateEmployeeShiftsPayload
   >({
     mutationFn: updateEmployeeShifts,
-
-    onSuccess: (data) => {
-      queryClient.setQueryData(attendanceSessionKeys.all, data);
-    },
   });
 }
 

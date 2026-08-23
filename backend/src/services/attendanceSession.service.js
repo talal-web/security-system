@@ -26,7 +26,7 @@ export const buildAttendanceSession = async () => {
     .select("name sector sortOrder isActive")
     .populate({
       path: "sector",
-      select: "name code",
+      select: "name code sortOrder",
     })
     .sort({
       sortOrder: 1,
@@ -130,7 +130,10 @@ export const buildAttendanceSession = async () => {
   // FINAL SECTORS
   // ==========================================
   const sectors = Array.from(sectorMap.values()).sort((a, b) => {
-    return a.sector.name.localeCompare(b.sector.name);
+    return (
+      a.sector.sortOrder - b.sector.sortOrder ||
+      a.sector.name.localeCompare(b.sector.name)
+    );
   });
 
   // ==========================================

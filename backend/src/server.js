@@ -28,8 +28,6 @@ app.set("trust proxy", 1);
 
 validateEnv();
 
-connectDB();
-
 app.use(helmet());
 
 // Allowed CORS origins
@@ -141,9 +139,21 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  logger.info({
-    message: "Server started successfully",
-    url: `http://0.0.0.0:${PORT}`,
+const startServer = async () => {
+  await connectDB();
+
+  app.listen(PORT, "0.0.0.0", () => {
+    logger.info({
+      message: "Server started successfully",
+      url: `http://0.0.0.0:${PORT}`,
+    });
   });
+};
+
+startServer().catch((error) => {
+  logger.error({
+    message: "Server startup failed",
+    error: error.message,
+  });
+  process.exit(1);
 });

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useMe } from "@/hooks/auth/useMe";
 
 import {
   useAttendanceSession,
@@ -18,10 +19,31 @@ import type {
 
 import { updateEmployee } from "@/utils/attendance/mark/updateEmployee";
 
-type AttendanceConfirmationAction =
-  | "saveLocations"
-  | "saveShifts"
-  | "submitAttendance";
+import {
+  getAllEmployees,
+  getAttendanceStats,
+  getLeaveEmployees,
+  getAbsentEmployees,
+  filterAttendanceEmployees,
+  getPresentSectors,
+  getVisibleEmployeeCount,
+} from "@/utils/attendance/session/attendanceSelector";
+
+import { buildAttendanceForm } from "@/utils/attendance/session/buildAttendanceForm";
+
+import {
+  getDraftKey,
+  readDraft,
+  removeAttendanceDraft,
+  saveAttendanceDraft,
+  createAttendanceDraft,
+} from "@/utils/attendance/session/attendanceDraft";
+
+import type { AttendanceDraft } from "@/utils/attendance/session/attendanceDraft";
+
+import { moveAttendanceEmployee } from "@/utils/attendance/session/moveAttendanceEmployee";
+
+type AttendanceConfirmationAction = "saveSettings" | "submitAttendance";
 
 export function useAttendanceSessionPage() {
   // ======================================
@@ -29,6 +51,8 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const { data, isLoading, error } = useAttendanceSession();
+
+  const { data: me } = useMe();
 
   const markAttendanceMutation = useMarkAttendanceSession();
 
@@ -53,6 +77,16 @@ export function useAttendanceSessionPage() {
   const [confirmationAction, setConfirmationAction] =
     useState<AttendanceConfirmationAction | null>(null);
 
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved">(
+    "idle",
+  );
+
+  const [formInitializedKey, setFormInitializedKey] = useState<string | null>(
+    null,
+  );
+
   // ======================================
   // DATE
   // ======================================
@@ -66,68 +100,116 @@ export function useAttendanceSessionPage() {
 
   const dateValue = date || defaultDate;
 
+  const userId = me?.user?.id;
+
+  const draftKey = userId ? getDraftKey(userId, dateValue) : null;
+
   // ======================================
   // INITIALIZE FORM
   // ======================================
 
-  const initialSectors = useMemo(() => {
-    if (!data?.sectors) return [] as AttendanceFormSector[];
-
-    return data.sectors.map((sector) => ({
-      sector: sector.sector,
-      totalEmployees: sector.totalEmployees,
-      totalLocations: sector.totalLocations,
-
-      locations: sector.locations.map(
-        (location): AttendanceFormLocation => ({
-          ...location,
-
-          employees: location.employees.map(
-            (emp): AttendanceFormEmployee => ({
-              ...emp,
-
-              sector: sector.sector._id ?? null,
-              currentLocation: location._id,
-              selectedLocation: location._id,
-
-              status: "present",
-
-              shift: emp.defaultShift ?? null,
-
-              remarks: "",
-            }),
-          ),
-        }),
-      ),
-    })) as AttendanceFormSector[];
-  }, [data]);
+  const initialSectors = useMemo(
+    () => (data?.sectors ? buildAttendanceForm(data.sectors) : []),
+    [data],
+  );
 
   useEffect(() => {
-    if (!data?.sectors) return;
+    if (!data?.sectors || !draftKey || formInitializedKey === draftKey) {
+      return;
+    }
+
+    const draft = readDraft(draftKey);
 
     queueMicrotask(() => {
-      setSectors(initialSectors);
+      setFormInitializedKey(draftKey);
+
+      if (!draft) {
+        setSectors(initialSectors);
+        return;
+      }
+
+      const draftByEmployeeId = new Map(
+        draft.employees.map((employee) => [employee.employeeId, employee]),
+      );
+
+      const employees = initialSectors
+        .flatMap((sector) =>
+          sector.locations.flatMap((location) => location.employees),
+        )
+        .map((employee) => {
+          const saved = draftByEmployeeId.get(employee.employeeId);
+
+          return saved
+            ? {
+                ...employee,
+                status: saved.status,
+                shift: saved.shift,
+                selectedLocation: saved.selectedLocation,
+                remarks: saved.remarks,
+              }
+            : employee;
+        });
+
+      setSectors(
+        initialSectors.map((sector) => ({
+          ...sector,
+          locations: sector.locations.map((location) => {
+            const locationEmployees = employees.filter((employee) =>
+              employee.status === "present"
+                ? employee.selectedLocation === location._id
+                : employee.currentLocation === location._id,
+            );
+
+            return {
+              ...location,
+              employeeCount: locationEmployees.length,
+              employees: locationEmployees,
+            };
+          }),
+        })),
+      );
     });
-  }, [data?.sectors, initialSectors]);
+  }, [data?.sectors, draftKey, formInitializedKey, initialSectors]);
 
   // ======================================
   // ALL EMPLOYEES
   // ======================================
 
-  const allEmployees = useMemo(
-    () =>
-      sectors.flatMap((sector) =>
-        sector.locations.flatMap((location) => location.employees),
-      ),
-    [sectors],
-  );
+  const allEmployees = useMemo(() => getAllEmployees(sectors), [sectors]);
+
+  // ======================================
+  // SAVE DRAFT
+  // ======================================
+
+  const handleSaveDraft = () => {
+    if (!draftKey || allEmployees.length === 0) {
+      return;
+    }
+
+    const draft: AttendanceDraft = createAttendanceDraft(
+      allEmployees,
+      dateValue,
+    );
+
+    try {
+      setDraftStatus("saving");
+      saveAttendanceDraft(draftKey, draft);
+      setDraftStatus("saved");
+      toast.success("Attendance draft saved.");
+    } catch {
+      setDraftStatus("idle");
+      toast.error("Failed to save attendance draft.");
+    }
+  };
 
   // ======================================
   // SECTOR LOCATIONS
   // ======================================
 
   const sectorLocations = useMemo(() => {
-    if (!data?.sectors) return {};
+    if (!data?.sectors) {
+      return {};
+    }
 
     return data.sectors.reduce<Record<string, AttendanceFormLocation[]>>(
       (acc, sector) => {
@@ -148,88 +230,62 @@ export function useAttendanceSessionPage() {
   // DASHBOARD STATS
   // ======================================
 
-  const stats = useMemo(
-    () => ({
-      total: allEmployees.length,
-
-      present: allEmployees.filter((e) => e.status === "present").length,
-
-      absent: allEmployees.filter((e) => e.status === "absent").length,
-
-      leave: allEmployees.filter((e) => e.status === "leave").length,
-    }),
-    [allEmployees],
-  );
+  const stats = useMemo(() => getAttendanceStats(allEmployees), [allEmployees]);
 
   // ======================================
   // SEARCH
   // ======================================
 
-  const searchedEmployees = useMemo(() => {
-    const q = query.trim().toLowerCase();
-
-    return allEmployees.filter((emp) => {
-      const matchesQuery =
-        q === "" ||
-        [emp.name, emp.empId, emp.fatherName, emp.designation]
-          .join(" ")
-          .toLowerCase()
-          .includes(q);
-
-      const matchesStatus =
-        statusFilter === "all" || emp.status === statusFilter;
-
-      return matchesQuery && matchesStatus;
-    });
-  }, [allEmployees, query, statusFilter]);
+  const searchedEmployees = useMemo(
+    () => filterAttendanceEmployees(allEmployees, query, statusFilter),
+    [allEmployees, query, statusFilter],
+  );
 
   // ======================================
   // PRESENT SECTORS
   // ======================================
 
-  const presentSectors = useMemo(() => {
-    const q = query.trim().toLowerCase();
+  const presentSectors = useMemo(
+    () => getPresentSectors(sectors, query, statusFilter),
+    [sectors, query, statusFilter],
+  );
+  useEffect(() => {
+    console.log("========== ATTENDANCE DEBUG ==========");
+    console.log("API employees:", data?.stats.totalEmployees);
+    console.log("API sectors:", data?.sectors?.length);
+    console.log("FORM sectors:", sectors.length);
+    console.log("ALL employees:", allEmployees.length);
 
-    return sectors
-      .map((sector) => ({
-        ...sector,
+    console.log(
+      "PRESENT employees:",
+      allEmployees.filter((employee) => employee.status === "present").length,
+    );
 
-        locations: sector.locations
-          .map((location) => ({
-            ...location,
+    console.log(
+      "PRESENT SECTOR employees:",
+      presentSectors.reduce(
+        (total, sector) =>
+          total +
+          sector.locations.reduce(
+            (count, location) => count + location.employees.length,
+            0,
+          ),
+        0,
+      ),
+    );
 
-            employees: location.employees.filter((emp) => {
-              if (emp.status !== "present") return false;
+    console.log("FORM sectors data:", sectors);
+    console.log("PRESENT sectors data:", presentSectors);
 
-              if (statusFilter !== "all" && statusFilter !== "present") {
-                return false;
-              }
-
-              if (!q) return true;
-
-              return [
-                emp.name,
-                emp.empId,
-                emp.fatherName,
-                emp.designation,
-                location.name,
-              ]
-                .join(" ")
-                .toLowerCase()
-                .includes(q);
-            }),
-          }))
-          .filter((location) => location.employees.length > 0),
-      }))
-      .filter((sector) => sector.locations.length > 0);
-  }, [sectors, query, statusFilter]);
+    console.log("======================================");
+  }, [data, sectors, allEmployees, presentSectors]);
 
   // ======================================
   // ABSENT
   // ======================================
 
   const absentEmployees = useMemo(
-    () => searchedEmployees.filter((emp) => emp.status === "absent"),
+    () => getAbsentEmployees(searchedEmployees),
     [searchedEmployees],
   );
 
@@ -238,7 +294,7 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const leaveEmployees = useMemo(
-    () => searchedEmployees.filter((emp) => emp.status === "leave"),
+    () => getLeaveEmployees(searchedEmployees),
     [searchedEmployees],
   );
 
@@ -248,27 +304,17 @@ export function useAttendanceSessionPage() {
 
   const visibleEmployeeCount = useMemo(
     () =>
-      presentSectors.reduce(
-        (total, sector) =>
-          total +
-          sector.locations.reduce(
-            (count, location) => count + location.employees.length,
-            0,
-          ),
-        0,
-      ) +
-      absentEmployees.length +
-      leaveEmployees.length,
+      getVisibleEmployeeCount(presentSectors, absentEmployees, leaveEmployees),
     [presentSectors, absentEmployees, leaveEmployees],
   );
 
-  const isConfirmationPending = useMemo(() => {
-    if (confirmationAction === "saveLocations") {
-      return updateEmployeeLocationsMutation.isPending;
-    }
+  // ======================================
+  // CONFIRMATION PENDING
+  // ======================================
 
-    if (confirmationAction === "saveShifts") {
-      return updateEmployeeShiftsMutation.isPending;
+  const isConfirmationPending = useMemo(() => {
+    if (confirmationAction === "saveSettings") {
+      return isSavingSettings;
     }
 
     if (confirmationAction === "submitAttendance") {
@@ -276,49 +322,56 @@ export function useAttendanceSessionPage() {
     }
 
     return false;
-  }, [
-    confirmationAction,
-    markAttendanceMutation.isPending,
-    updateEmployeeLocationsMutation.isPending,
-    updateEmployeeShiftsMutation.isPending,
-  ]);
+  }, [confirmationAction, isSavingSettings, markAttendanceMutation.isPending]);
+
+  // ======================================
+  // CONFIRMATION MODAL
+  // ======================================
 
   const confirmationModal = useMemo(() => {
-    if (confirmationAction === "saveLocations") {
+    // Save settings
+    if (confirmationAction === "saveSettings") {
       return {
         open: true,
-        title: "Save Employee Locations?",
+
+        title: "Save Attendance Settings?",
+
         description:
-          "This will update the current locations of all present employees based on the selections in this attendance session.",
-        confirmText: "Save Locations",
+          "This will update the locations and default shifts of all present employees using the selections in this attendance session.",
+
+        confirmText: "Save Changes",
+
+        cancelText: "Cancel",
       };
     }
 
-    if (confirmationAction === "saveShifts") {
-      return {
-        open: true,
-        title: "Save Employee Shifts?",
-        description:
-          "This will update the default shift of all present employees using the shift currently selected in this attendance session.",
-        confirmText: "Save Shifts",
-      };
-    }
-
+    // Submit attendance
     if (confirmationAction === "submitAttendance") {
       return {
         open: true,
+
         title: "Submit Attendance?",
+
         description:
           "Verify each employee's status, location, and shift before submitting. Only present employees will keep location and shift values; absent and leave employees will be submitted with both set to null.",
+
         confirmText: "Submit Attendance",
+
+        cancelText: "Cancel",
       };
     }
 
+    // Closed
     return {
       open: false,
+
       title: "",
+
       description: "",
+
       confirmText: "Confirm",
+
+      cancelText: "Cancel",
     };
   }, [confirmationAction]);
 
@@ -331,7 +384,9 @@ export function useAttendanceSessionPage() {
     field: keyof AttendanceFormEmployee,
     value: unknown,
   ) => {
-    setSectors((prev) => updateEmployee(prev, employeeId, field, value));
+    setSectors((previousSectors) =>
+      updateEmployee(previousSectors, employeeId, field, value),
+    );
   };
 
   // ======================================
@@ -342,108 +397,60 @@ export function useAttendanceSessionPage() {
     employeeId: string,
     locationId: string,
   ) => {
-    setSectors((prev) => {
-      let employee: AttendanceFormEmployee | null = null;
-
-      // Remove employee from current location
-      const next = prev.map((sector) => ({
-        ...sector,
-        locations: sector.locations.map((location) => {
-          const remaining = location.employees.filter((emp) => {
-            if (emp.employeeId !== employeeId) return true;
-
-            employee = {
-              ...emp,
-              selectedLocation: locationId,
-            };
-
-            return false;
-          });
-
-          return {
-            ...location,
-            employeeCount: remaining.length,
-            employees: remaining,
-          };
-        }),
-      }));
-
-      if (!employee) return prev;
-
-      // Add employee to new location
-      return next.map((sector) => ({
-        ...sector,
-        locations: sector.locations.map((location) => {
-          if (location._id !== locationId) return location;
-
-          return {
-            ...location,
-            employeeCount: location.employeeCount + 1,
-            employees: [...location.employees, employee!],
-          };
-        }),
-      }));
-    });
+    setSectors((previousSectors) =>
+      moveAttendanceEmployee(previousSectors, employeeId, locationId),
+    );
   };
 
   // ======================================
-  // SAVE LOCATIONS
+  // SAVE SETTINGS
   // ======================================
 
-  const handleSaveLocations = async () => {
-    try {
-      await updateEmployeeLocationsMutation.mutateAsync({
-        employees: allEmployees
-          .filter((emp) => emp.status === "present")
-          .map((emp) => ({
-            employeeId: emp.employeeId,
-            locationId: emp.selectedLocation!,
-          })),
-      });
-
-      toast.success("Employee locations updated successfully.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to update employee locations.",
-      );
-    }
-  };
-
-  // ======================================
-  // SAVE SHIFTS
-  // ======================================
-
-  const handleSaveShifts = async () => {
+  const handleSaveSettings = async () => {
     const presentEmployees = allEmployees.filter(
-      (emp) => emp.status === "present",
+      (employee) => employee.status === "present",
     );
 
     const employeesWithoutLocation = presentEmployees.filter(
-      (emp) => !emp.selectedLocation,
+      (employee) => !employee.selectedLocation,
     );
 
     if (employeesWithoutLocation.length) {
       toast.error("Please select a location for all present employees.");
+
       return;
     }
 
-    try {
-      await updateEmployeeShiftsMutation.mutateAsync({
-        employees: presentEmployees.map((emp) => ({
-          employeeId: emp.employeeId,
-          shift: emp.shift!,
-        })),
-      });
+    setIsSavingSettings(true);
 
-      toast.success("Employee shifts updated successfully.");
+    try {
+      await Promise.all([
+        updateEmployeeLocationsMutation.mutateAsync({
+          employees: presentEmployees.map((employee) => ({
+            employeeId: employee.employeeId,
+
+            locationId: employee.selectedLocation!,
+          })),
+        }),
+
+        updateEmployeeShiftsMutation.mutateAsync({
+          employees: presentEmployees.map((employee) => ({
+            employeeId: employee.employeeId,
+
+            shift: employee.shift!,
+          })),
+        }),
+      ]);
+
+      toast.success("Attendance settings updated successfully.");
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to update employee shifts.",
+          : "Failed to update attendance settings.",
       );
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 
@@ -456,16 +463,17 @@ export function useAttendanceSessionPage() {
       await markAttendanceMutation.mutateAsync({
         date: dateValue,
 
-        employees: allEmployees.map((emp) => ({
-          employeeId: emp.employeeId,
+        employees: allEmployees.map((employee) => ({
+          employeeId: employee.employeeId,
 
-          locationId: emp.status === "present" ? emp.selectedLocation : null,
+          locationId:
+            employee.status === "present" ? employee.selectedLocation : null,
 
-          shift: emp.status === "present" ? emp.shift : null,
+          shift: employee.status === "present" ? employee.shift : null,
 
-          status: emp.status,
+          status: employee.status,
 
-          remarks: emp.remarks.trim(),
+          remarks: employee.remarks.trim(),
         })),
       });
 
@@ -474,6 +482,12 @@ export function useAttendanceSessionPage() {
           ? "Attendance updated successfully."
           : "Attendance marked successfully.",
       );
+
+      if (draftKey) {
+        removeAttendanceDraft(draftKey);
+
+        setDraftStatus("idle");
+      }
     } catch (error) {
       toast.error(
         error instanceof Error && error.message
@@ -483,40 +497,67 @@ export function useAttendanceSessionPage() {
     }
   };
 
-  const openSaveLocationsConfirmation = () => {
-    if (isConfirmationPending) return;
+  // ======================================
+  // OPEN SAVE SETTINGS CONFIRMATION
+  // ======================================
 
-    setConfirmationAction("saveLocations");
+  const openSaveSettingsConfirmation = () => {
+    if (isConfirmationPending) {
+      return;
+    }
+
+    setConfirmationAction("saveSettings");
   };
 
-  const openSaveShiftsConfirmation = () => {
-    if (isConfirmationPending) return;
-
-    setConfirmationAction("saveShifts");
-  };
+  // ======================================
+  // OPEN SUBMIT CONFIRMATION
+  // ======================================
 
   const openSubmitAttendanceConfirmation = () => {
-    if (isConfirmationPending) return;
+    if (isConfirmationPending) {
+      return;
+    }
 
     setConfirmationAction("submitAttendance");
   };
 
-  const closeConfirmationModal = () => {
-    if (isConfirmationPending) return;
+  // ======================================
+  // CLOSE CONFIRMATION MODAL
+  // ======================================
 
+  const closeConfirmationModal = () => {
+    if (isConfirmationPending) {
+      return;
+    }
+
+    // Normal confirmation modal
     setConfirmationAction(null);
   };
 
+  // ======================================
+  // CONFIRM ATTENDANCE ACTION
+  // ======================================
+
   const confirmAttendanceAction = async () => {
-    if (!confirmationAction || isConfirmationPending) return;
+    // ----------------------------------
+    // Nothing to confirm
+    // ----------------------------------
 
-    if (confirmationAction === "saveLocations") {
-      await handleSaveLocations();
+    if (!confirmationAction || isConfirmationPending) {
+      return;
     }
 
-    if (confirmationAction === "saveShifts") {
-      await handleSaveShifts();
+    // ----------------------------------
+    // Save settings
+    // ----------------------------------
+
+    if (confirmationAction === "saveSettings") {
+      await handleSaveSettings();
     }
+
+    // ----------------------------------
+    // Submit attendance
+    // ----------------------------------
 
     if (confirmationAction === "submitAttendance") {
       await handleSubmit();
@@ -525,62 +566,99 @@ export function useAttendanceSessionPage() {
     setConfirmationAction(null);
   };
 
-  // ======================================
   // RETURN
   // ======================================
 
   return {
+    // ----------------------------------
+    // API
+    // ----------------------------------
+
     data,
     isLoading,
     error,
 
+    // ----------------------------------
     // Date
+    // ----------------------------------
+
     dateValue,
     setDate,
 
+    // ----------------------------------
     // Filters
+    // ----------------------------------
+
     query,
     setQuery,
 
     statusFilter,
     setStatusFilter,
 
+    // ----------------------------------
     // Stats
+    // ----------------------------------
+
     stats,
 
-    // Data
+    // ----------------------------------
+    // Attendance data
+    // ----------------------------------
+
     sectors,
+
     presentSectors,
+
     absentEmployees,
+
     leaveEmployees,
 
     allEmployees,
+
     sectorLocations,
+
     visibleEmployeeCount,
 
+    // ----------------------------------
     // Confirmation
+    // ----------------------------------
+
     confirmationModal,
+
+    draftStatus,
+
     isConfirmationPending,
-    openSaveLocationsConfirmation,
-    openSaveShiftsConfirmation,
+
+    openSaveSettingsConfirmation,
+
+    handleSaveDraft,
+
     openSubmitAttendanceConfirmation,
+
     closeConfirmationModal,
+
     confirmAttendanceAction,
 
+    // ----------------------------------
     // Employee
+    // ----------------------------------
+
     handleEmployeeChange,
+
     handleEmployeeLocationChange,
 
+    // ----------------------------------
     // Attendance
+    // ----------------------------------
+
     markAttendanceMutation,
+
     handleSubmit,
 
-    // Locations
-    updateEmployeeLocationsMutation,
-    handleSaveLocations,
+    // ----------------------------------
+    // Settings
+    // ----------------------------------
 
-    // Shifts
-    updateEmployeeShiftsMutation,
-    handleSaveShifts,
+    isSavingSettings,
   };
 }
