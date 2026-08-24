@@ -2,9 +2,9 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Deployment Readiness
 
-This frontend is ready for production deployment after setting the environment variables below.
+This frontend is configured for production deployment. It builds successfully and uses a safe production API fallback so it does not crash if `NEXT_PUBLIC_API_URL` is not set immediately.
 
-### Required Environment Variables
+### Recommended Environment Variables
 
 Create/update `.env.production` (or your platform environment settings):
 
@@ -15,7 +15,8 @@ NEXT_PUBLIC_COMPANY_PHONE=+92 335 5111150
 
 Notes:
 
-- `NEXT_PUBLIC_API_URL` is required for production builds. The app only falls back to `http://localhost:5000/api` during development.
+- `NEXT_PUBLIC_API_URL` is recommended for production deployments when the backend is hosted on a different domain.
+- If it is not configured, the app falls back to `/api` in production and `http://localhost:5000/api` in development.
 - `NEXT_PUBLIC_COMPANY_PHONE` is optional and has a fallback value in the UI.
 
 ### Production Commands
