@@ -37,6 +37,7 @@ import {
   removeAttendanceDraft,
   saveAttendanceDraft,
   createAttendanceDraft,
+  mergeAttendanceDraft,
 } from "@/utils/attendance/session/attendanceDraft";
 
 import type { AttendanceDraft } from "@/utils/attendance/session/attendanceDraft";
@@ -128,46 +129,7 @@ export function useAttendanceSessionPage() {
         return;
       }
 
-      const draftByEmployeeId = new Map(
-        draft.employees.map((employee) => [employee.employeeId, employee]),
-      );
-
-      const employees = initialSectors
-        .flatMap((sector) =>
-          sector.locations.flatMap((location) => location.employees),
-        )
-        .map((employee) => {
-          const saved = draftByEmployeeId.get(employee.employeeId);
-
-          return saved
-            ? {
-                ...employee,
-                status: saved.status,
-                shift: saved.shift,
-                selectedLocation: saved.selectedLocation,
-                remarks: saved.remarks,
-              }
-            : employee;
-        });
-
-      setSectors(
-        initialSectors.map((sector) => ({
-          ...sector,
-          locations: sector.locations.map((location) => {
-            const locationEmployees = employees.filter((employee) =>
-              employee.status === "present"
-                ? employee.selectedLocation === location._id
-                : employee.currentLocation === location._id,
-            );
-
-            return {
-              ...location,
-              employeeCount: locationEmployees.length,
-              employees: locationEmployees,
-            };
-          }),
-        })),
-      );
+      setSectors(mergeAttendanceDraft(initialSectors, draft));
     });
   }, [data?.sectors, draftKey, formInitializedKey, initialSectors]);
 
