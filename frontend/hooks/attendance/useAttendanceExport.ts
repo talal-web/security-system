@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { exportAttendanceToExcel } from "@/utils/export/AttendanceDaily";
+import { exportAttendanceToExcel } from "@/utils/export/attendance-daily/AttendanceDaily";
 
 import {
   mapAttendanceEmployee,
