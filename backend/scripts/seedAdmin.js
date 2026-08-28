@@ -20,36 +20,36 @@ const seedAdmin = async () => {
 
     console.log("✅ MongoDB Connected");
 
-    const existingUser = await User.findOne({
-      userId: ADMIN_USER_ID,
-    });
+    const userId = ADMIN_USER_ID.trim().toUpperCase();
+
+    const existingUser = await User.findOne({ userId });
 
     if (existingUser) {
-      console.log(`⚠️ Admin (${ADMIN_USER_ID}) already exists.`);
+      console.log(`⚠️ User (${userId}) already exists.`);
 
       await mongoose.connection.close();
-      process.exit(0);
+      return;
     }
 
-    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 12);
 
     await User.create({
-      userId: ADMIN_USER_ID,
-      name: ADMIN_NAME,
+      userId,
+      name: ADMIN_NAME.trim(),
       password: hashedPassword,
       role: "admin",
+      isActive: true,
     });
 
-    console.log("✅ Admin created successfully.");
+    console.log(`✅ Admin (${userId}) created successfully.`);
 
     await mongoose.connection.close();
-    process.exit(0);
   } catch (error) {
     console.error("❌ Failed to seed admin:");
     console.error(error);
 
     await mongoose.connection.close().catch(() => {});
-    process.exit(1);
+    process.exitCode = 1;
   }
 };
 

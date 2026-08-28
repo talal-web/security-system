@@ -12,8 +12,6 @@ import {
 
 import upload from "../middleware/uploadMiddleware.js";
 
-import { protect } from "../middleware/authMiddleware.js";
-
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
@@ -38,8 +36,7 @@ const employeeImageUpload = upload.fields([
 // CREATE
 router.post(
   "/",
-  protect,
-  authorizeRoles("developer", "admin", "supervisor"),
+  authorizeRoles("developer", "admin", "clerk"),
   employeeImageUpload,
   createEmployee,
 );
@@ -47,34 +44,26 @@ router.post(
 // GET ALL
 router.get(
   "/",
-  protect,
-  authorizeRoles("developer", "admin", "supervisor"),
+  authorizeRoles("developer", "admin", "clerk", "supervisor"),
   getEmployees,
 );
 
 // GET SINGLE
 router.get(
   "/:id",
-  protect,
-  authorizeRoles("developer", "admin", "supervisor"),
+  authorizeRoles("developer", "admin", "clerk"),
   getEmployeeById,
 );
 
 // UPDATE
 router.put(
   "/:id",
-  protect,
-  authorizeRoles("developer", "admin", "supervisor"),
+  authorizeRoles("developer", "admin", "clerk"),
   employeeImageUpload,
   updateEmployee,
 );
 
 // DELETE (ONLY DEVELOPER + ADMIN)
-router.delete(
-  "/:id",
-  protect,
-  authorizeRoles("developer", "admin"),
-  deleteEmployee,
-);
+router.delete("/:id", authorizeRoles("developer", "admin"), deleteEmployee);
 
 export default router;

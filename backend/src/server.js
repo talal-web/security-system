@@ -13,6 +13,7 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import locationRoutes from "./routes/locationRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import sectorRoutes from "./routes/sectorRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 import morganMiddleware from "./middleware/morganMiddleware.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -20,6 +21,7 @@ import logger from "./config/logger.js";
 import authRoutes from "./routes/authRoutes.js";
 import cookieParser from "cookie-parser";
 import { validateEnv } from "./config/env.js";
+import { protect } from "./middleware/authMiddleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -87,12 +89,13 @@ app.use((req, res, next) => {
 
 app.use(morganMiddleware);
 
-app.use("/api/employees", employeeRoutes);
+app.use("/api/employees", protect, employeeRoutes);
 app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api/locations", locationRoutes);
-app.use("/api/sectors", sectorRoutes);
-app.use("/api/attendance", attendanceRoutes);
-app.use("/api/upload", uploadRoutes);
+app.use("/api/users", protect, userRoutes);
+app.use("/api/locations", protect, locationRoutes);
+app.use("/api/sectors", protect, sectorRoutes);
+app.use("/api/attendance", protect, attendanceRoutes);
+app.use("/api/upload", protect, uploadRoutes);
 
 // Health check routes
 app.get("/", (req, res) => {

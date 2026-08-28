@@ -4,12 +4,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { useMe } from "@/hooks/auth/useMe";
-
-type Role = "admin" | "supervisor" | "developer";
+import { ApiError } from "@/lib/apiError";
+import type { UserRole } from "@/types/user";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles: Role[];
+  allowedRoles: UserRole[];
 }
 
 export default function ProtectedRoute({
@@ -18,13 +18,19 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const router = useRouter();
 
-  const { data, isLoading, isError } = useMe();
+  const { data, isLoading, isError, error } = useMe();
 
   const user = data?.user;
-  const role = user?.role as Role | undefined;
+  const role = user?.role as UserRole | undefined;
+  const isInactive = error instanceof ApiError && error.status === 403;
 
   useEffect(() => {
     if (isLoading) return;
+
+    if (isInactive) {
+      router.replace("/dashboard/unauthorized");
+      return;
+    }
 
     if (isError || !user) {
       router.replace("/?login=true");
@@ -34,7 +40,7 @@ export default function ProtectedRoute({
     if (!allowedRoles.includes(role!)) {
       router.replace("/dashboard/unauthorized");
     }
-  }, [isLoading, isError, user, role, allowedRoles, router]);
+  }, [isLoading, isInactive, isError, user, role, allowedRoles, router]);
 
   if (isLoading) {
     return (

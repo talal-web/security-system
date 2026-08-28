@@ -1,5 +1,3 @@
-// controllers/authController.js
-
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -20,17 +18,36 @@ export const login = async (req, res) => {
     // Normalize User ID
     const userId = rawUserId.trim().toUpperCase();
 
-    logger.info({ message: "Login attempt", userId });
+    logger.info({
+      message: "Login attempt",
+      userId,
+    });
 
     // Find user
-    const user = await User.findOne({ userId });
+    const user = await User.findOne({ userId }).select("+password");
 
     if (!user) {
-      logger.warn({ message: "Login failed: user not found", userId });
+      logger.warn({
+        message: "Login failed: user not found",
+        userId,
+      });
 
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
+      });
+    }
+
+    // Check if account is active
+    if (!user.isActive) {
+      logger.warn({
+        message: "Login failed: account inactive",
+        userId,
+      });
+
+      return res.status(403).json({
+        success: false,
+        message: "Your account is inactive. Please contact an administrator.",
       });
     }
 
@@ -50,7 +67,10 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      logger.warn({ message: "Login failed: incorrect password", userId });
+      logger.warn({
+        message: "Login failed: incorrect password",
+        userId,
+      });
 
       return res.status(401).json({
         success: false,
@@ -60,7 +80,9 @@ export const login = async (req, res) => {
 
     // Check JWT secret
     if (!process.env.JWT_SECRET) {
-      logger.error({ message: "JWT_SECRET is missing" });
+      logger.error({
+        message: "JWT_SECRET is missing",
+      });
 
       return res.status(500).json({
         success: false,
@@ -91,7 +113,10 @@ export const login = async (req, res) => {
       maxAge: 60 * 60 * 1000,
     });
 
-    logger.info({ message: "Login successful", userId });
+    logger.info({
+      message: "Login successful",
+      userId,
+    });
 
     return res.status(200).json({
       success: true,
@@ -104,7 +129,10 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error({ message: "Login error", error: error.message });
+    logger.error({
+      message: "Login error",
+      error: error.message,
+    });
 
     return res.status(500).json({
       success: false,
@@ -115,18 +143,27 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
     });
 
-    res.status(200).json({
+    return res.status(200).json({
+      success: true,
       message: "Logged out successfully",
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
+    logger.error({
+      message: "Logout error",
+      error: error.message,
+    });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to logout",
     });
   }
 };
@@ -137,7 +174,21 @@ export const getMe = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
+        success: false,
         message: "User not found",
+      });
+    }
+
+    // Check if account was deactivated after login
+    if (!user.isActive) {
+      logger.warn({
+        message: "Authenticated user is inactive",
+        userId: user.userId,
+      });
+
+      return res.status(403).json({
+        success: false,
+        message: "Your account is inactive. Please contact an administrator.",
       });
     }
 
@@ -147,7 +198,8 @@ export const getMe = async (req, res) => {
       Expires: "0",
     });
 
-    res.status(200).json({
+    return res.status(200).json({
+      success: true,
       user: {
         id: user._id.toString(),
         name: user.name,
@@ -156,8 +208,14 @@ export const getMe = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
+    logger.error({
+      message: "Get current user error",
+      error: error.message,
+    });
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
     });
   }
 };

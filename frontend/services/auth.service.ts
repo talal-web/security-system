@@ -1,7 +1,11 @@
 import api from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/apiError";
-import type { LoginPayload, LoginResponse } from "@/types/user";
-import type { MeResponse } from "@/types/user";
+import {
+  ApiError,
+  getApiErrorMessage,
+  getApiErrorStatus,
+} from "@/lib/apiError";
+import type { LoginPayload, LoginResponse } from "@/types/authentication";
+import type { MeResponse } from "@/types/authentication";
 
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
   try {
@@ -32,6 +36,7 @@ export async function getMe(): Promise<MeResponse> {
     return res.data;
   } catch (error) {
     const message = getApiErrorMessage(error);
-    throw new Error(message);
+    const status = getApiErrorStatus(error);
+    throw new ApiError(message, status);
   }
 }

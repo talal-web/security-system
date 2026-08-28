@@ -5,8 +5,7 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { useMe } from "@/hooks/auth/useMe";
-
-type Role = "admin" | "supervisor" | "developer";
+import type { UserRole } from "@/types/user";
 
 type Props = {
   children: React.ReactNode;
@@ -21,17 +20,20 @@ export default function RoleBasedRedirect({ children }: Props) {
 
   const user = data?.user;
 
-  const role = user?.role as Role | undefined;
-  function getRoleDashboard(role: Role) {
+  const role = user?.role as UserRole | undefined;
+  function getRoleDashboard(role: UserRole) {
     switch (role) {
+      case "developer":
+        return "/dashboard/admin";
+
       case "admin":
         return "/dashboard/admin";
 
+      case "clerk":
+        return "/dashboard/clerk";
+
       case "supervisor":
         return "/dashboard/supervisor";
-
-      case "developer":
-        return "/dashboard/developer";
 
       default:
         return "/unauthorized";

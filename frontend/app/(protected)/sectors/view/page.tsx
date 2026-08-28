@@ -3,7 +3,9 @@ import ViewSectors from "@/components/sectors/ViewSectors";
 
 export default function ViewSectorsPage() {
   return (
-    <ProtectedRoute allowedRoles={["admin", "developer"]}>
+    <ProtectedRoute
+      allowedRoles={["developer", "admin", "clerk", "supervisor"]}
+    >
       <ViewSectors />
     </ProtectedRoute>
   );

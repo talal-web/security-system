@@ -15,3 +15,21 @@ export function getApiErrorMessage(error: unknown): string {
 
   return "Unexpected error occurred";
 }
+
+export function getApiErrorStatus(error: unknown): number | undefined {
+  if (axios.isAxiosError(error)) {
+    return error.response?.status;
+  }
+
+  return undefined;
+}
+
+export class ApiError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}

@@ -13,7 +13,7 @@ export default function EditSectorPage({
   const { id } = use(params);
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "developer"]}>
+    <ProtectedRoute allowedRoles={["developer", "admin", "clerk"]}>
       <main className="min-h-screen bg-slate-50 px-4 py-10">
         <UpdateSectorForm id={id} />
       </main>

@@ -5,6 +5,7 @@ import AttendanceFilters from "@/components/attendance/session/AttendanceFilter"
 import AttendanceStats from "@/components/attendance/session/AttendanceStats";
 import AttendanceSectorList from "@/components/attendance/session/AttendanceSectorList";
 import AttendanceAbsentLeaveList from "@/components/attendance/session/AttendanceAbsentLeaveList";
+import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 
 import { useAttendanceSessionPage } from "@/hooks/attendance/useAttendanceSessionPage";
 
@@ -30,49 +31,53 @@ export default function AttendanceSessionPage() {
   }
 
   return (
-    <main className="space-y-6 p-4 lg:p-6">
-      <AttendanceHeader
-        attendanceDate={attendance.data?.attendanceDate ?? attendance.dateValue}
-        alreadyMarked={attendance.data?.alreadyMarked ?? false}
-      />
+    <ProtectedRoute allowedRoles={["developer", "admin", "clerk"]}>
+      <main className="space-y-6 p-4 lg:p-6">
+        <AttendanceHeader
+          attendanceDate={
+            attendance.data?.attendanceDate ?? attendance.dateValue
+          }
+          alreadyMarked={attendance.data?.alreadyMarked ?? false}
+        />
 
-      <AttendanceFilters
-        dateValue={attendance.dateValue}
-        query={attendance.query}
-        statusFilter={attendance.statusFilter}
-        isSubmitting={attendance.markAttendanceMutation.isPending}
-        isSavingSettings={attendance.isSavingSettings}
-        confirmationModalOpen={attendance.confirmationModal.open}
-        confirmationTitle={attendance.confirmationModal.title}
-        confirmationDescription={attendance.confirmationModal.description}
-        confirmationConfirmText={attendance.confirmationModal.confirmText}
-        confirmationCancelText={attendance.confirmationModal.cancelText}
-        confirmationIsLoading={attendance.isConfirmationPending}
-        draftStatus={attendance.draftStatus}
-        onDateChange={attendance.setDate}
-        onQueryChange={attendance.setQuery}
-        onStatusFilterChange={attendance.setStatusFilter}
-        onSaveSettings={attendance.openSaveSettingsConfirmation}
-        onSaveDraft={attendance.handleSaveDraft}
-        onSubmit={attendance.openSubmitAttendanceConfirmation}
-        onConfirmAction={attendance.confirmAttendanceAction}
-        onCancelConfirmation={attendance.closeConfirmationModal}
-      />
+        <AttendanceFilters
+          dateValue={attendance.dateValue}
+          query={attendance.query}
+          statusFilter={attendance.statusFilter}
+          isSubmitting={attendance.markAttendanceMutation.isPending}
+          isSavingSettings={attendance.isSavingSettings}
+          confirmationModalOpen={attendance.confirmationModal.open}
+          confirmationTitle={attendance.confirmationModal.title}
+          confirmationDescription={attendance.confirmationModal.description}
+          confirmationConfirmText={attendance.confirmationModal.confirmText}
+          confirmationCancelText={attendance.confirmationModal.cancelText}
+          confirmationIsLoading={attendance.isConfirmationPending}
+          draftStatus={attendance.draftStatus}
+          onDateChange={attendance.setDate}
+          onQueryChange={attendance.setQuery}
+          onStatusFilterChange={attendance.setStatusFilter}
+          onSaveSettings={attendance.openSaveSettingsConfirmation}
+          onSaveDraft={attendance.handleSaveDraft}
+          onSubmit={attendance.openSubmitAttendanceConfirmation}
+          onConfirmAction={attendance.confirmAttendanceAction}
+          onCancelConfirmation={attendance.closeConfirmationModal}
+        />
 
-      <AttendanceStats {...attendance.stats} />
+        <AttendanceStats {...attendance.stats} />
 
-      <AttendanceSectorList
-        sectors={attendance.presentSectors}
-        sectorLocations={attendance.sectorLocations}
-        onEmployeeChange={attendance.handleEmployeeChange}
-        onEmployeeLocationChange={attendance.handleEmployeeLocationChange}
-      />
+        <AttendanceSectorList
+          sectors={attendance.presentSectors}
+          sectorLocations={attendance.sectorLocations}
+          onEmployeeChange={attendance.handleEmployeeChange}
+          onEmployeeLocationChange={attendance.handleEmployeeLocationChange}
+        />
 
-      <AttendanceAbsentLeaveList
-        absentEmployees={attendance.absentEmployees}
-        leaveEmployees={attendance.leaveEmployees}
-        onEmployeeChange={attendance.handleEmployeeChange}
-      />
-    </main>
+        <AttendanceAbsentLeaveList
+          absentEmployees={attendance.absentEmployees}
+          leaveEmployees={attendance.leaveEmployees}
+          onEmployeeChange={attendance.handleEmployeeChange}
+        />
+      </main>
+    </ProtectedRoute>
   );
 }

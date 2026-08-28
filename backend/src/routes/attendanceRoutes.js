@@ -9,23 +9,58 @@ import {
   updateEmployeeShifts,
 } from "../controllers/attendanceController.js";
 
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
+
 const router = express.Router();
 
-// Fetch attendance session (employees, locations, defaults)
-router.get("/session", getAttendanceSession);
+// ======================================
+// ATTENDANCE SESSION
+// ======================================
+
+// Fetch attendance session
+router.get(
+  "/session",
+  authorizeRoles("developer", "admin", "clerk"),
+  getAttendanceSession,
+);
 
 // Update employee current locations
-router.patch("/session/locations", updateEmployeeLocations);
+router.patch(
+  "/session/locations",
+  authorizeRoles("developer", "admin", "clerk"),
+  updateEmployeeLocations,
+);
 
 // Update employee default shift
-router.patch("/session/shifts", updateEmployeeShifts);
+router.patch(
+  "/session/shifts",
+  authorizeRoles("developer", "admin", "clerk"),
+  updateEmployeeShifts,
+);
 
 // Submit/update attendance session
-router.post("/session", submitAttendanceSession);
+router.post(
+  "/session",
+  authorizeRoles("developer", "admin", "clerk"),
+  submitAttendanceSession,
+);
 
-// Attendance reports & statistics
-router.get("/report", getAttendanceReport);
+// ======================================
+// ATTENDANCE REPORTS
+// ======================================
 
-router.get("/report/monthly", getMonthlyAttendanceReport);
+// Daily attendance report
+router.get(
+  "/report",
+  authorizeRoles("developer", "admin", "clerk"),
+  getAttendanceReport,
+);
+
+// Monthly attendance report
+router.get(
+  "/report/monthly",
+  authorizeRoles("developer", "admin", "clerk"),
+  getMonthlyAttendanceReport,
+);
 
 export default router;

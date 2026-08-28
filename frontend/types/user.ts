@@ -1,21 +1,47 @@
+export type UserRole = "developer" | "admin" | "clerk" | "supervisor";
+
 export interface User {
-  id: string;
-  name: string;
-  role: "developer" | "admin" | "supervisor";
+  _id: string;
   userId: string;
+  name: string;
+  role: UserRole;
+  isActive: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface LoginPayload {
+export interface CreateUserPayload {
   userId: string;
+  name: string;
+  password: string;
+  role: UserRole;
+  isActive?: boolean;
+}
+
+export interface UpdateUserPayload {
+  name?: string;
+  role?: UserRole;
+  isActive?: boolean;
+}
+
+export interface ChangeUserPasswordPayload {
   password: string;
 }
 
-export interface LoginResponse {
-  message: string;
+export interface UpdateUserStatusPayload {
+  isActive: boolean;
+}
+
+export interface UsersResponse {
+  count: number;
+  users: User[];
+}
+
+export interface UserResponse {
   user: User;
 }
-// types/auth.ts
 
-export type MeResponse = {
-  user: User;
-};
+export interface ApiMessageResponse {
+  message: string;
+}

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
-export const protect = (req, res, next) => {
+export const protect = async (req, res, next) => {
   try {
     const token = req.cookies.token;
 
@@ -12,7 +13,27 @@ export const protect = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = decoded;
+    const user = await User.findById(decoded.id)
+      .select("role userId isActive")
+      .lean();
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        message: "Your account is inactive",
+      });
+    }
+
+    req.user = {
+      id: decoded.id,
+      role: user.role,
+      userId: user.userId,
+    };
 
     next();
   } catch (error) {

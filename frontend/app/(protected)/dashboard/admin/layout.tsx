@@ -15,17 +15,23 @@ export default function AdminLayout({
   const role = data?.user?.role;
 
   useEffect(() => {
-    if (!isLoading && role !== "admin") {
-      router.push("/dashboard"); // or /unauthorized
+    if (!isLoading && role !== "admin" && role !== "developer") {
+      router.replace("/dashboard/unauthorized");
     }
   }, [isLoading, role, router]);
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        Loading admin panel...
+        <p className="text-sm font-medium text-slate-600">
+          Loading admin panel...
+        </p>
       </div>
     );
+  }
+
+  if (role !== "admin" && role !== "developer") {
+    return null;
   }
 
   return <>{children}</>;
