@@ -22,8 +22,12 @@ export default function EmployeeDocumentCard({
 
     try {
       const response = await fetch(imageUrl);
-      const blob = await response.blob();
 
+      if (!response.ok) {
+        throw new Error("Failed to download document");
+      }
+
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
 
       const a = document.createElement("a");
@@ -36,8 +40,17 @@ export default function EmployeeDocumentCard({
 
       URL.revokeObjectURL(url);
     } catch {
-      window.open(imageUrl, "_blank");
+      window.open(imageUrl, "_blank", "noopener,noreferrer");
     }
+  };
+
+  const handlePreview = () => {
+    if (!imageUrl) return;
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
   };
 
   return (
@@ -45,11 +58,15 @@ export default function EmployeeDocumentCard({
       {/* Card */}
       <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
             <FileImage className="h-4 w-4" />
           </div>
+
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+            <h3 className="truncate text-sm font-semibold text-slate-800">
+              {title}
+            </h3>
+
             <p className="text-xs text-slate-500">
               {imageUrl ? "Document available" : "Not provided"}
             </p>
@@ -57,20 +74,24 @@ export default function EmployeeDocumentCard({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
+          {/* Preview */}
           <button
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={handlePreview}
             disabled={!imageUrl}
+            aria-label={`Preview ${title}`}
             className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Eye className="h-4 w-4 shrink-0" />
             <span>Preview</span>
           </button>
 
+          {/* Download */}
           <button
             type="button"
             onClick={handleDownload}
             disabled={!imageUrl}
+            aria-label={`Download ${title}`}
             className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-emerald-600 bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Download className="h-4 w-4 shrink-0" />
@@ -80,22 +101,22 @@ export default function EmployeeDocumentCard({
       </div>
 
       {/* Preview Modal */}
-      {open && (
+      {open && imageUrl && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label={`${title} preview`}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-6"
-          onClick={() => setOpen(false)}
+          onClick={handleClose}
         >
           <div
             className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-2xl sm:h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             {/* Close Button */}
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
               aria-label="Close preview"
               className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-700"
             >

@@ -11,7 +11,6 @@ import FineModal from "@/components/fine/FineModal";
 import FineConfirmModal from "@/components/fine/FineConfirmModal";
 
 import { useMe } from "@/hooks/auth/useMe";
-import { useEmployees } from "@/hooks/employee/useEmployees";
 import { useFines, useCancelFine } from "@/hooks/fine/useFine";
 
 import type { Fine, FineFilters as FineFiltersType } from "@/types/fine";
@@ -52,11 +51,6 @@ export default function FinesPage() {
     isError: finesError,
     error: finesErrorData,
   } = useFines(filters);
-
-  // Employees are still required by FineModal.
-  const { employees, loading: employeesLoading } = useEmployees({
-    status: "active",
-  });
 
   // ============================================================
   // Mutations
@@ -182,7 +176,6 @@ export default function FinesPage() {
                 ? editingFine.employee
                 : ""
           }
-          employees={employees}
           fine={editingFine}
         />
 
@@ -201,13 +194,6 @@ export default function FinesPage() {
             }
           }}
         />
-
-        {/* Employee loading for FineModal */}
-        {canEdit && employeesLoading && showForm && (
-          <div className="text-center text-xs text-gray-500">
-            Loading employees...
-          </div>
-        )}
       </main>
     </ProtectedRoute>
   );
