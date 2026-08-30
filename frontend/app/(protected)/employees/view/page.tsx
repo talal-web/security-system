@@ -9,7 +9,7 @@ import EmployeeFilters from "@/components/employees/EmployeeFilters";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 
 import { useEmployeeDirectory } from "@/hooks/employee/useEmployeeDirectory";
-import { exportEmployeesDirectory } from "@/utils/export/EmployeesDirectory";
+import { exportEmployeesDirectory } from "@/utils/export/employee/allEmployeeExport/EmployeesDirectory";
 
 export default function EmployeesPage() {
   const [exporting, setExporting] = useState(false);

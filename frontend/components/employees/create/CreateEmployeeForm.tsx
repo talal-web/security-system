@@ -363,11 +363,11 @@ export default function CreateEmployeeForm() {
                   <Input
                     icon={<Banknote />}
                     type="number"
-                    label="Basic Salary"
-                    placeholder="35000"
+                    label="Monthly Salary"
+                    placeholder="40000"
                     min={0}
-                    error={errors.basicSalary?.message}
-                    {...register("basicSalary", {
+                    error={errors.monthlySalary?.message}
+                    {...register("monthlySalary", {
                       valueAsNumber: true,
                     })}
                   />

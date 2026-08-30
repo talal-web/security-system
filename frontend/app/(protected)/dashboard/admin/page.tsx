@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock3,
+  HandCoins,
   MapPin,
   ShieldCheck,
   UserCog,
@@ -19,88 +20,150 @@ import {
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 import { useMe } from "@/hooks/auth/useMe";
 
-type DashboardActionItem = {
+type ActionItem = {
   title: string;
-  description: string;
   href: string;
   icon: React.ElementType;
-  color: "blue" | "red";
+  tone: "blue" | "red" | "slate" | "amber";
 };
 
-const userActions: DashboardActionItem[] = [
+const primaryActions: ActionItem[] = [
   {
-    title: "Manage Users",
-    description: "Create, update, deactivate, and manage system users.",
-    href: "/users",
-    icon: UserCog,
-    color: "blue",
-  },
-  {
-    title: "Add User",
-    description: "Create an account for administrators and staff.",
-    href: "/users/create",
-    icon: UserPlus,
-    color: "red",
-  },
-];
-
-const employeeActions: DashboardActionItem[] = [
-  {
-    title: "Add Employee",
-    description: "Register new security personnel and staff.",
-    href: "/employees/create",
-    icon: UserPlus,
-    color: "blue",
-  },
-  {
-    title: "View Employees",
-    description: "Manage employee records and profiles.",
-    href: "/employees/view",
-    icon: Users,
-    color: "red",
-  },
-];
-
-const attendanceActions: DashboardActionItem[] = [
-  {
-    title: "Mark Attendance",
-    description: "Manage today's employee attendance.",
+    title: "Attendance",
     href: "/attendance/session",
     icon: CheckCircle2,
-    color: "blue",
+    tone: "blue",
   },
   {
-    title: "Daily Report",
-    description: "Review today's attendance summary.",
-    href: "/attendance/daily",
-    icon: CalendarDays,
-    color: "red",
+    title: "Employees",
+    href: "/employees/view",
+    icon: Users,
+    tone: "slate",
   },
   {
-    title: "Monthly Report",
-    description: "Analyze attendance and export reports.",
-    href: "/attendance/monthly",
-    icon: BarChart3,
-    color: "blue",
+    title: "Advances",
+    href: "/advances",
+    icon: HandCoins,
+    tone: "amber",
+  },
+  {
+    title: "Users",
+    href: "/users",
+    icon: UserCog,
+    tone: "red",
   },
 ];
 
-const locationActions: DashboardActionItem[] = [
+const modules = [
   {
-    title: "View Sectors",
-    description: "Manage and view sectors.",
-    href: "/sectors/view",
-    icon: MapPin,
-    color: "blue",
+    title: "Employees",
+    icon: Users,
+    tone: "blue" as const,
+    items: [
+      {
+        label: "View Employees",
+        href: "/employees/view",
+        icon: Users,
+      },
+      {
+        label: "Add Employee",
+        href: "/employees/create",
+        icon: UserPlus,
+      },
+    ],
   },
   {
-    title: "View Locations",
-    description: "Manage sectors, locations, and deployment areas.",
-    href: "/locations/view",
-    icon: Building2,
-    color: "red",
+    title: "Attendance",
+    icon: CheckCircle2,
+    tone: "blue" as const,
+    items: [
+      {
+        label: "Attendance Session",
+        href: "/attendance/session",
+        icon: CheckCircle2,
+      },
+      {
+        label: "Daily Report",
+        href: "/attendance/daily",
+        icon: CalendarDays,
+      },
+      {
+        label: "Monthly Report",
+        href: "/attendance/monthly",
+        icon: BarChart3,
+      },
+    ],
+  },
+  {
+    title: "Advances",
+    icon: HandCoins,
+    tone: "amber" as const,
+    items: [
+      {
+        label: "Manage Advances",
+        href: "/advances",
+        icon: HandCoins,
+      },
+    ],
+  },
+  {
+    title: "Locations",
+    icon: MapPin,
+    tone: "red" as const,
+    items: [
+      {
+        label: "Sectors",
+        href: "/sectors/view",
+        icon: MapPin,
+      },
+      {
+        label: "Locations",
+        href: "/locations/view",
+        icon: Building2,
+      },
+    ],
+  },
+  {
+    title: "Administration",
+    icon: UserCog,
+    tone: "slate" as const,
+    items: [
+      {
+        label: "Manage Users",
+        href: "/users",
+        icon: UserCog,
+      },
+      {
+        label: "Add User",
+        href: "/users/create",
+        icon: UserPlus,
+      },
+    ],
   },
 ];
+
+const toneStyles = {
+  blue: {
+    icon: "bg-blue-50 text-blue-600",
+    hover: "hover:border-blue-200 hover:bg-blue-50/40",
+    dot: "bg-blue-500",
+  },
+  red: {
+    icon: "bg-red-50 text-red-600",
+    hover: "hover:border-red-200 hover:bg-red-50/40",
+    dot: "bg-red-500",
+  },
+  amber: {
+    icon: "bg-amber-50 text-amber-600",
+    hover: "hover:border-amber-200 hover:bg-amber-50/40",
+    dot: "bg-amber-500",
+  },
+  slate: {
+    icon: "bg-slate-100 text-slate-600",
+    hover: "hover:border-slate-300 hover:bg-slate-50",
+    dot: "bg-slate-500",
+  },
+};
 
 export default function AdminDashboardPage() {
   const { data, isLoading, isError } = useMe();
@@ -109,349 +172,377 @@ export default function AdminDashboardPage() {
 
   return (
     <ProtectedRoute allowedRoles={["admin", "developer"]}>
-      <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50">
-        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:space-y-8 lg:p-8">
-          {/* Header */}
-          <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="absolute inset-0 bg-linear-to-r from-blue-600/5 via-transparent to-red-500/5" />
+      <main className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-7xl space-y-4 p-3 sm:space-y-5 sm:p-5 lg:p-6">
+          {/* ====================================================== */}
+          {/* HEADER */}
+          {/* ====================================================== */}
 
-            <div className="relative p-5 sm:p-7 lg:p-8">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                <div className="min-w-0">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                     <ShieldCheck className="h-4 w-4" />
-                    Administration
                   </div>
 
-                  <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-                    Welcome back,{" "}
-                    <span className="bg-linear-to-r from-blue-600 to-red-500 bg-clip-text text-transparent">
-                      {isLoading ? "Loading..." : isError ? "Admin" : userName}
-                    </span>
-                  </h1>
-
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-                    Manage users, employees, attendance, locations, and
-                    operational records from your administration panel.
-                  </p>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Administration
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex">
-                  <Link
-                    href="/users"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-                  >
-                    <UserCog className="h-4 w-4" />
-                    Manage Users
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+                <h1 className="mt-2 truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                  Welcome,{" "}
+                  <span className="text-blue-600">
+                    {isLoading ? "Loading..." : isError ? "Admin" : userName}
+                  </span>
+                </h1>
 
-                  <Link
-                    href="/attendance/session"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                    Attendance
-                  </Link>
-                </div>
+                <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                  Manage your security operations from one place.
+                </p>
+              </div>
+
+              <div className="flex shrink-0 gap-2">
+                <Link
+                  href="/attendance/session"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Attendance
+                </Link>
+
+                <Link
+                  href="/employees/create"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  Add Employee
+                </Link>
               </div>
             </div>
           </section>
 
-          {/* Administration */}
-          <DashboardSection
-            title="Administration"
-            description="Manage system users and administrative access."
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              {userActions.map((item) => (
-                <DashboardFeatureCard
-                  key={item.title}
-                  item={item}
-                  featured={item.title === "Manage Users"}
-                />
+          {/* ====================================================== */}
+          {/* OVERVIEW */}
+          {/* ====================================================== */}
+
+          <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <OverviewCard
+              label="Employees"
+              value="—"
+              icon={Users}
+              tone="blue"
+              href="/employees/view"
+            />
+
+            <OverviewCard
+              label="Attendance"
+              value="Today"
+              icon={CheckCircle2}
+              tone="blue"
+              href="/attendance/session"
+            />
+
+            <OverviewCard
+              label="Advances"
+              value="Manage"
+              icon={HandCoins}
+              tone="amber"
+              href="/advances"
+            />
+
+            <OverviewCard
+              label="Locations"
+              value="Manage"
+              icon={MapPin}
+              tone="red"
+              href="/locations/view"
+            />
+          </section>
+
+          {/* ====================================================== */}
+          {/* PRIMARY ACTIONS */}
+          {/* ====================================================== */}
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">
+                  Quick Actions
+                </h2>
+
+                <p className="mt-0.5 text-[11px] text-slate-500">
+                  Frequently used operations
+                </p>
+              </div>
+
+              <ClipboardList className="h-4 w-4 text-slate-400" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {primaryActions.map((item) => (
+                <PrimaryAction key={item.title} item={item} />
               ))}
             </div>
-          </DashboardSection>
+          </section>
 
-          {/* Main Dashboard */}
-          <section className="grid gap-6 xl:grid-cols-12">
-            <div className="space-y-6 xl:col-span-8">
-              {/* Employees */}
-              <DashboardSection
-                title="Employee Management"
-                description="Manage security personnel, supervisors, and staff records."
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {employeeActions.map((item) => (
-                    <DashboardFeatureCard key={item.title} item={item} />
-                  ))}
-                </div>
-              </DashboardSection>
+          {/* ====================================================== */}
+          {/* MODULES + SIDEBAR */}
+          {/* ====================================================== */}
 
-              {/* Attendance */}
-              <DashboardSection
-                title="Attendance Operations"
-                description="Manage attendance sessions and operational reports."
-              >
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {attendanceActions.map((item) => (
-                    <DashboardFeatureCard key={item.title} item={item} />
-                  ))}
-                </div>
-              </DashboardSection>
-
-              {/* Locations */}
-              <DashboardSection
-                title="Location Management"
-                description="Manage sectors and employee deployment locations."
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {locationActions.map((item) => (
-                    <DashboardFeatureCard key={item.title} item={item} />
-                  ))}
-                </div>
-              </DashboardSection>
-            </div>
+          <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+            {/* Modules */}
+            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {modules.map((module) => (
+                <ModuleCard key={module.title} module={module} />
+              ))}
+            </section>
 
             {/* Sidebar */}
-            <aside className="space-y-6 xl:col-span-4">
-              {/* Quick Access */}
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
-                    <ClipboardList className="h-5 w-5" />
+            <aside className="space-y-3">
+              {/* System Status */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900">
+                      System Status
+                    </h2>
+
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      Platform services
+                    </p>
                   </div>
 
-                  <div>
-                    <h3 className="font-bold text-slate-900">Quick Access</h3>
-
-                    <p className="text-sm text-slate-500">
-                      Frequently used administration tools
-                    </p>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                    <Clock3 className="h-4 w-4" />
                   </div>
                 </div>
 
-                <div className="mt-5 space-y-2.5">
-                  <SidebarLink
-                    href="/users"
-                    label="Manage Users"
-                    icon={<UserCog className="h-5 w-5" />}
-                    primary
-                  />
-
-                  <SidebarLink
-                    href="/employees/view"
-                    label="View Employees"
-                    icon={<Users className="h-5 w-5" />}
-                  />
-
-                  <SidebarLink
-                    href="/attendance/session"
-                    label="Attendance Session"
-                    icon={<CheckCircle2 className="h-5 w-5" />}
-                  />
-
-                  <SidebarLink
-                    href="/locations/view"
-                    label="View Locations"
-                    icon={<Building2 className="h-5 w-5" />}
-                  />
-
-                  <SidebarLink
-                    href="/attendance/daily"
-                    label="Daily Report"
-                    icon={<CalendarDays className="h-5 w-5" />}
-                  />
-
-                  <SidebarLink
-                    href="/attendance/monthly"
-                    label="Monthly Report"
-                    icon={<BarChart3 className="h-5 w-5" />}
-                  />
+                <div className="mt-3 space-y-1.5">
+                  <StatusItem label="User Management" />
+                  <StatusItem label="Employee Records" />
+                  <StatusItem label="Attendance" />
+                  <StatusItem label="Locations" />
                 </div>
               </div>
 
-              {/* System Status */}
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-emerald-50 p-3 text-emerald-600">
-                    <Clock3 className="h-5 w-5" />
+              {/* Reports */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                    <BarChart3 className="h-4 w-4" />
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-slate-900">System Status</h3>
+                    <h2 className="text-sm font-bold text-slate-900">
+                      Reports
+                    </h2>
 
-                    <p className="text-sm text-slate-500">
-                      Current platform status
+                    <p className="text-[11px] text-slate-500">
+                      Review attendance data
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-5 space-y-3">
-                  <StatusItem label="User Management" status="Operational" />
+                <div className="mt-3 space-y-1.5">
+                  <CompactLink
+                    href="/attendance/daily"
+                    label="Daily Attendance"
+                    icon={CalendarDays}
+                  />
 
-                  <StatusItem label="Employee Records" status="Operational" />
-
-                  <StatusItem label="Attendance Module" status="Operational" />
-
-                  <StatusItem
-                    label="Location Management"
-                    status="Operational"
+                  <CompactLink
+                    href="/attendance/monthly"
+                    label="Monthly Attendance"
+                    icon={BarChart3}
                   />
                 </div>
               </div>
             </aside>
-          </section>
+          </div>
         </div>
       </main>
     </ProtectedRoute>
   );
 }
 
-function DashboardSection({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-5">
-        <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
-          {title}
-        </h2>
+/* ================================================================ */
+/* OVERVIEW CARD */
+/* ================================================================ */
 
-        <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
+function OverviewCard({
+  label,
+  value,
+  icon: Icon,
+  tone,
+  href,
+}: {
+  label: string;
+  value: string;
+  icon: React.ElementType;
+  tone: keyof typeof toneStyles;
+  href: string;
+}) {
+  const styles = toneStyles[tone];
+
+  return (
+    <Link
+      href={href}
+      className="group rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-4"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div
+          className={`flex h-8 w-8 items-center justify-center rounded-lg ${styles.icon}`}
+        >
+          <Icon className="h-4 w-4" />
+        </div>
+
+        <ArrowRight className="h-3.5 w-3.5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
       </div>
 
-      {children}
-    </section>
+      <p className="mt-2 text-[10px] font-medium uppercase tracking-wide text-slate-400">
+        {label}
+      </p>
+
+      <p className="mt-0.5 truncate text-sm font-bold text-slate-900 sm:text-base">
+        {value}
+      </p>
+    </Link>
   );
 }
 
-function DashboardFeatureCard({
-  item,
-  featured = false,
-}: {
-  item: DashboardActionItem;
-  featured?: boolean;
-}) {
-  const Icon = item.icon;
+/* ================================================================ */
+/* PRIMARY ACTION */
+/* ================================================================ */
 
-  const styles =
-    item.color === "blue"
-      ? {
-          gradient: "from-blue-600 to-blue-500",
-          bg: "bg-blue-50",
-          text: "text-blue-600",
-          border: "group-hover:border-blue-300",
-        }
-      : {
-          gradient: "from-red-600 to-red-500",
-          bg: "bg-red-50",
-          text: "text-red-600",
-          border: "group-hover:border-red-300",
-        };
+function PrimaryAction({ item }: { item: ActionItem }) {
+  const Icon = item.icon;
+  const styles = toneStyles[item.tone];
 
   return (
     <Link
       href={item.href}
-      className={`group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${styles.border} ${
-        featured ? "ring-1 ring-blue-100" : ""
-      }`}
+      className={`group flex items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 transition ${styles.hover}`}
     >
       <div
-        className={`absolute inset-x-0 top-0 h-1 bg-linear-to-r ${styles.gradient}`}
-      />
-
-      <div className="flex items-start justify-between gap-4">
-        <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${styles.bg}`}
-        >
-          <Icon className={`h-6 w-6 ${styles.text}`} />
-        </div>
-
-        <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-slate-600" />
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${styles.icon}`}
+      >
+        <Icon className="h-4 w-4" />
       </div>
 
-      <div className="mt-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-bold text-slate-900">{item.title}</h3>
+      <span className="min-w-0 truncate text-xs font-semibold text-slate-700">
+        {item.title}
+      </span>
 
-          {featured && (
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-600">
-              Primary
-            </span>
-          )}
-        </div>
-
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          {item.description}
-        </p>
-      </div>
+      <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
     </Link>
   );
 }
 
-function SidebarLink({
-  href,
-  label,
-  icon,
-  primary = false,
+/* ================================================================ */
+/* MODULE CARD */
+/* ================================================================ */
+
+function ModuleCard({
+  module,
 }: {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-  primary?: boolean;
+  module: {
+    title: string;
+    icon: React.ElementType;
+    tone: keyof typeof toneStyles;
+    items: {
+      label: string;
+      href: string;
+      icon: React.ElementType;
+    }[];
+  };
 }) {
+  const Icon = module.icon;
+  const styles = toneStyles[module.tone];
+
   return (
-    <Link
-      href={href}
-      className={`group flex items-center justify-between rounded-xl border px-3.5 py-3 transition-all duration-200 ${
-        primary
-          ? "border-blue-200 bg-blue-50/70 hover:border-blue-300 hover:bg-blue-50"
-          : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white hover:shadow-sm"
-      }`}
-    >
-      <div className="flex min-w-0 items-center gap-3">
+    <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+      <div className="flex items-center gap-2.5">
         <div
-          className={`rounded-lg p-2 ${
-            primary
-              ? "bg-blue-600 text-white"
-              : "bg-white text-slate-600 shadow-sm"
-          }`}
+          className={`flex h-8 w-8 items-center justify-center rounded-lg ${styles.icon}`}
         >
-          {icon}
+          <Icon className="h-4 w-4" />
         </div>
 
-        <span
-          className={`truncate text-sm font-medium ${
-            primary ? "text-blue-700" : "text-slate-700"
-          }`}
-        >
+        <h2 className="text-sm font-bold text-slate-900">{module.title}</h2>
+      </div>
+
+      <div className="mt-3 space-y-1">
+        {module.items.map((item) => {
+          const ItemIcon = item.icon;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group flex items-center gap-2 rounded-lg px-2 py-2 transition hover:bg-slate-50"
+            >
+              <ItemIcon className="h-3.5 w-3.5 shrink-0 text-slate-400 transition group-hover:text-slate-600" />
+
+              <span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-600 group-hover:text-slate-900">
+                {item.label}
+              </span>
+
+              <ArrowRight className="h-3 w-3 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================ */
+/* STATUS ITEM */
+/* ================================================================ */
+
+function StatusItem({ label }: { label: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-2.5 py-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+
+        <span className="truncate text-[11px] font-medium text-slate-600">
           {label}
         </span>
       </div>
 
-      <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-slate-700" />
-    </Link>
+      <span className="text-[9px] font-semibold text-emerald-600">Online</span>
+    </div>
   );
 }
 
-function StatusItem({ label, status }: { label: string; status: string }) {
+/* ================================================================ */
+/* COMPACT LINK */
+/* ================================================================ */
+
+function CompactLink({
+  href,
+  label,
+  icon: Icon,
+}: {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
-      <span className="truncate text-sm font-medium text-slate-700">
+    <Link
+      href={href}
+      className="group flex items-center gap-2 rounded-lg border border-slate-100 px-2.5 py-2 transition hover:border-slate-200 hover:bg-slate-50"
+    >
+      <Icon className="h-3.5 w-3.5 text-slate-400" />
+
+      <span className="flex-1 text-[11px] font-medium text-slate-600 group-hover:text-slate-900">
         {label}
       </span>
 
-      <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-        {status}
-      </span>
-    </div>
+      <ArrowRight className="h-3 w-3 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
+    </Link>
   );
 }

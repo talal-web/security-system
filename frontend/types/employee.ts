@@ -52,8 +52,6 @@ export interface Employee {
 
   currentLocation?: string | ILocation | null;
 
-  basicSalary: number;
-
   status: EmployeeStatus;
 
   defaultShift?: EmployeeShift | null;
@@ -73,6 +71,15 @@ export interface Employee {
   createdAt: string;
 
   updatedAt: string;
+}
+
+export interface EmployeeLookupResult {
+  _id: string;
+  empId: string;
+  name: string;
+  fatherName: string;
+  designation: string;
+  status: EmployeeStatus;
 }
 
 export interface EmployeeFilters {
@@ -95,6 +102,4 @@ export interface EmployeeFilters {
   entryTo?: string;
 
   hasExited?: boolean;
-
-  basicSalary?: number;
 }

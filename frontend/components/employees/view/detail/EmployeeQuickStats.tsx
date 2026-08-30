@@ -7,7 +7,7 @@ import {
 
 import StatCard from "./StatCard";
 
-import { Employee } from "@/types/employee";
+import type { Employee } from "@/types/employee";
 import { formatText } from "@/utils/employee/employeeFormat";
 import { formatSectorName } from "@/utils/formatSectorName";
 
@@ -21,21 +21,26 @@ export default function EmployeeQuickStats({ employee }: Props) {
       ? employee.currentLocation
       : employee.currentLocation?.name;
 
+  const sector =
+    typeof employee.sector === "string"
+      ? formatSectorName(employee.sector)
+      : employee.sector?.name
+        ? employee.sector.name
+        : undefined;
+
   return (
     <section className="border-b border-slate-200 bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="grid md:grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 lg:gap-4">
         <StatCard
           title="Current Location"
-          value={location}
+          value={location || "—"}
           icon={<MapPin className="h-5 w-5" />}
           iconBg="bg-blue-600"
         />
 
         <StatCard
           title="Sector"
-          value={
-            employee.sector ? formatSectorName(employee.sector) : undefined
-          }
+          value={sector || "—"}
           icon={<Building2 className="h-5 w-5" />}
           iconBg="bg-indigo-600"
         />

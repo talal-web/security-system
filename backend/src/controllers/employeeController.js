@@ -1,9 +1,16 @@
 import Employee from "../models/Employee.js";
+import EmployeeSalary from "../models/EmployeeSalary.js";
 import Location from "../models/Location.js";
 import mongoose from "mongoose";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 import generateEmpId from "../utils/generateEmpId.js";
 import { normalizeCnic, normalizePhone } from "../utils/normalize.js";
+
+// First day (UTC) of the month containing the given date.
+const firstDayOfMonthUTC = (date) => {
+  const d = new Date(date);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+};
 
 // ======================================
 // CREATE EMPLOYEE
@@ -21,7 +28,7 @@ export const createEmployee = async (req, res, next) => {
       phone2,
       education,
       designation,
-      basicSalary,
+      monthlySalary,
       reference,
       sector,
       status,
@@ -42,6 +49,26 @@ export const createEmployee = async (req, res, next) => {
     ) {
       res.status(400);
       throw new Error("Required fields are missing");
+    }
+
+    // =========================
+    // Validate Initial Salary
+    // =========================
+    // EmployeeSalary is the source of truth for salary, so a valid
+    // monthlySalary is required to create the initial salary record.
+    const initialSalary = Number(monthlySalary);
+
+    if (
+      monthlySalary === undefined ||
+      monthlySalary === null ||
+      monthlySalary === "" ||
+      !Number.isFinite(initialSalary) ||
+      initialSalary < 0
+    ) {
+      res.status(400);
+      throw new Error(
+        "A valid monthlySalary is required to create an employee",
+      );
     }
 
     // =========================
@@ -93,43 +120,75 @@ export const createEmployee = async (req, res, next) => {
     }
 
     // =========================
-    // Create Employee
+    // Create Employee + Initial Salary (transactional)
     // =========================
-    const employee = await Employee.create({
-      empId,
+    const session = await mongoose.startSession();
+    let employee;
 
-      name,
-      fatherName,
-      birthDate,
+    try {
+      await session.withTransaction(async () => {
+        const [createdEmployee] = await Employee.create(
+          [
+            {
+              empId,
 
-      cnic: cleanedCnic,
-      address,
+              name,
+              fatherName,
+              birthDate,
 
-      phone1: cleanedPhone1,
-      phone2: cleanedPhone2,
+              cnic: cleanedCnic,
+              address,
 
-      education,
-      designation,
+              phone1: cleanedPhone1,
+              phone2: cleanedPhone2,
 
-      basicSalary,
-      reference,
-      sector,
+              education,
+              designation,
 
-      status: status || "active",
+              reference,
+              sector,
 
-      defaultShift: defaultShift || null,
+              status: status || "active",
 
-      entryDate,
-      exitDate,
+              defaultShift: defaultShift || null,
 
-      notes,
+              entryDate,
+              exitDate,
 
-      profileImage,
-      cnicFrontImage,
-      cnicBackImage,
+              notes,
 
-      ...(currentLocation?.trim() ? { currentLocation } : {}),
-    });
+              profileImage,
+              cnicFrontImage,
+              cnicBackImage,
+
+              ...(currentLocation?.trim() ? { currentLocation } : {}),
+            },
+          ],
+          { session },
+        );
+
+        const effectiveFrom = firstDayOfMonthUTC(
+          createdEmployee.entryDate || new Date(),
+        );
+
+        await EmployeeSalary.create(
+          [
+            {
+              employee: createdEmployee._id,
+              monthlySalary: initialSalary,
+              effectiveFrom,
+              reason: "initial_salary",
+              createdBy: req.user.id,
+            },
+          ],
+          { session },
+        );
+
+        employee = createdEmployee;
+      });
+    } finally {
+      await session.endSession();
+    }
 
     res.status(201).json({
       success: true,
@@ -159,7 +218,6 @@ export const getEmployees = async (req, res, next) => {
     const entryFrom = normalizeQueryValue(req.query.entryFrom);
     const entryTo = normalizeQueryValue(req.query.entryTo);
     const hasExited = normalizeQueryValue(req.query.hasExited);
-    const basicSalary = normalizeQueryValue(req.query.basicSalary);
     const defaultShift = normalizeQueryValue(req.query.defaultShift);
     const unassigned = normalizeQueryValue(req.query.unassigned);
 
@@ -305,14 +363,6 @@ export const getEmployees = async (req, res, next) => {
     }
 
     // ======================
-    // BASIC SALARY
-    // ======================
-
-    if (basicSalary) {
-      filter.basicSalary = Number(basicSalary);
-    }
-
-    // ======================
     // COMBINE FILTERS
     // ======================
 
@@ -325,6 +375,7 @@ export const getEmployees = async (req, res, next) => {
     // ======================
 
     const employees = await Employee.find(filter)
+      .populate("sector", "name code")
       .populate("currentLocation", "name")
       .sort({ empId: 1 });
 
@@ -332,6 +383,44 @@ export const getEmployees = async (req, res, next) => {
       success: true,
       count: employees.length,
       data: employees,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ======================================
+// LOOKUP EMPLOYEE BY EMPID
+// ======================================
+
+export const lookupEmployee = async (req, res, next) => {
+  try {
+    const { empId } = req.query;
+
+    if (!empId || typeof empId !== "string" || !empId.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Employee ID (empId) is required",
+      });
+    }
+
+    const trimmedEmpId = empId.trim();
+    const escaped = trimmedEmpId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const employee = await Employee.findOne({
+      empId: { $regex: `^${escaped}$`, $options: "i" },
+    }).select("_id empId name fatherName designation status");
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: employee,
     });
   } catch (error) {
     next(error);
@@ -421,7 +510,6 @@ export const updateEmployee = async (req, res, next) => {
       "reference",
       "sector",
       "defaultShift",
-      "basicSalary",
       "status",
       "entryDate",
       "exitDate",
@@ -435,11 +523,6 @@ export const updateEmployee = async (req, res, next) => {
 
       if (nullableFields.includes(field) && req.body[field] === "") {
         employee[field] = null;
-        continue;
-      }
-
-      if (field === "basicSalary") {
-        employee[field] = Number(req.body[field]) || 0;
         continue;
       }
 

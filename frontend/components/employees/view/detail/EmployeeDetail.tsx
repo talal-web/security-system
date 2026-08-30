@@ -15,7 +15,6 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
-  Banknote,
   User,
 } from "lucide-react";
 
@@ -133,16 +132,6 @@ export default function EmployeeDetail({ employee }: Props) {
                   icon={<GraduationCap className="h-5 w-5" />}
                   label="Education"
                   value={formatText(employee.education ?? undefined)}
-                />
-
-                <InfoCard
-                  icon={<Banknote className="h-5 w-5" />}
-                  label="Basic Salary"
-                  value={
-                    employee.basicSalary
-                      ? `Rs. ${employee.basicSalary.toLocaleString()}`
-                      : undefined
-                  }
                 />
 
                 <InfoCard

@@ -58,7 +58,9 @@ export const employeeSchema = z.object({
 
   exitDate: z.string().optional(),
 
-  basicSalary: z.coerce.number().min(0).optional(),
+  monthlySalary: z.coerce
+    .number({ error: "Monthly salary is required" })
+    .min(0, "Monthly salary must be 0 or greater"),
 
   reference: z.string().optional(),
 });

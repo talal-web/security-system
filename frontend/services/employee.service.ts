@@ -1,6 +1,26 @@
 import api from "@/lib/axios";
-import { Employee, EmployeeFilters } from "@/types/employee";
+import {
+  Employee,
+  EmployeeFilters,
+  EmployeeLookupResult,
+} from "@/types/employee";
 import { getApiErrorMessage } from "@/lib/apiError";
+
+export async function lookupEmployee(
+  empId: string,
+): Promise<EmployeeLookupResult> {
+  try {
+    const res = await api.get("/employees/lookup", {
+      params: { empId },
+    });
+
+    return res.data.data;
+  } catch (error) {
+    const message = getApiErrorMessage(error);
+
+    throw new Error(message);
+  }
+}
 
 export async function getEmployees(
   filters?: EmployeeFilters,

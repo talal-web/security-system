@@ -31,7 +31,9 @@ export default function EmployeeDetailPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["developer", "admin", "clerk"]}>
+    <ProtectedRoute
+      allowedRoles={["developer", "admin", "clerk", "supervisor"]}
+    >
       <main className="min-h-screen bg-slate-50 px-4 py-6">
         <EmployeeDetail employee={employee} />
       </main>

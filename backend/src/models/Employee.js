@@ -103,6 +103,8 @@ const employeeSchema = new mongoose.Schema(
       enum: ["active", "inactive"],
       default: "active",
     },
+    // Legacy field retained for migration safety only.
+    // Active salary logic must use EmployeeSalary instead.
     basicSalary: {
       type: Number,
       default: 0,

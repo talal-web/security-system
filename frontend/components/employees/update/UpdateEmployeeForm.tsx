@@ -28,7 +28,6 @@ import {
   CreditCard,
   Save,
   BadgeCheck,
-  Banknote,
   BriefcaseBusiness,
   Cake,
   Clock3,
@@ -67,8 +66,6 @@ type FormValues = {
 
   entryDate: string;
   exitDate: string;
-
-  basicSalary: number;
 };
 
 type Props = {
@@ -93,16 +90,6 @@ const normalizeDate = (date?: string | Date | null): string => {
   }
 
   return date.split("T")[0];
-};
-
-const normalizeNumber = (value: unknown): number => {
-  if (value === "" || value === null || value === undefined) {
-    return 0;
-  }
-
-  const number = Number(value);
-
-  return Number.isFinite(number) ? number : 0;
 };
 
 const getCurrentLocationId = (
@@ -134,7 +121,6 @@ const getEmployeeFormValues = (employee: Employee): FormValues => ({
   status: employee.status || "active",
   entryDate: normalizeDate(employee.entryDate),
   exitDate: normalizeDate(employee.exitDate),
-  basicSalary: normalizeNumber(employee.basicSalary),
 });
 
 export default function UpdateEmployeeForm({ employee }: Props) {
@@ -299,7 +285,6 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     }
 
     const exitDate = values.status === "active" ? "" : values.exitDate;
-    const basicSalary = normalizeNumber(values.basicSalary);
 
     const data = new FormData();
 
@@ -319,7 +304,6 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     data.append("status", values.status);
     data.append("entryDate", values.entryDate);
     data.append("exitDate", exitDate);
-    data.append("basicSalary", String(basicSalary));
 
     if (profileImage) {
       data.append("profileImage", profileImage);
@@ -505,17 +489,6 @@ export default function UpdateEmployeeForm({ employee }: Props) {
           placeholder="Select Shift"
           options={shiftOptions}
           {...register("defaultShift")}
-        />
-
-        <Input
-          icon={<Banknote />}
-          type="number"
-          min="0"
-          step="1"
-          label="Basic Salary"
-          {...register("basicSalary", {
-            setValueAs: (value) => (value === "" ? 0 : normalizeNumber(value)),
-          })}
         />
 
         <Input

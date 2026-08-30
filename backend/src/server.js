@@ -14,6 +14,8 @@ import locationRoutes from "./routes/locationRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import sectorRoutes from "./routes/sectorRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import employeeSalaryRoutes from "./routes/employeeSalaryRoutes.js";
+import advanceRoutes from "./routes/advanceRoutes.js";
 
 import morganMiddleware from "./middleware/morganMiddleware.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -96,6 +98,8 @@ app.use("/api/locations", protect, locationRoutes);
 app.use("/api/sectors", protect, sectorRoutes);
 app.use("/api/attendance", protect, attendanceRoutes);
 app.use("/api/upload", protect, uploadRoutes);
+app.use("/api/employee-salaries", protect, employeeSalaryRoutes);
+app.use("/api/advances", protect, advanceRoutes);
 
 // Health check routes
 app.get("/", (req, res) => {
