@@ -8,6 +8,7 @@ import {
   Landmark,
   Pencil,
   WalletCards,
+  ReceiptText,
 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -29,6 +30,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
   const canEditEmployee = ["developer", "admin", "clerk"].includes(role ?? "");
 
   const [financeOpen, setFinanceOpen] = useState(false);
+
   const financeMenuId = useId();
   const financeRef = useRef<HTMLDivElement>(null);
 
@@ -86,6 +88,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
               role="menu"
               className="absolute right-0 z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
             >
+              {/* Salary */}
               <Link
                 href={`/employees/${employee._id}/salary`}
                 onClick={() => setFinanceOpen(false)}
@@ -96,6 +99,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
                 Salary
               </Link>
 
+              {/* Advances */}
               <Link
                 href={`/employees/${employee._id}/advances`}
                 onClick={() => setFinanceOpen(false)}
@@ -106,6 +110,18 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
                 Advances
               </Link>
 
+              {/* Deductions */}
+              <Link
+                href={`/employees/${employee._id}/deductions`}
+                onClick={() => setFinanceOpen(false)}
+                role="menuitem"
+                className="flex h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+              >
+                <ReceiptText className="h-4 w-4 text-slate-500" />
+                Deductions
+              </Link>
+
+              {/* Fines */}
               <Link
                 href={`/employees/${employee._id}/fines`}
                 onClick={() => setFinanceOpen(false)}
