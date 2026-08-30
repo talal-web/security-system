@@ -17,7 +17,7 @@ export type EmployeeFormValues = {
   sector?: string | "";
   currentLocation?: string;
   defaultShift?: EmployeeShift | "";
-  basicSalary?: number;
+  monthlySalary: number;
   reference: string;
   status: "active" | "inactive";
   entryDate: string;
@@ -37,7 +37,7 @@ export const defaultEmployeeValues: EmployeeFormValues = {
   defaultShift: "",
   sector: "",
   currentLocation: "",
-  basicSalary: 22000,
+  monthlySalary: 22000,
   reference: "",
   status: "active",
   entryDate: "",

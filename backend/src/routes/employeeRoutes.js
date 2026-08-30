@@ -5,6 +5,7 @@ import express from "express";
 import {
   createEmployee,
   getEmployees,
+  lookupEmployee,
   getEmployeeById,
   updateEmployee,
   deleteEmployee,
@@ -46,6 +47,13 @@ router.get(
   "/",
   authorizeRoles("developer", "admin", "clerk", "supervisor"),
   getEmployees,
+);
+
+// LOOKUP BY EMPID
+router.get(
+  "/lookup",
+  authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  lookupEmployee,
 );
 
 // GET SINGLE
