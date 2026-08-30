@@ -1,4 +1,4 @@
-import { BadgeCheck, Circle } from "lucide-react";
+import { Circle } from "lucide-react";
 import { formatText } from "@/utils/employee/employeeFormat";
 
 interface StatusBadgeProps {
@@ -14,10 +14,10 @@ export default function StatusBadge({
 
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold backdrop-blur-md transition-all duration-300 sm:px-4 sm:text-sm ${
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold ${
         isActive
-          ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-300"
-          : "border-red-400/20 bg-red-500/15 text-red-300"
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+          : "border-red-200 bg-red-50 text-red-700"
       } ${className}`}
     >
       <Circle
@@ -25,8 +25,6 @@ export default function StatusBadge({
           isActive ? "text-emerald-400" : "text-red-400"
         }`}
       />
-
-      <BadgeCheck className="h-4 w-4" />
 
       <span>{formatText(status)}</span>
     </div>

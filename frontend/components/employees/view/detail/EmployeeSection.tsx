@@ -12,11 +12,11 @@ export default function EmployeeSection({
   children,
 }: EmployeeSectionProps) {
   return (
-    <section className="rounded-3xl border border-slate-200 bg-slate-50/50 p-5 sm:p-6">
-      <div className="mb-6 flex items-center gap-3">
-        <div className={`h-8 w-1 rounded-full ${color}`} />
+    <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+      <div className="mb-4 flex items-center gap-2.5">
+        <div className={`h-5 w-1 rounded-full ${color}`} />
 
-        <h2 className="text-lg font-bold text-slate-900 sm:text-xl">{title}</h2>
+        <h2 className="text-base font-semibold text-slate-900">{title}</h2>
       </div>
 
       {children}

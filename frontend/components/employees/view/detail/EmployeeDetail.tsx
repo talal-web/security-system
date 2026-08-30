@@ -34,8 +34,8 @@ export default function EmployeeDetail({ employee }: Props) {
   const age = calculateAge(employee.birthDate);
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-0 py-3 sm:px-2 sm:py-4 lg:px-6">
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl sm:rounded-3xl">
+    <div className="mx-auto w-full max-w-7xl py-1 sm:py-2">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         {/* Header */}
         <EmployeeHeader employee={employee} />
 
@@ -43,8 +43,8 @@ export default function EmployeeDetail({ employee }: Props) {
         <EmployeeQuickStats employee={employee} />
 
         {/* Details */}
-        <div className="p-2 sm:p-5 lg:p-7">
-          <div className="space-y-6 lg:space-y-8">
+        <div className="p-4 sm:p-5 lg:p-6">
+          <div className="space-y-4 sm:space-y-5">
             {/* ================= PERSONAL ================= */}
             <EmployeeSection title="Personal Information" color="bg-orange-500">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -141,6 +141,12 @@ export default function EmployeeDetail({ employee }: Props) {
                 />
 
                 <InfoCard
+                  icon={<Clock3 className="h-5 w-5" />}
+                  label="Default Shift"
+                  value={formatText(employee.defaultShift ?? undefined)}
+                />
+
+                <InfoCard
                   icon={<CalendarDays className="h-5 w-5" />}
                   label="Entry Date"
                   value={formatDate(employee.entryDate)}
@@ -183,8 +189,8 @@ export default function EmployeeDetail({ employee }: Props) {
             {/* ================= NOTES ================= */}
             {employee.notes && (
               <EmployeeSection title="Additional Notes" color="bg-slate-900">
-                <div className="rounded-xl border border-slate-200 bg-white p-4 sm:rounded-2xl sm:p-5">
-                  <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700 sm:leading-7">
+                <div className="rounded-lg border border-slate-200 bg-white p-3">
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
                     {employee.notes}
                   </p>
                 </div>

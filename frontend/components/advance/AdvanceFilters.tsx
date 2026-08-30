@@ -2,7 +2,7 @@
 
 import { CalendarDays, Search, ShieldCheck, X } from "lucide-react";
 
-import { getDefaultAdvanceFromDate } from "@/utils/advance/getDefaultAdvanceFromDate";
+import { getDefaultFromDate } from "@/utils/date/getDefaultFilerDate";
 
 import type {
   AdvanceFilters as AdvanceFilterValues,
@@ -20,7 +20,7 @@ export default function AdvanceFilters({
 }: AdvanceFiltersProps) {
   const hasFilters = Object.values(filters).some(Boolean);
 
-  const defaultFromDate = filters.fromDate ?? getDefaultAdvanceFromDate();
+  const defaultFromDate = filters.fromDate ?? getDefaultFromDate();
 
   const updateFilter = (key: keyof AdvanceFilterValues, value: string) => {
     onChange({
@@ -31,7 +31,7 @@ export default function AdvanceFilters({
 
   const clearFilters = () => {
     onChange({
-      fromDate: getDefaultAdvanceFromDate(),
+      fromDate: getDefaultFromDate(),
     });
   };
 

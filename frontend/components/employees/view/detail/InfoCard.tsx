@@ -17,11 +17,11 @@ export default function InfoCard({
 }: InfoCardProps) {
   return (
     <div
-      className={`group flex h-full gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md sm:gap-4 sm:rounded-2xl sm:p-4 lg:p-5 ${className}`}
+      className={`flex h-full gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm ${className}`}
     >
       {/* Icon */}
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition-transform duration-300 group-hover:scale-105 sm:h-11 sm:w-11 sm:rounded-2xl lg:h-12 lg:w-12">
-        <div className="h-4 w-4 sm:h-5 sm:w-5">{icon}</div>
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+        <div className="h-4 w-4">{icon}</div>
       </div>
 
       {/* Content */}
@@ -32,14 +32,12 @@ export default function InfoCard({
 
         <div
           className={`mt-1.5 text-sm font-semibold text-slate-900 sm:mt-2 sm:text-[15px] ${
-            large
-              ? "wrap-break whitespace-pre-wrap leading-6 sm:leading-7"
-              : "truncate"
+            large ? "whitespace-pre-wrap leading-6" : "truncate"
           }`}
         >
           {value ?? (
             <span className="font-normal text-sm text-slate-400">
-              Not Provided
+              Not provided
             </span>
           )}
         </div>

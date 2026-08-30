@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock3,
+  FileWarning,
   HandCoins,
   MapPin,
   ShieldCheck,
@@ -20,45 +21,85 @@ import {
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 import { useMe } from "@/hooks/auth/useMe";
 
+type Tone = "blue" | "red" | "slate" | "amber" | "emerald";
+
 type ActionItem = {
   title: string;
+  description: string;
   href: string;
   icon: React.ElementType;
-  tone: "blue" | "red" | "slate" | "amber";
+  tone: Tone;
 };
 
 const primaryActions: ActionItem[] = [
   {
-    title: "Attendance",
-    href: "/attendance/session",
-    icon: CheckCircle2,
+    title: "Manage Users",
+    description: "System access & roles",
+    href: "/users",
+    icon: UserCog,
     tone: "blue",
   },
   {
-    title: "Employees",
+    title: "Manage Employees",
+    description: "Employee records",
     href: "/employees/view",
     icon: Users,
     tone: "slate",
   },
   {
-    title: "Advances",
+    title: "Manage Advances",
+    description: "Employee advances",
     href: "/advances",
     icon: HandCoins,
     tone: "amber",
   },
   {
-    title: "Users",
-    href: "/users",
-    icon: UserCog,
+    title: "Manage Fines",
+    description: "Employee fines",
+    href: "/fines",
+    icon: FileWarning,
     tone: "red",
+  },
+  {
+    title: "Manage Sectors",
+    description: "Security sectors",
+    href: "/sectors/view",
+    icon: MapPin,
+    tone: "emerald",
+  },
+  {
+    title: "Manage Locations",
+    description: "Security locations",
+    href: "/locations/view",
+    icon: Building2,
+    tone: "blue",
   },
 ];
 
 const modules = [
   {
-    title: "Employees",
-    icon: Users,
+    title: "Users",
+    description: "Manage system access",
+    icon: UserCog,
     tone: "blue" as const,
+    items: [
+      {
+        label: "View Users",
+        href: "/users",
+        icon: UserCog,
+      },
+      {
+        label: "Add User",
+        href: "/users/create",
+        icon: UserPlus,
+      },
+    ],
+  },
+  {
+    title: "Employees",
+    description: "Manage employee records",
+    icon: Users,
+    tone: "slate" as const,
     items: [
       {
         label: "View Employees",
@@ -73,29 +114,8 @@ const modules = [
     ],
   },
   {
-    title: "Attendance",
-    icon: CheckCircle2,
-    tone: "blue" as const,
-    items: [
-      {
-        label: "Attendance Session",
-        href: "/attendance/session",
-        icon: CheckCircle2,
-      },
-      {
-        label: "Daily Report",
-        href: "/attendance/daily",
-        icon: CalendarDays,
-      },
-      {
-        label: "Monthly Report",
-        href: "/attendance/monthly",
-        icon: BarChart3,
-      },
-    ],
-  },
-  {
     title: "Advances",
+    description: "Manage employee advances",
     icon: HandCoins,
     tone: "amber" as const,
     items: [
@@ -107,36 +127,41 @@ const modules = [
     ],
   },
   {
-    title: "Locations",
-    icon: MapPin,
+    title: "Fines",
+    description: "Manage employee fines",
+    icon: FileWarning,
     tone: "red" as const,
     items: [
       {
-        label: "Sectors",
-        href: "/sectors/view",
-        icon: MapPin,
-      },
-      {
-        label: "Locations",
-        href: "/locations/view",
-        icon: Building2,
+        label: "Manage Fines",
+        href: "/fines",
+        icon: FileWarning,
       },
     ],
   },
   {
-    title: "Administration",
-    icon: UserCog,
-    tone: "slate" as const,
+    title: "Sectors",
+    description: "Manage security sectors",
+    icon: MapPin,
+    tone: "emerald" as const,
     items: [
       {
-        label: "Manage Users",
-        href: "/users",
-        icon: UserCog,
+        label: "View Sectors",
+        href: "/sectors/view",
+        icon: MapPin,
       },
+    ],
+  },
+  {
+    title: "Locations",
+    description: "Manage security locations",
+    icon: Building2,
+    tone: "blue" as const,
+    items: [
       {
-        label: "Add User",
-        href: "/users/create",
-        icon: UserPlus,
+        label: "View Locations",
+        href: "/locations/view",
+        icon: Building2,
       },
     ],
   },
@@ -145,23 +170,33 @@ const modules = [
 const toneStyles = {
   blue: {
     icon: "bg-blue-50 text-blue-600",
+    soft: "bg-blue-50/60",
     hover: "hover:border-blue-200 hover:bg-blue-50/40",
     dot: "bg-blue-500",
   },
   red: {
     icon: "bg-red-50 text-red-600",
+    soft: "bg-red-50/60",
     hover: "hover:border-red-200 hover:bg-red-50/40",
     dot: "bg-red-500",
   },
   amber: {
     icon: "bg-amber-50 text-amber-600",
+    soft: "bg-amber-50/60",
     hover: "hover:border-amber-200 hover:bg-amber-50/40",
     dot: "bg-amber-500",
   },
   slate: {
     icon: "bg-slate-100 text-slate-600",
+    soft: "bg-slate-50",
     hover: "hover:border-slate-300 hover:bg-slate-50",
     dot: "bg-slate-500",
+  },
+  emerald: {
+    icon: "bg-emerald-50 text-emerald-600",
+    soft: "bg-emerald-50/60",
+    hover: "hover:border-emerald-200 hover:bg-emerald-50/40",
+    dot: "bg-emerald-500",
   },
 };
 
@@ -182,7 +217,7 @@ export default function AdminDashboardPage() {
             <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                     <ShieldCheck className="h-4 w-4" />
                   </div>
 
@@ -199,66 +234,98 @@ export default function AdminDashboardPage() {
                 </h1>
 
                 <p className="mt-1 text-xs text-slate-500 sm:text-sm">
-                  Manage your security operations from one place.
+                  Manage users, employees, finances, and security operations.
                 </p>
               </div>
 
               <div className="flex shrink-0 gap-2">
                 <Link
-                  href="/attendance/session"
+                  href="/users"
                   className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
                 >
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Attendance
+                  <UserCog className="h-3.5 w-3.5" />
+                  Manage Users
                 </Link>
 
                 <Link
-                  href="/employees/create"
+                  href="/attendance/monthly"
                   className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
-                  <UserPlus className="h-3.5 w-3.5" />
-                  Add Employee
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  Monthly Report
                 </Link>
               </div>
             </div>
           </section>
 
           {/* ====================================================== */}
-          {/* OVERVIEW */}
+          {/* ADMIN OVERVIEW */}
           {/* ====================================================== */}
 
-          <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <OverviewCard
-              label="Employees"
-              value="—"
-              icon={Users}
-              tone="blue"
-              href="/employees/view"
-            />
+          <section>
+            <div className="mb-2.5 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">
+                  Administration Overview
+                </h2>
 
-            <OverviewCard
-              label="Attendance"
-              value="Today"
-              icon={CheckCircle2}
-              tone="blue"
-              href="/attendance/session"
-            />
+                <p className="mt-0.5 text-[11px] text-slate-500">
+                  Quick access to core management areas
+                </p>
+              </div>
 
-            <OverviewCard
-              label="Advances"
-              value="Manage"
-              icon={HandCoins}
-              tone="amber"
-              href="/advances"
-            />
+              <ShieldCheck className="h-4 w-4 text-slate-400" />
+            </div>
 
-            <OverviewCard
-              label="Locations"
-              value="Manage"
-              icon={MapPin}
-              tone="red"
-              href="/locations/view"
-            />
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+              <OverviewCard
+                label="Users"
+                value="Manage"
+                icon={UserCog}
+                tone="blue"
+                href="/users"
+              />
+
+              <OverviewCard
+                label="Employees"
+                value="Manage"
+                icon={Users}
+                tone="slate"
+                href="/employees/view"
+              />
+
+              <OverviewCard
+                label="Advances"
+                value="Manage"
+                icon={HandCoins}
+                tone="amber"
+                href="/advances"
+              />
+
+              <OverviewCard
+                label="Fines"
+                value="Manage"
+                icon={FileWarning}
+                tone="red"
+                href="/fines"
+              />
+
+              <OverviewCard
+                label="Sectors"
+                value="Manage"
+                icon={MapPin}
+                tone="emerald"
+                href="/sectors/view"
+              />
+
+              <OverviewCard
+                label="Locations"
+                value="Manage"
+                icon={Building2}
+                tone="blue"
+                href="/locations/view"
+              />
+            </div>
           </section>
 
           {/* ====================================================== */}
@@ -269,18 +336,18 @@ export default function AdminDashboardPage() {
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-bold text-slate-900">
-                  Quick Actions
+                  Primary Actions
                 </h2>
 
                 <p className="mt-0.5 text-[11px] text-slate-500">
-                  Frequently used operations
+                  Access the most important administration modules
                 </p>
               </div>
 
               <ClipboardList className="h-4 w-4 text-slate-400" />
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {primaryActions.map((item) => (
                 <PrimaryAction key={item.title} item={item} />
               ))}
@@ -288,20 +355,39 @@ export default function AdminDashboardPage() {
           </section>
 
           {/* ====================================================== */}
-          {/* MODULES + SIDEBAR */}
+          {/* MAIN CONTENT + SIDEBAR */}
           {/* ====================================================== */}
 
           <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-            {/* Modules */}
-            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {modules.map((module) => (
-                <ModuleCard key={module.title} module={module} />
-              ))}
+            {/* ================================================== */}
+            {/* MANAGEMENT MODULES */}
+            {/* ================================================== */}
+
+            <section>
+              <div className="mb-3">
+                <h2 className="text-sm font-bold text-slate-900">Management</h2>
+
+                <p className="mt-0.5 text-[11px] text-slate-500">
+                  Manage the main areas of the security system
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {modules.map((module) => (
+                  <ModuleCard key={module.title} module={module} />
+                ))}
+              </div>
             </section>
 
-            {/* Sidebar */}
+            {/* ================================================== */}
+            {/* SIDEBAR */}
+            {/* ================================================== */}
+
             <aside className="space-y-3">
-              {/* System Status */}
+              {/* ================================================ */}
+              {/* SYSTEM STATUS */}
+              {/* ================================================ */}
+
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
@@ -322,40 +408,86 @@ export default function AdminDashboardPage() {
                 <div className="mt-3 space-y-1.5">
                   <StatusItem label="User Management" />
                   <StatusItem label="Employee Records" />
-                  <StatusItem label="Attendance" />
+                  <StatusItem label="Advances" />
+                  <StatusItem label="Fines" />
                   <StatusItem label="Locations" />
                 </div>
               </div>
 
-              {/* Reports */}
+              {/* ================================================ */}
+              {/* ATTENDANCE */}
+              {/* ================================================ */}
+
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                    <BarChart3 className="h-4 w-4" />
+                    <CheckCircle2 className="h-4 w-4" />
                   </div>
 
                   <div>
                     <h2 className="text-sm font-bold text-slate-900">
-                      Reports
+                      Attendance
                     </h2>
 
                     <p className="text-[11px] text-slate-500">
-                      Review attendance data
+                      Operations & reports
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-3 space-y-1.5">
                   <CompactLink
+                    href="/attendance/session"
+                    label="Attendance Session"
+                    icon={CheckCircle2}
+                  />
+
+                  <CompactLink
                     href="/attendance/daily"
-                    label="Daily Attendance"
+                    label="Daily Report"
                     icon={CalendarDays}
                   />
 
                   <CompactLink
                     href="/attendance/monthly"
-                    label="Monthly Attendance"
+                    label="Monthly Report"
                     icon={BarChart3}
+                  />
+                </div>
+              </div>
+
+              {/* ================================================ */}
+              {/* QUICK ADMIN */}
+              {/* ================================================ */}
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                    <UserPlus className="h-4 w-4" />
+                  </div>
+
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900">
+                      Quick Admin
+                    </h2>
+
+                    <p className="text-[11px] text-slate-500">
+                      Common creation actions
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 space-y-1.5">
+                  <CompactLink
+                    href="/users/create"
+                    label="Add User"
+                    icon={UserPlus}
+                  />
+
+                  <CompactLink
+                    href="/employees/create"
+                    label="Add Employee"
+                    icon={UserPlus}
                   />
                 </div>
               </div>
@@ -389,7 +521,7 @@ function OverviewCard({
   return (
     <Link
       href={href}
-      className="group rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-4"
+      className="group rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3.5"
     >
       <div className="flex items-center justify-between gap-2">
         <div
@@ -405,7 +537,7 @@ function OverviewCard({
         {label}
       </p>
 
-      <p className="mt-0.5 truncate text-sm font-bold text-slate-900 sm:text-base">
+      <p className="mt-0.5 truncate text-sm font-bold text-slate-900">
         {value}
       </p>
     </Link>
@@ -423,19 +555,25 @@ function PrimaryAction({ item }: { item: ActionItem }) {
   return (
     <Link
       href={item.href}
-      className={`group flex items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 transition ${styles.hover}`}
+      className={`group flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-3 transition ${styles.hover}`}
     >
       <div
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${styles.icon}`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${styles.icon}`}
       >
         <Icon className="h-4 w-4" />
       </div>
 
-      <span className="min-w-0 truncate text-xs font-semibold text-slate-700">
-        {item.title}
-      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-bold text-slate-800">
+          {item.title}
+        </p>
 
-      <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
+        <p className="mt-0.5 truncate text-[10px] text-slate-400">
+          {item.description}
+        </p>
+      </div>
+
+      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
     </Link>
   );
 }
@@ -449,6 +587,7 @@ function ModuleCard({
 }: {
   module: {
     title: string;
+    description: string;
     icon: React.ElementType;
     tone: keyof typeof toneStyles;
     items: {
@@ -462,15 +601,23 @@ function ModuleCard({
   const styles = toneStyles[module.tone];
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm transition hover:shadow-md">
       <div className="flex items-center gap-2.5">
         <div
-          className={`flex h-8 w-8 items-center justify-center rounded-lg ${styles.icon}`}
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${styles.icon}`}
         >
           <Icon className="h-4 w-4" />
         </div>
 
-        <h2 className="text-sm font-bold text-slate-900">{module.title}</h2>
+        <div className="min-w-0">
+          <h2 className="truncate text-sm font-bold text-slate-900">
+            {module.title}
+          </h2>
+
+          <p className="mt-0.5 truncate text-[10px] text-slate-400">
+            {module.description}
+          </p>
+        </div>
       </div>
 
       <div className="mt-3 space-y-1">
@@ -536,9 +683,9 @@ function CompactLink({
       href={href}
       className="group flex items-center gap-2 rounded-lg border border-slate-100 px-2.5 py-2 transition hover:border-slate-200 hover:bg-slate-50"
     >
-      <Icon className="h-3.5 w-3.5 text-slate-400" />
+      <Icon className="h-3.5 w-3.5 text-slate-400 transition group-hover:text-slate-600" />
 
-      <span className="flex-1 text-[11px] font-medium text-slate-600 group-hover:text-slate-900">
+      <span className="flex-1 truncate text-[11px] font-medium text-slate-600 group-hover:text-slate-900">
         {label}
       </span>
 

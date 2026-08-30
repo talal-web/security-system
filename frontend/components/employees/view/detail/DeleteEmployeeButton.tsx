@@ -41,11 +41,11 @@ export default function DeleteEmployeeButton({ employeeId }: Props) {
         onClick={() => setConfirmOpen(true)}
         disabled={isLoading}
         className="
-          inline-flex h-11 min-w-36 w-full items-center justify-center gap-2
-          rounded-xl bg-red-600 px-5
-          text-sm font-semibold text-white
+          inline-flex h-9 w-full items-center justify-center gap-1.5
+          rounded-lg border border-red-200 bg-red-50 px-3
+          text-xs font-semibold text-red-700
           transition-colors duration-200
-          hover:bg-red-700
+          hover:bg-red-100
           disabled:cursor-not-allowed
           disabled:opacity-70
           sm:w-auto

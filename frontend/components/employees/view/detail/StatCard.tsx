@@ -14,22 +14,22 @@ export default function StatCard({
   iconBg = "bg-slate-900",
 }: StatCardProps) {
   return (
-    <div className="group h-full rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md sm:rounded-2xl sm:p-4 lg:p-5">
+    <div className="h-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             {title}
           </p>
 
-          <div className="mt-1.5 sm:mt-2">
+          <div className="mt-1">
             {value ? (
-              <h3 className="truncate text-lg font-bold text-slate-900 sm:text-lg lg:text-xl">
+              <h3 className="truncate text-base font-semibold text-slate-900">
                 {value}
               </h3>
             ) : (
               <span className="text-sm font-medium text-slate-400">
-                Not Provided
+                Not provided
               </span>
             )}
           </div>
@@ -37,9 +37,9 @@ export default function StatCard({
 
         {/* Icon */}
         <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white transition-transform duration-300 group-hover:scale-105 sm:h-11 sm:w-11 sm:rounded-2xl lg:h-12 lg:w-12 ${iconBg}`}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconBg}`}
         >
-          <div className="h-4 w-4 sm:h-5 sm:w-5">{icon}</div>
+          <div className="h-4 w-4">{icon}</div>
         </div>
       </div>
     </div>
