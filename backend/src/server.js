@@ -6,6 +6,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import path from "path";
+import mongoose from "mongoose";
 
 import connectDB from "./config/db.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
@@ -18,6 +19,7 @@ import employeeSalaryRoutes from "./routes/employeeSalaryRoutes.js";
 import advanceRoutes from "./routes/advanceRoutes.js";
 import fineRoutes from "./routes/fineRoutes.js";
 import deductionRoutes from "./routes/deductionRoutes.js";
+import bonusRoutes from "./routes/bonusRoutes.js";
 
 import morganMiddleware from "./middleware/morganMiddleware.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -36,7 +38,27 @@ validateEnv();
 
 app.use(helmet());
 
-// Allowed CORS origins
+// ======================================
+// API CACHE CONTROL
+// ======================================
+
+app.disable("etag");
+
+app.use("/api", (req, res, next) => {
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate",
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
+  next();
+});
+
+// ======================================
+// CORS
+// ======================================
+
 const allowedOrigins = (process.env.FRONTEND_URLS || "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
@@ -104,6 +126,7 @@ app.use("/api/employee-salaries", protect, employeeSalaryRoutes);
 app.use("/api/advances", protect, advanceRoutes);
 app.use("/api/fines", protect, fineRoutes);
 app.use("/api/deductions", protect, deductionRoutes);
+app.use("/api/bonuses", protect, bonusRoutes);
 
 // Health check routes
 app.get("/", (req, res) => {
@@ -111,9 +134,12 @@ app.get("/", (req, res) => {
 });
 
 app.get("/healthz", (req, res) => {
-  res.status(200).json({
-    status: "ok",
+  const databaseConnected = mongoose.connection.readyState === 1;
+
+  res.status(databaseConnected ? 200 : 503).json({
+    status: databaseConnected ? "ok" : "unavailable",
     service: "security-company-api",
+    database: databaseConnected ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
   });
 });

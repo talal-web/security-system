@@ -211,36 +211,6 @@ export function useAttendanceSessionPage() {
     () => getPresentSectors(sectors, query, statusFilter),
     [sectors, query, statusFilter],
   );
-  useEffect(() => {
-    console.log("========== ATTENDANCE DEBUG ==========");
-    console.log("API employees:", data?.stats.totalEmployees);
-    console.log("API sectors:", data?.sectors?.length);
-    console.log("FORM sectors:", sectors.length);
-    console.log("ALL employees:", allEmployees.length);
-
-    console.log(
-      "PRESENT employees:",
-      allEmployees.filter((employee) => employee.status === "present").length,
-    );
-
-    console.log(
-      "PRESENT SECTOR employees:",
-      presentSectors.reduce(
-        (total, sector) =>
-          total +
-          sector.locations.reduce(
-            (count, location) => count + location.employees.length,
-            0,
-          ),
-        0,
-      ),
-    );
-
-    console.log("FORM sectors data:", sectors);
-    console.log("PRESENT sectors data:", presentSectors);
-
-    console.log("======================================");
-  }, [data, sectors, allEmployees, presentSectors]);
 
   // ======================================
   // ABSENT

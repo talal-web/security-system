@@ -3,18 +3,16 @@ import mongoose from "mongoose";
 
 if (process.env.USE_CUSTOM_DNS === "true") {
   dns.setServers(["8.8.8.8", "8.8.4.4"]);
-  console.log("🌐 Using custom DNS servers");
+  console.log("Using custom DNS servers");
 }
 
 const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
+  await mongoose.connect(process.env.MONGO_URI, {
+    connectTimeoutMS: 10_000,
+    serverSelectionTimeoutMS: 10_000,
+  });
 
-    console.log("✅ MongoDB Connected Successfully");
-  } catch (error) {
-    console.error("❌ MongoDB Connection Error:", error.message);
-    process.exit(1);
-  }
+  console.log("MongoDB connected successfully");
 };
 
 export default connectDB;

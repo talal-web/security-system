@@ -1012,14 +1012,13 @@ export const getMonthlyAttendanceReport = async (req, res) => {
 
     const [year, monthNumber] = month.split("-").map(Number);
 
-    const firstDay = new Date(year, monthNumber - 1, 1);
+    const totalDays = new Date(year, monthNumber, 0).getDate();
 
-    const lastDay = new Date(year, monthNumber, 0);
+    const monthStart = `${year}-${String(monthNumber).padStart(2, "0")}-01`;
 
-    const monthStart = firstDay.toISOString().split("T")[0];
-    const monthEnd = lastDay.toISOString().split("T")[0];
-
-    const totalDays = lastDay.getDate();
+    const monthEnd = `${year}-${String(monthNumber).padStart(2, "0")}-${String(
+      totalDays,
+    ).padStart(2, "0")}`;
 
     const days = getMonthDays(year, monthNumber);
 
@@ -1032,24 +1031,20 @@ export const getMonthlyAttendanceReport = async (req, res) => {
         {
           status: "active",
         },
-
         {
           status: "inactive",
-
           exitDate: {
-            $gte: firstDay,
+            $gte: new Date(`${monthStart}T00:00:00.000Z`),
           },
         },
       ],
     })
       .select("_id empId name fatherName designation status exitDate")
-      .sort({
-        empId: 1,
-      })
+      .sort({ empId: 1 })
       .lean();
 
     // ======================================
-    // GET ATTENDANCE OF MONTH
+    // GET MONTHLY ATTENDANCE
     // ======================================
 
     const attendance = await Attendance.find({
@@ -1058,7 +1053,7 @@ export const getMonthlyAttendanceReport = async (req, res) => {
         $lte: monthEnd,
       },
     })
-      .select("employee employeeSnapshot date status")
+      .select("employee date status")
       .lean();
 
     // ======================================
@@ -1067,25 +1062,17 @@ export const getMonthlyAttendanceReport = async (req, res) => {
 
     const overall = {
       employees: employees.length,
-
-      absent: 0,
-
       present: 0,
-
       leave: 0,
-
+      absent: 0,
       total: 0,
     };
 
     // ======================================
     // EMPLOYEE MAP
-    // (Filled in Part 2)
     // ======================================
 
     const employeeMap = new Map();
-    // ======================================
-    // INITIALIZE EMPLOYEES
-    // ======================================
 
     for (const employee of employees) {
       const attendanceDays = {};
@@ -1096,7 +1083,6 @@ export const getMonthlyAttendanceReport = async (req, res) => {
 
       employeeMap.set(employee._id.toString(), {
         employeeId: employee._id,
-
         empId: employee.empId,
         name: employee.name,
         fatherName: employee.fatherName,
@@ -1118,16 +1104,29 @@ export const getMonthlyAttendanceReport = async (req, res) => {
     // ======================================
 
     for (const record of attendance) {
+      if (!record.date || !record.employee) continue;
+
+      const [recordYear, recordMonth, recordDay] = record.date
+        .split("-")
+        .map(Number);
+
+      // Defensive validation
+      if (
+        recordYear !== year ||
+        recordMonth !== monthNumber ||
+        recordDay < 1 ||
+        recordDay > totalDays
+      ) {
+        continue;
+      }
+
       const employee = employeeMap.get(record.employee.toString());
 
-      // Skip employees not included in this report
       if (!employee) continue;
-
-      const day = Number(record.date.split("-")[2]);
 
       const status = mapAttendanceStatus(record.status);
 
-      employee.attendance[day] = status;
+      employee.attendance[recordDay] = status;
 
       switch (status) {
         case "P":
@@ -1154,6 +1153,9 @@ export const getMonthlyAttendanceReport = async (req, res) => {
           overall.absent++;
 
           break;
+
+        default:
+          break;
       }
     }
 
@@ -1163,7 +1165,9 @@ export const getMonthlyAttendanceReport = async (req, res) => {
 
     const report = Array.from(employeeMap.values());
 
+    // ======================================
     // SORT BY EMPLOYEE NUMBER
+    // ======================================
 
     const getEmployeeNumber = (empId) => {
       const match = empId?.match(/(\d+)$/);
@@ -1171,9 +1175,9 @@ export const getMonthlyAttendanceReport = async (req, res) => {
       return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
     };
 
-    report.sort((a, b) => {
-      return getEmployeeNumber(a.empId) - getEmployeeNumber(b.empId);
-    });
+    report.sort(
+      (a, b) => getEmployeeNumber(a.empId) - getEmployeeNumber(b.empId),
+    );
 
     // ======================================
     // RESPONSE
@@ -1182,7 +1186,6 @@ export const getMonthlyAttendanceReport = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Monthly attendance report fetched successfully",
-
       data: {
         month: {
           value: month,
@@ -1190,16 +1193,16 @@ export const getMonthlyAttendanceReport = async (req, res) => {
           month: monthNumber,
           days: totalDays,
         },
-
         overall,
-
         employees: report,
       },
     });
   } catch (error) {
+    console.error("Monthly attendance report error:", error);
+
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Failed to fetch monthly attendance report",
     });
   }
 };

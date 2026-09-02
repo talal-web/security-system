@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Clock3,
   FileWarning,
+  Gift,
   HandCoins,
   Landmark,
   MapPin,
@@ -55,6 +56,13 @@ const primaryActions: ActionItem[] = [
     href: "/advances",
     icon: HandCoins,
     tone: "amber",
+  },
+  {
+    title: "Manage Bonuses",
+    description: "Employee bonuses & payments",
+    href: "/bonuses",
+    icon: Gift,
+    tone: "emerald",
   },
   {
     title: "Manage Deductions",
@@ -154,6 +162,14 @@ const financeModules = [
     label: "Manage Advances",
   },
   {
+    title: "Bonuses",
+    description: "Employee bonuses & payments",
+    icon: Gift,
+    tone: "emerald" as const,
+    href: "/bonuses",
+    label: "Manage Bonuses",
+  },
+  {
     title: "Deductions",
     description: "Salary deductions & adjustments",
     icon: ReceiptText,
@@ -244,8 +260,8 @@ export default function AdminDashboardPage() {
                 </h1>
 
                 <p className="mt-1.5 max-w-2xl text-sm text-slate-500">
-                  Manage employees, attendance, payroll operations, security
-                  locations, and system administration from one place.
+                  Manage employees, attendance, payroll operations, bonuses,
+                  security locations, and system administration from one place.
                 </p>
               </div>
 
@@ -280,7 +296,7 @@ export default function AdminDashboardPage() {
               icon={Landmark}
             />
 
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-7">
               <OverviewCard
                 label="Employees"
                 value="Manage"
@@ -303,6 +319,14 @@ export default function AdminDashboardPage() {
                 icon={HandCoins}
                 tone="amber"
                 href="/advances"
+              />
+
+              <OverviewCard
+                label="Bonuses"
+                value="Manage"
+                icon={Gift}
+                tone="emerald"
+                href="/bonuses"
               />
 
               <OverviewCard
@@ -360,9 +384,7 @@ export default function AdminDashboardPage() {
             {/* ================================================== */}
 
             <div className="space-y-5">
-              {/* ================================================ */}
               {/* ORGANIZATION */}
-              {/* ================================================ */}
 
               <section>
                 <SectionHeading
@@ -378,9 +400,7 @@ export default function AdminDashboardPage() {
                 </div>
               </section>
 
-              {/* ================================================ */}
               {/* PAYROLL & FINANCE */}
-              {/* ================================================ */}
 
               <section>
                 <SectionHeading
@@ -389,7 +409,7 @@ export default function AdminDashboardPage() {
                   icon={WalletCards}
                 />
 
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   {financeModules.map((module) => (
                     <FinanceCard key={module.title} module={module} />
                   ))}
@@ -402,9 +422,7 @@ export default function AdminDashboardPage() {
             {/* ================================================== */}
 
             <aside className="space-y-4">
-              {/* ================================================ */}
               {/* SYSTEM STATUS */}
-              {/* ================================================ */}
 
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center justify-between">
@@ -432,9 +450,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* ================================================ */}
               {/* ATTENDANCE */}
-              {/* ================================================ */}
 
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <CardHeading
@@ -465,9 +481,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* ================================================ */}
               {/* PAYROLL */}
-              {/* ================================================ */}
 
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <CardHeading
@@ -485,6 +499,12 @@ export default function AdminDashboardPage() {
                   />
 
                   <CompactLink
+                    href="/bonuses"
+                    label="Employee Bonuses"
+                    icon={Gift}
+                  />
+
+                  <CompactLink
                     href="/deductions"
                     label="Salary Deductions"
                     icon={ReceiptText}
@@ -498,9 +518,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* ================================================ */}
               {/* QUICK ADMIN */}
-              {/* ================================================ */}
 
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <CardHeading
@@ -550,11 +568,9 @@ function SectionHeading({
   return (
     <div className={`flex items-start justify-between gap-3 ${className}`}>
       <div>
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-bold text-slate-900 sm:text-base">
-            {title}
-          </h2>
-        </div>
+        <h2 className="text-sm font-bold text-slate-900 sm:text-base">
+          {title}
+        </h2>
 
         <p className="mt-0.5 text-[11px] text-slate-500 sm:text-xs">
           {description}

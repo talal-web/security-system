@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import {
+  BadgeDollarSign,
   ChevronDown,
   CircleDollarSign,
   FileSpreadsheet,
   Landmark,
   Pencil,
-  WalletCards,
   ReceiptText,
+  WalletCards,
 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -59,6 +60,9 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
   const buttonClass =
     "inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 sm:w-auto";
 
+  const menuItemClass =
+    "flex h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900";
+
   return (
     <div className="mt-4 border-t border-slate-200 pt-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
@@ -93,7 +97,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
                 href={`/employees/${employee._id}/salary`}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
-                className="flex h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                className={menuItemClass}
               >
                 <Landmark className="h-4 w-4 text-slate-500" />
                 Salary
@@ -104,10 +108,21 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
                 href={`/employees/${employee._id}/advances`}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
-                className="flex h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                className={menuItemClass}
               >
                 <WalletCards className="h-4 w-4 text-slate-500" />
                 Advances
+              </Link>
+
+              {/* Bonuses */}
+              <Link
+                href={`/employees/${employee._id}/bonuses`}
+                onClick={() => setFinanceOpen(false)}
+                role="menuitem"
+                className={menuItemClass}
+              >
+                <BadgeDollarSign className="h-4 w-4 text-slate-500" />
+                Bonuses
               </Link>
 
               {/* Deductions */}
@@ -115,7 +130,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
                 href={`/employees/${employee._id}/deductions`}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
-                className="flex h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                className={menuItemClass}
               >
                 <ReceiptText className="h-4 w-4 text-slate-500" />
                 Deductions
@@ -126,7 +141,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
                 href={`/employees/${employee._id}/fines`}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
-                className="flex h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                className={menuItemClass}
               >
                 <CircleDollarSign className="h-4 w-4 text-slate-500" />
                 Fines
