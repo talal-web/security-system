@@ -20,6 +20,7 @@ import advanceRoutes from "./routes/advanceRoutes.js";
 import fineRoutes from "./routes/fineRoutes.js";
 import deductionRoutes from "./routes/deductionRoutes.js";
 import bonusRoutes from "./routes/bonusRoutes.js";
+import payrollRoutes from "./routes/payrollRoutes.js";
 
 import morganMiddleware from "./middleware/morganMiddleware.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -31,6 +32,7 @@ import { protect } from "./middleware/authMiddleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+let server;
 
 app.set("trust proxy", 1);
 
@@ -127,6 +129,7 @@ app.use("/api/advances", protect, advanceRoutes);
 app.use("/api/fines", protect, fineRoutes);
 app.use("/api/deductions", protect, deductionRoutes);
 app.use("/api/bonuses", protect, bonusRoutes);
+app.use("/api/payroll", protect, payrollRoutes);
 
 // Health check routes
 app.get("/", (req, res) => {
@@ -179,13 +182,27 @@ process.on("uncaughtException", (err) => {
 const startServer = async () => {
   await connectDB();
 
-  app.listen(PORT, "0.0.0.0", () => {
+  server = app.listen(PORT, "0.0.0.0", () => {
     logger.info({
       message: "Server started successfully",
       url: `http://0.0.0.0:${PORT}`,
     });
   });
 };
+
+const shutdown = async (signal) => {
+  logger.info({ message: "Shutdown signal received", signal });
+
+  if (server) {
+    await new Promise((resolve) => server.close(resolve));
+  }
+
+  await mongoose.disconnect();
+  process.exit(0);
+};
+
+process.once("SIGTERM", () => shutdown("SIGTERM"));
+process.once("SIGINT", () => shutdown("SIGINT"));
 
 startServer().catch((error) => {
   logger.error({
