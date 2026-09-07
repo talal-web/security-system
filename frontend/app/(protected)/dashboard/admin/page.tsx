@@ -85,6 +85,13 @@ const primaryActions: ActionItem[] = [
     icon: BarChart3,
     tone: "emerald",
   },
+  {
+    title: "Manage Payroll",
+    description: "Generate, finalize, and pay salaries",
+    href: "/payroll",
+    icon: WalletCards,
+    tone: "violet",
+  },
 ];
 
 const managementModules = [
@@ -153,6 +160,14 @@ const managementModules = [
 ];
 
 const financeModules = [
+  {
+    title: "Payroll",
+    description: "Generate, review, finalize, and pay salaries",
+    icon: WalletCards,
+    tone: "violet" as const,
+    href: "/payroll",
+    label: "Manage Payroll",
+  },
   {
     title: "Advances",
     description: "Employee salary advances",
@@ -296,7 +311,7 @@ export default function AdminDashboardPage() {
               icon={Landmark}
             />
 
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-7">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
               <OverviewCard
                 label="Employees"
                 value="Manage"
@@ -343,6 +358,14 @@ export default function AdminDashboardPage() {
                 icon={FileWarning}
                 tone="red"
                 href="/fines"
+              />
+
+              <OverviewCard
+                label="Payroll"
+                value="Manage"
+                icon={WalletCards}
+                tone="violet"
+                href="/payroll"
               />
 
               <OverviewCard
@@ -514,6 +537,12 @@ export default function AdminDashboardPage() {
                     href="/fines"
                     label="Employee Fines"
                     icon={FileWarning}
+                  />
+
+                  <CompactLink
+                    href="/payroll"
+                    label="Payroll"
+                    icon={WalletCards}
                   />
                 </div>
               </div>
