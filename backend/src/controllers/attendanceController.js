@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Attendance from "../models/Attendance.js";
 import Employee from "../models/Employee.js";
 import Location from "../models/Location.js";
@@ -498,6 +499,281 @@ export const getAttendanceReport = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+// ======================================
+// GET SINGLE ATTENDANCE
+// GET /api/attendance/:id
+// ======================================
+
+export const getAttendanceById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // ==========================================
+    // VALIDATE ID
+    // ==========================================
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid attendance ID",
+      });
+    }
+
+    // ==========================================
+    // FIND ATTENDANCE
+    // ==========================================
+
+    const attendance = await Attendance.findById(id).lean();
+
+    if (!attendance) {
+      return res.status(404).json({
+        success: false,
+        message: "Attendance record not found",
+      });
+    }
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    return res.status(200).json({
+      success: true,
+      message: "Attendance record fetched successfully",
+      data: attendance,
+    });
+  } catch (error) {
+    console.error("getAttendanceById error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch attendance record",
+    });
+  }
+};
+
+// ======================================
+// UPDATE SINGLE ATTENDANCE
+// PATCH /api/attendance/:id
+// ======================================
+
+export const updateAttendance = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // ==========================================
+    // VALIDATE ATTENDANCE ID
+    // ==========================================
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid attendance ID",
+      });
+    }
+
+    // ==========================================
+    // LOAD ATTENDANCE
+    // ==========================================
+
+    const attendance = await Attendance.findById(id);
+
+    if (!attendance) {
+      return res.status(404).json({
+        success: false,
+        message: "Attendance record not found",
+      });
+    }
+
+    // ==========================================
+    // REQUEST DATA
+    // ==========================================
+
+    const { status, shift, location, remarks } = req.body;
+
+    // ==========================================
+    // STATUS VALIDATION
+    // ==========================================
+
+    const allowedStatuses = ["present", "absent", "leave"];
+
+    if (status !== undefined && !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Allowed values: ${allowedStatuses.join(", ")}`,
+      });
+    }
+
+    // ==========================================
+    // DETERMINE FINAL STATUS
+    // ==========================================
+
+    const finalStatus = status ?? attendance.status;
+
+    // ==========================================
+    // ABSENT / LEAVE
+    // ==========================================
+
+    if (finalStatus === "absent" || finalStatus === "leave") {
+      attendance.status = finalStatus;
+
+      attendance.shift = null;
+
+      attendance.location = null;
+
+      attendance.locationSnapshot = {
+        locationId: null,
+        name: "",
+        sector: "",
+      };
+    }
+
+    // ==========================================
+    // PRESENT
+    // ==========================================
+
+    if (finalStatus === "present") {
+      attendance.status = "present";
+
+      // ------------------------------------------
+      // SHIFT
+      // ------------------------------------------
+
+      if (shift !== undefined) {
+        if (!["day", "night"].includes(shift)) {
+          return res.status(400).json({
+            success: false,
+            message: "Shift must be either day or night",
+          });
+        }
+
+        attendance.shift = shift;
+      }
+
+      // ------------------------------------------
+      // LOCATION
+      // ------------------------------------------
+
+      if (location !== undefined) {
+        // ----------------------------------------
+        // Empty location
+        // ----------------------------------------
+
+        if (location === null || location === "") {
+          attendance.location = null;
+
+          attendance.locationSnapshot = {
+            locationId: null,
+            name: "",
+            sector: "",
+          };
+        }
+
+        // ----------------------------------------
+        // Location provided
+        // ----------------------------------------
+        else {
+          if (!mongoose.Types.ObjectId.isValid(location)) {
+            return res.status(400).json({
+              success: false,
+              message: "Invalid location ID",
+            });
+          }
+
+          const locationDoc = await Location.findById(location)
+            .select("_id name sector isActive")
+            .populate({
+              path: "sector",
+              select: "_id name",
+            });
+
+          if (!locationDoc) {
+            return res.status(404).json({
+              success: false,
+              message: "Location not found",
+            });
+          }
+
+          // --------------------------------------
+          // Location must be active
+          // --------------------------------------
+
+          if (!locationDoc.isActive) {
+            return res.status(400).json({
+              success: false,
+              message: "Location is inactive",
+            });
+          }
+
+          const employee = await Employee.findById(attendance.employee).select(
+            "sector",
+          );
+          const employeeSectorId = employee?.sector?.toString();
+          const locationSectorId = locationDoc.sector?._id?.toString();
+
+          if (!employeeSectorId || employeeSectorId !== locationSectorId) {
+            return res.status(400).json({
+              success: false,
+              message: "Location does not belong to employee's sector",
+            });
+          }
+
+          // --------------------------------------
+          // Save location
+          // --------------------------------------
+
+          attendance.location = locationDoc._id;
+
+          attendance.locationSnapshot = {
+            locationId: locationDoc._id,
+            name: locationDoc.name || "",
+            sector: locationDoc.sector?._id
+              ? locationDoc.sector._id.toString()
+              : "",
+          };
+        }
+      }
+
+      if (!attendance.shift || !attendance.location) {
+        return res.status(400).json({
+          success: false,
+          message: "Present attendance requires a shift and location",
+        });
+      }
+    }
+
+    // ==========================================
+    // REMARKS
+    // ==========================================
+
+    if (remarks !== undefined) {
+      attendance.remarks = typeof remarks === "string" ? remarks.trim() : "";
+    }
+
+    // ==========================================
+    // SAVE
+    // ==========================================
+
+    await attendance.save();
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    return res.status(200).json({
+      success: true,
+      message: "Attendance updated successfully",
+      data: attendance,
+    });
+  } catch (error) {
+    console.error("updateAttendance error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update attendance",
     });
   }
 };

@@ -3,8 +3,12 @@ import { getApiErrorMessage } from "@/lib/apiError";
 
 import type {
   AttendanceFilters,
+  AttendanceRecord,
+  AttendanceRecordResponse,
   MonthlyAttendanceFilters,
   MonthlyAttendanceResponse,
+  UpdateAttendancePayload,
+  UpdateAttendanceResponse,
 } from "@/types/attendance";
 
 import type { AttendanceReportResponse } from "@/types/attendance-report";
@@ -26,6 +30,40 @@ export async function getAttendanceReport(
     });
 
     return res.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error));
+  }
+}
+
+// ======================================
+// SINGLE ATTENDANCE RECORD
+// ======================================
+
+export async function getAttendanceById(id: string): Promise<AttendanceRecord> {
+  try {
+    const res = await api.get<AttendanceRecordResponse>(`/attendance/${id}`);
+
+    return res.data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error));
+  }
+}
+
+// ======================================
+// UPDATE SINGLE ATTENDANCE RECORD
+// ======================================
+
+export async function updateAttendance(
+  id: string,
+  payload: UpdateAttendancePayload,
+): Promise<AttendanceRecord> {
+  try {
+    const res = await api.patch<UpdateAttendanceResponse>(
+      `/attendance/${id}`,
+      payload,
+    );
+
+    return res.data.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error));
   }

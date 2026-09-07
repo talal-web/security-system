@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import type { AttendanceStatus } from "@/types/attendance";
 import type { AttendanceReportAbsentLeaveEmployee } from "@/types/attendance-report";
 
@@ -74,6 +76,9 @@ export default function AttendanceEmployeeTable({
               <th scope="col" className="px-4 py-3">
                 Date
               </th>
+              <th scope="col" className="px-4 py-3 text-right">
+                Action
+              </th>
             </tr>
           </thead>
 
@@ -114,12 +119,21 @@ export default function AttendanceEmployeeTable({
                 <td className="px-4 py-3 text-slate-600">
                   {new Date(employee.date).toLocaleDateString()}
                 </td>
+
+                <td className="px-4 py-3 text-right">
+                  <Link
+                    href={`/attendance/${employee.attendanceId}`}
+                    className="inline-flex h-8 items-center rounded-lg border px-3 text-xs font-medium transition-colors hover:bg-muted"
+                  >
+                    View
+                  </Link>
+                </td>
               </tr>
             ))}
 
             {employees.length === 0 && (
               <tr>
-                <td colSpan={8} className="py-8 text-center text-gray-500">
+                <td colSpan={9} className="py-8 text-center text-gray-500">
                   No employees found.
                 </td>
               </tr>

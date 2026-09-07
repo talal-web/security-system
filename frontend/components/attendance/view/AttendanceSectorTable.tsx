@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import type { AttendanceShift, AttendanceStatus } from "@/types/attendance";
 import type { AttendanceReportSector } from "@/types/attendance-report";
 
@@ -57,6 +59,7 @@ export default function AttendanceSectorTable({
               <th className="px-4 py-3">Shift</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Date</th>
+              <th className="px-4 py-3 text-right">Action</th>
             </tr>
           </thead>
 
@@ -135,6 +138,15 @@ export default function AttendanceSectorTable({
 
                         <td className="px-4 py-3 text-slate-600">
                           {new Date(record.date).toLocaleDateString()}
+                        </td>
+
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            href={`/attendance/${record.attendanceId}`}
+                            className="inline-flex h-8 items-center rounded-lg border px-3 text-xs font-medium transition-colors hover:bg-muted"
+                          >
+                            View
+                          </Link>
                         </td>
                       </tr>
                     );

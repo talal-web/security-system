@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Filter, Sun, UserCheck } from "lucide-react";
+import { CalendarDays, Filter, RotateCcw, Sun, UserCheck } from "lucide-react";
 
 import type {
   AttendanceFilters,
@@ -33,42 +33,21 @@ export default function AttendanceFilters({
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-            <Filter className="h-5 w-5" />
+    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+        <div className="flex h-9 shrink-0 items-center gap-2 text-slate-700">
+          <div className="flex size-8 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+            <Filter className="size-4" />
           </div>
-
-          <div>
-            <h3 className="text-sm font-semibold text-slate-900">
-              Attendance Filters
-            </h3>
-
-            <p className="text-xs text-slate-500">
-              Refine attendance records by status, shift, or date.
-            </p>
-          </div>
+          <span className="text-xs font-semibold uppercase tracking-wide">
+            Filters
+          </span>
         </div>
 
-        {hasFilters && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 transition hover:bg-red-100"
-          >
-            Clear Filters
-          </button>
-        )}
-      </div>
-
-      {/* Filters */}
-      <div className="p-4">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
           {/* Status */}
           <div className="space-y-1">
-            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
               <UserCheck className="h-3.5 w-3.5" />
               Status
             </label>
@@ -81,7 +60,7 @@ export default function AttendanceFilters({
                   status: (e.target.value as AttendanceStatus) || undefined,
                 }))
               }
-              className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm font-medium text-slate-700 transition hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
             >
               <option value="">All Status</option>
               <option value="present">Present</option>
@@ -92,7 +71,7 @@ export default function AttendanceFilters({
 
           {/* Shift */}
           <div className="space-y-1">
-            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
               <Sun className="h-3.5 w-3.5" />
               Shift
             </label>
@@ -105,17 +84,17 @@ export default function AttendanceFilters({
                   shift: (e.target.value as AttendanceShift) || undefined,
                 }))
               }
-              className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm font-medium text-slate-700 transition hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
             >
               <option value="">All Shifts</option>
-              <option value="day">☀️ Day Shift</option>
-              <option value="night">🌙 Night Shift</option>
+              <option value="day">Day Shift</option>
+              <option value="night">Night Shift</option>
             </select>
           </div>
 
           {/* Date */}
           <div className="space-y-1">
-            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
               <CalendarDays className="h-3.5 w-3.5" />
               Date
             </label>
@@ -129,32 +108,20 @@ export default function AttendanceFilters({
                   date: e.target.value || undefined,
                 }))
               }
-              className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm font-medium text-slate-700 transition hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
             />
           </div>
         </div>
 
-        {/* Active Filters */}
         {hasFilters && (
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-            {filters.status && (
-              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                Status: {filters.status}
-              </span>
-            )}
-
-            {filters.shift && (
-              <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
-                Shift: {filters.shift}
-              </span>
-            )}
-
-            {filters.date && (
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                Date: {filters.date}
-              </span>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+          >
+            <RotateCcw className="size-3.5" />
+            Reset
+          </button>
         )}
       </div>
     </div>

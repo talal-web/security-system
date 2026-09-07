@@ -7,6 +7,8 @@ import {
   submitAttendanceSession,
   updateEmployeeLocations,
   updateEmployeeShifts,
+  getAttendanceById,
+  updateAttendance,
 } from "../controllers/attendanceController.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
@@ -62,5 +64,19 @@ router.get(
   authorizeRoles("developer", "admin", "clerk"),
   getMonthlyAttendanceReport,
 );
+
+// ======================================
+// SINGLE ATTENDANCE RECORD
+// ======================================
+
+// Get single attendance record
+router.get(
+  "/:id",
+  authorizeRoles("developer", "admin", "clerk"),
+  getAttendanceById,
+);
+
+// Update single attendance record
+router.patch("/:id", authorizeRoles("developer", "admin"), updateAttendance);
 
 export default router;

@@ -6,6 +6,7 @@ import {
   getAttendanceReport,
   getMonthlyAttendanceReport,
 } from "@/services/attendance.service";
+import { attendanceKeys } from "./useAttendance";
 
 import type {
   AttendanceFilters,
@@ -14,41 +15,7 @@ import type {
 } from "@/types/attendance";
 import type { AttendanceReportResponse } from "@/types/attendance-report";
 
-// ============================
-// QUERY KEYS
-// ============================
-
-export const attendanceKeys = {
-  all: ["attendance"] as const,
-
-  // ==========================
-  // DAILY
-  // ==========================
-
-  lists: () => [...attendanceKeys.all, "list"] as const,
-
-  list: (filters?: AttendanceFilters) =>
-    [...attendanceKeys.lists(), filters] as const,
-
-  // ==========================
-  // MONTHLY
-  // ==========================
-
-  monthlyLists: () => [...attendanceKeys.all, "monthly"] as const,
-
-  monthlyList: (filters: MonthlyAttendanceFilters) =>
-    [...attendanceKeys.monthlyLists(), filters] as const,
-
-  // ==========================
-  // OTHER
-  // ==========================
-
-  details: () => [...attendanceKeys.all, "detail"] as const,
-
-  detail: (id: string) => [...attendanceKeys.details(), id] as const,
-
-  stats: () => [...attendanceKeys.all, "stats"] as const,
-};
+export { attendanceKeys } from "./useAttendance";
 
 // ============================
 // DAILY REPORT
