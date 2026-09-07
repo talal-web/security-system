@@ -146,6 +146,16 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
                 <CircleDollarSign className="h-4 w-4 text-slate-500" />
                 Fines
               </Link>
+
+              <Link
+                href={`/employees/${employee._id}/payroll`}
+                onClick={() => setFinanceOpen(false)}
+                role="menuitem"
+                className={menuItemClass}
+              >
+                <ReceiptText className="h-4 w-4 text-slate-500" />
+                Payroll history
+              </Link>
             </div>
           )}
         </div>

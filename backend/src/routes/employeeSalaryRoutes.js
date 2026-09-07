@@ -12,30 +12,26 @@ import { authorizeRoles } from "../middleware/roleMiddleware.js";
 const router = express.Router();
 
 // Create initial salary or a new salary record
-router.post(
-  "/",
-  authorizeRoles("developer", "admin", "clerk"),
-  createEmployeeSalary,
-);
+router.post("/", authorizeRoles("developer", "admin"), createEmployeeSalary);
 
 // Get current applicable salary for an employee
 router.get(
   "/:employeeId/current",
-  authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  authorizeRoles("developer", "admin"),
   getCurrentEmployeeSalary,
 );
 
 // Get complete salary history for an employee
 router.get(
   "/:employeeId/history",
-  authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  authorizeRoles("developer", "admin"),
   getEmployeeSalaryHistory,
 );
 
 // Update an existing salary record
 router.patch(
   "/:id",
-  authorizeRoles("developer", "admin", "clerk"),
+  authorizeRoles("developer", "admin"),
   updateEmployeeSalary,
 );
 
