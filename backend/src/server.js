@@ -21,6 +21,7 @@ import fineRoutes from "./routes/fineRoutes.js";
 import deductionRoutes from "./routes/deductionRoutes.js";
 import bonusRoutes from "./routes/bonusRoutes.js";
 import payrollRoutes from "./routes/payrollRoutes.js";
+import areaRoutes from "./routes/areaRoutes.js";
 
 import morganMiddleware from "./middleware/morganMiddleware.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -130,6 +131,7 @@ app.use("/api/fines", protect, fineRoutes);
 app.use("/api/deductions", protect, deductionRoutes);
 app.use("/api/bonuses", protect, bonusRoutes);
 app.use("/api/payroll", protect, payrollRoutes);
+app.use("/api/area", protect, areaRoutes);
 
 // Health check routes
 app.get("/", (req, res) => {

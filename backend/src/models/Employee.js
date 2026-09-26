@@ -105,10 +105,10 @@ const employeeSchema = new mongoose.Schema(
     },
     // Legacy field retained for migration safety only.
     // Active salary logic must use EmployeeSalary instead.
-    basicSalary: {
-      type: Number,
-      default: 0,
-    },
+    // basicSalary: {
+    //   type: Number,
+    //   default: 0,
+    // },
 
     // =========================
     // Reference
