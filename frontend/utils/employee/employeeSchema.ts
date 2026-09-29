@@ -39,6 +39,11 @@ export const employeeSchema = z.object({
 
   status: z.enum(["active", "inactive"]).optional(),
 
+  area: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().optional(),
+  ),
+
   sector: z.preprocess(
     (value) => (value === "" ? undefined : value),
     z.string().optional(),

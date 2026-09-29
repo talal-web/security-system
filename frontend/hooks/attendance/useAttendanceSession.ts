@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import {
   getAttendanceSession,
   markAttendanceSession,
@@ -22,6 +23,8 @@ import type {
 
 export const attendanceSessionKeys = {
   all: ["attendance-session"] as const,
+  list: (areaId?: string | null) =>
+    [...attendanceSessionKeys.all, areaId ?? "all"] as const,
 };
 
 // ======================================
@@ -29,9 +32,11 @@ export const attendanceSessionKeys = {
 // ======================================
 
 export function useAttendanceSession() {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: attendanceSessionKeys.all,
-    queryFn: getAttendanceSession,
+    queryKey: attendanceSessionKeys.list(selectedAreaId),
+    queryFn: () => getAttendanceSession(selectedAreaId ?? undefined),
   });
 }
 
@@ -40,12 +45,21 @@ export function useAttendanceSession() {
 // ======================================
 
 export function useUpdateEmployeeLocations() {
+  const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
+
   return useMutation<
     UpdateEmployeeLocationsResponse,
     Error,
     UpdateEmployeeLocationsPayload
   >({
-    mutationFn: updateEmployeeLocations,
+    mutationFn: (payload) =>
+      updateEmployeeLocations(payload, selectedAreaId ?? undefined),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: attendanceSessionKeys.list(selectedAreaId),
+      });
+    },
   });
 }
 
@@ -54,12 +68,21 @@ export function useUpdateEmployeeLocations() {
 // ======================================
 
 export function useUpdateEmployeeShifts() {
+  const { selectedAreaId } = useSelectedArea();
+  const queryClient = useQueryClient();
+
   return useMutation<
     UpdateEmployeeShiftsResponse,
     Error,
     UpdateEmployeeShiftsPayload
   >({
-    mutationFn: updateEmployeeShifts,
+    mutationFn: (payload) =>
+      updateEmployeeShifts(payload, selectedAreaId ?? undefined),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: attendanceSessionKeys.list(selectedAreaId),
+      });
+    },
   });
 }
 
@@ -69,17 +92,19 @@ export function useUpdateEmployeeShifts() {
 
 export function useMarkAttendanceSession() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation<
     MarkAttendanceSessionResponse,
     Error,
     MarkAttendanceSessionPayload
   >({
-    mutationFn: markAttendanceSession,
+    mutationFn: (payload) =>
+      markAttendanceSession(payload, selectedAreaId ?? undefined),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: attendanceSessionKeys.all,
+        queryKey: attendanceSessionKeys.list(selectedAreaId),
       });
 
       queryClient.invalidateQueries({

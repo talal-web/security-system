@@ -17,6 +17,7 @@ export interface AttendanceFilters {
   status?: AttendanceStatus;
   shift?: AttendanceShift;
   date?: string;
+  area?: string;
 }
 
 // ======================================
@@ -232,6 +233,7 @@ export interface MonthlyAttendanceResponse {
 
 export interface MonthlyAttendanceFilters {
   month: string;
+  area?: string;
 }
 
 // ======================================

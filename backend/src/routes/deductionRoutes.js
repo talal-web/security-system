@@ -9,6 +9,7 @@ import {
 } from "../controllers/deductionController.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ const router = express.Router();
 router.post(
   "/",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   createDeduction,
 );
 
@@ -23,6 +25,7 @@ router.post(
 router.get(
   "/",
   authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  requireAreaAccess,
   getDeductions,
 );
 
@@ -30,6 +33,7 @@ router.get(
 router.get(
   "/employee/:employeeId",
   authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  requireAreaAccess,
   getEmployeeDeductions,
 );
 
@@ -37,6 +41,7 @@ router.get(
 router.patch(
   "/:id",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   updateDeduction,
 );
 
@@ -44,6 +49,7 @@ router.patch(
 router.patch(
   "/:id/cancel",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   cancelDeduction,
 );
 

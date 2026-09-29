@@ -51,6 +51,7 @@ export interface BonusFilters {
   fromDate?: string;
   toDate?: string;
   search?: string;
+  area?: string;
 }
 
 // ============================================================

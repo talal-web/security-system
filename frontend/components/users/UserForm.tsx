@@ -5,6 +5,7 @@ import { Save } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useAreas } from "@/hooks/area/useArea";
 import type { CreateUserPayload, UpdateUserPayload, User } from "@/types/user";
 
 const schema = z.object({
@@ -15,6 +16,8 @@ const schema = z.object({
   password: z.string().optional(),
 
   role: z.enum(["developer", "admin", "clerk", "supervisor"]),
+
+  areas: z.array(z.string()),
 
   isActive: z.boolean(),
 });
@@ -32,10 +35,14 @@ export default function UserForm({
   isPending: boolean;
   onSubmit: (payload: CreateUserPayload | UpdateUserPayload) => void;
 }) {
+  const { data: areaOptions = [] } = useAreas({ isActive: true });
+
   const {
     register,
     handleSubmit,
+    watch,
     setError,
+    setValue,
     formState: { errors },
   } = useForm<Values>({
     resolver: zodResolver(schema),
@@ -45,9 +52,13 @@ export default function UserForm({
       name: user?.name ?? "",
       password: "",
       role: user?.role ?? "clerk",
+      areas: user?.areas ?? [],
       isActive: user?.isActive ?? true,
     },
   });
+
+  const selectedRole = watch("role");
+  const selectedAreas = watch("areas") ?? [];
 
   const submit = (values: Values) => {
     /*
@@ -62,11 +73,26 @@ export default function UserForm({
         return;
       }
 
+      if (
+        ["clerk", "supervisor"].includes(values.role) &&
+        values.areas.length === 0
+      ) {
+        setError("areas", {
+          message: "Select at least one area for this role",
+        });
+
+        return;
+      }
+
       const createPayload: CreateUserPayload = {
         userId: values.userId,
         name: values.name,
         password: values.password,
         role: values.role,
+        areas:
+          values.role === "admin" || values.role === "developer"
+            ? []
+            : values.areas,
         isActive: values.isActive,
       };
 
@@ -101,6 +127,10 @@ export default function UserForm({
     const updatePayload: UpdateUserPayload = {
       name: values.name,
       role: values.role,
+      areas:
+        values.role === "admin" || values.role === "developer"
+          ? []
+          : values.areas,
       isActive: values.isActive,
     };
 
@@ -167,6 +197,41 @@ export default function UserForm({
           </Field>
         ) : null}
       </div>
+
+      {!user || !isSelf ? (
+        <Field label="Assigned Areas" error={errors.areas?.message}>
+          <select
+            multiple
+            value={selectedAreas}
+            onChange={(event) => {
+              const nextAreas = Array.from(
+                event.target.selectedOptions,
+                (option) => option.value,
+              );
+
+              setValue("areas", nextAreas, { shouldValidate: true });
+            }}
+            disabled={selectedRole === "admin" || selectedRole === "developer"}
+            className="field min-h-[120px]"
+          >
+            {areaOptions.length === 0 ? (
+              <option value="">No areas available</option>
+            ) : (
+              areaOptions.map((area) => (
+                <option key={area._id} value={area._id}>
+                  {area.name}
+                </option>
+              ))
+            )}
+          </select>
+
+          <p className="mt-1 text-xs text-slate-500">
+            {selectedRole === "admin" || selectedRole === "developer"
+              ? "Admins and developers do not require area assignments."
+              : "Select one or more areas for this role."}
+          </p>
+        </Field>
+      ) : null}
 
       {/* Account Status */}
       {user && !isSelf && (

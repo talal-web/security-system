@@ -9,16 +9,23 @@ import {
 } from "../controllers/advanceController.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
 // Create advance
-router.post("/", authorizeRoles("developer", "admin", "clerk"), createAdvance);
+router.post(
+  "/",
+  authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
+  createAdvance,
+);
 
 // Get all advances / filter by employee or status
 router.get(
   "/",
   authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  requireAreaAccess,
   getAdvances,
 );
 
@@ -26,6 +33,7 @@ router.get(
 router.get(
   "/employee/:employeeId",
   authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  requireAreaAccess,
   getEmployeeAdvances,
 );
 
@@ -33,6 +41,7 @@ router.get(
 router.patch(
   "/:id",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   updateAdvance,
 );
 
@@ -40,6 +49,7 @@ router.patch(
 router.patch(
   "/:id/cancel",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   cancelAdvance,
 );
 

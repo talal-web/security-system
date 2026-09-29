@@ -35,6 +35,22 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
+    areas: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Area",
+        },
+      ],
+      default: [],
+      validate: {
+        validator(value) {
+          return Array.isArray(value);
+        },
+        message: "Areas must be an array of Area IDs",
+      },
+    },
+
     isActive: {
       type: Boolean,
       default: true,

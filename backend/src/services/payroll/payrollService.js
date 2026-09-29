@@ -2,13 +2,13 @@
 
 import mongoose from "mongoose";
 
-import Employee from "../models/Employee.js";
-import Payroll from "../models/Payroll.js";
-import Attendance from "../models/Attendance.js";
-import Advance from "../models/Advance.js";
-import Fine from "../models/Fine.js";
-import Deduction from "../models/Deduction.js";
-import Bonus from "../models/Bonus.js";
+import Employee from "../../models/Employee.js";
+import Payroll from "../../models/Payroll.js";
+import Attendance from "../../models/Attendance.js";
+import Advance from "../../models/Advance.js";
+import Fine from "../../models/Fine.js";
+import Deduction from "../../models/Deduction.js";
+import Bonus from "../../models/Bonus.js";
 
 import { getSalaryForPayrollMonth } from "./employeeSalary.service.js";
 

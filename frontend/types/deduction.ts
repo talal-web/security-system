@@ -86,6 +86,7 @@ export interface DeductionFilters {
   fromDate?: string;
   toDate?: string;
   search?: string;
+  area?: string;
 }
 
 // ============================================================

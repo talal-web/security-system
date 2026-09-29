@@ -15,9 +15,16 @@ import type {
 // GET ATTENDANCE SESSION
 // ======================================
 
-export async function getAttendanceSession(): Promise<AttendanceSessionResponse> {
+export async function getAttendanceSession(
+  area?: string,
+): Promise<AttendanceSessionResponse> {
   try {
-    const res = await api.get<AttendanceSessionResponse>("/attendance/session");
+    const res = await api.get<AttendanceSessionResponse>(
+      "/attendance/session",
+      {
+        params: area ? { area } : {},
+      },
+    );
 
     return res.data;
   } catch (error) {
@@ -31,11 +38,12 @@ export async function getAttendanceSession(): Promise<AttendanceSessionResponse>
 
 export async function updateEmployeeLocations(
   payload: UpdateEmployeeLocationsPayload,
+  area?: string,
 ): Promise<UpdateEmployeeLocationsResponse> {
   try {
     const res = await api.patch<UpdateEmployeeLocationsResponse>(
       "/attendance/session/locations",
-      payload,
+      area ? { ...payload, area } : payload,
     );
 
     return res.data;
@@ -50,11 +58,12 @@ export async function updateEmployeeLocations(
 
 export async function updateEmployeeShifts(
   payload: UpdateEmployeeShiftsPayload,
+  area?: string,
 ): Promise<UpdateEmployeeShiftsResponse> {
   try {
     const res = await api.patch<UpdateEmployeeShiftsResponse>(
       "/attendance/session/shifts",
-      payload,
+      area ? { ...payload, area } : payload,
     );
 
     return res.data;
@@ -69,11 +78,12 @@ export async function updateEmployeeShifts(
 
 export async function markAttendanceSession(
   payload: MarkAttendanceSessionPayload,
+  area?: string,
 ): Promise<MarkAttendanceSessionResponse> {
   try {
     const res = await api.post<MarkAttendanceSessionResponse>(
       "/attendance/session",
-      payload,
+      area ? { ...payload, area } : payload,
     );
 
     return res.data;

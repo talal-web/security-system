@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, KeyRound, Pencil, Shield } from "lucide-react";
+import { useAreas } from "@/hooks/area/useArea";
 import type { User } from "@/types/user";
 export default function UserDetails({
   user,
@@ -16,6 +17,12 @@ export default function UserDetails({
   onStatus: () => void;
   onDelete: () => void;
 }) {
+  const { data: areas = [] } = useAreas({ isActive: true });
+  const assignedAreaNames = (user.areas ?? []).map((areaId) => {
+    const area = areas.find((item) => item._id === areaId);
+    return area?.name ?? areaId;
+  });
+
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <Link
@@ -43,6 +50,14 @@ export default function UserDetails({
         </div>
         <dl className="mt-8 grid gap-5 border-t pt-5 sm:grid-cols-2">
           <Info label="Role" value={user.role} />
+          <Info
+            label="Areas"
+            value={
+              assignedAreaNames.length
+                ? assignedAreaNames.join(", ")
+                : "No area assigned"
+            }
+          />
           <Info
             label="Created"
             value={new Date(user.createdAt).toLocaleDateString()}

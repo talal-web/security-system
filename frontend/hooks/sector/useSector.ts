@@ -2,13 +2,9 @@
 
 "use client";
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  keepPreviousData,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import {
   createSector,
   deleteSector,
@@ -25,20 +21,33 @@ import type {
   UpdateSectorPayload,
 } from "@/types/sector";
 
-const SECTOR_QUERY_KEY = ["sectors"];
+const SECTOR_QUERY_KEY = ["sectors"] as const;
 
 /**
  * Get All Sectors
+ *
+ * Supports filtering by:
+ * - Area
+ * - Active status
+ * - Other SectorQueryParams supported by the API
  */
-export function useSectors(params?: SectorQueryParams) {
-  return useQuery({
-    queryKey: [...SECTOR_QUERY_KEY, params],
-    queryFn: () => getSectors(params),
+export function useSectors(
+  params?: SectorQueryParams,
+  options?: { enabled?: boolean },
+) {
+  const { selectedAreaId } = useSelectedArea();
 
-    placeholderData: keepPreviousData,
+  const effectiveParams = {
+    ...params,
+    ...(selectedAreaId && !params?.area ? { area: selectedAreaId } : {}),
+  };
+
+  return useQuery({
+    queryKey: [...SECTOR_QUERY_KEY, effectiveParams ?? {}],
+    queryFn: () => getSectors(effectiveParams),
+    enabled: options?.enabled ?? true,
 
     staleTime: 30 * 1000,
-
     refetchOnWindowFocus: false,
   });
 }
@@ -48,7 +57,7 @@ export function useSectors(params?: SectorQueryParams) {
  */
 export function useSector(id: string) {
   return useQuery({
-    queryKey: [...SECTOR_QUERY_KEY, id],
+    queryKey: [...SECTOR_QUERY_KEY, "detail", id],
     queryFn: () => getSectorById(id),
     enabled: !!id,
   });
@@ -92,7 +101,7 @@ export function useUpdateSector() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: [...SECTOR_QUERY_KEY, variables.id],
+        queryKey: [...SECTOR_QUERY_KEY, "detail", variables.id],
       });
     },
   });

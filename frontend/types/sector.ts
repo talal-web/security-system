@@ -1,7 +1,10 @@
+import type { Area } from "@/types/area";
+
 export interface Sector {
   _id: string;
   name: string;
   code: string;
+  area?: Area | string | null;
   description: string;
   sortOrder: number;
   isActive: boolean;
@@ -12,18 +15,21 @@ export interface Sector {
 export interface CreateSectorPayload {
   name: string;
   code: string;
+  area: string;
   description?: string;
 }
 
 export interface UpdateSectorPayload {
   name?: string;
   code?: string;
+  area?: string;
   description?: string;
   isActive?: boolean;
 }
 
 export interface SectorQueryParams {
   search?: string;
+  area?: string;
   isActive?: boolean;
 }
 

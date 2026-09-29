@@ -12,6 +12,7 @@ import {
 } from "../controllers/locationController.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
@@ -35,13 +36,13 @@ router.patch(
 // GET ALL LOCATIONS
 // ======================================
 
-router.get("/", getLocations);
+router.get("/", requireAreaAccess, getLocations);
 
 // ======================================
 // GET SINGLE LOCATION
 // ======================================
 
-router.get("/:id", getLocationById);
+router.get("/:id", requireAreaAccess, getLocationById);
 
 // ======================================
 // UPDATE LOCATION

@@ -5,6 +5,7 @@ export interface User {
   userId: string;
   name: string;
   role: UserRole;
+  areas?: string[];
   isActive: boolean;
   lastLoginAt: string | null;
   createdAt: string;
@@ -16,12 +17,14 @@ export interface CreateUserPayload {
   name: string;
   password: string;
   role: UserRole;
+  areas?: string[];
   isActive?: boolean;
 }
 
 export interface UpdateUserPayload {
   name?: string;
   role?: UserRole;
+  areas?: string[];
   isActive?: boolean;
 }
 

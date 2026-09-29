@@ -28,10 +28,12 @@ export const createLocation = async (
 export const getLocations = async ({
   search,
   sector,
+  area,
   isActive,
 }: {
   search?: string;
   sector?: LocationSectorId;
+  area?: string;
   isActive?: boolean;
 } = {}): Promise<ILocation[]> => {
   try {
@@ -39,6 +41,7 @@ export const getLocations = async ({
       params: {
         ...(search && { search }),
         ...(sector && { sector }),
+        ...(area && { area }),
         ...(isActive !== undefined && { isActive }),
       },
     });

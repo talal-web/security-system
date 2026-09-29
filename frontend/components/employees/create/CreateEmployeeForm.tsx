@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -29,6 +30,8 @@ import {
 import { useCreateEmployee } from "@/hooks/employee/create/useCreateEmployee";
 import { useEmployeeLocations } from "@/hooks/employee/create/useEmployeeLocations";
 import { useImagePreview } from "@/hooks/employee/create/useImagePreview";
+import { useSelectedArea } from "@/components/area/AreaContext";
+import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
 
 import { employeeSchema } from "@/utils/employee/employeeSchema";
@@ -46,21 +49,37 @@ import { buildEmployeeFormData } from "@/utils/employee/buildEmployeeFormData";
 
 export default function CreateEmployeeForm() {
   const router = useRouter();
+  const { selectedAreaId } = useSelectedArea();
 
   const {
     control,
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema) as Resolver<EmployeeFormValues>,
     defaultValues: defaultEmployeeValues,
   });
 
+  const selectedArea = useWatch({
+    control,
+    name: "area",
+  });
+
   const selectedSector = useWatch({
     control,
     name: "sector",
   });
+
+  useEffect(() => {
+    if (!selectedAreaId || selectedArea) return;
+
+    setValue("area", selectedAreaId, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  }, [selectedAreaId, selectedArea, setValue]);
 
   const { handleCreateEmployee, loading } = useCreateEmployee({
     onSuccess: () => {
@@ -319,8 +338,42 @@ export default function CreateEmployeeForm() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <AreaSelect
+                    label="Area"
+                    placeholder="Select Area"
+                    value={selectedArea ?? ""}
+                    onChange={(event) => {
+                      const nextArea = event.target.value;
+                      setValue("area", nextArea, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                      setValue("sector", "", {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                      setValue("currentLocation", "", {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                    }}
+                    className="w-full rounded-lg px-3 py-2"
+                  />
+
                   <SectorSelect
+                    areaId={selectedArea || undefined}
                     {...register("sector")}
+                    onChange={(event) => {
+                      const nextSector = event.target.value;
+                      setValue("sector", nextSector, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                      setValue("currentLocation", "", {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                    }}
                     className="w-full rounded-lg px-3 py-2"
                   />
 

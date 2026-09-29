@@ -26,7 +26,14 @@ export async function createFine(
 export async function getFines(filters?: FineFilters): Promise<FinesResponse> {
   try {
     const res = await api.get("/fines", {
-      params: filters,
+      params: {
+        employee: filters?.employee || undefined,
+        status: filters?.status || undefined,
+        fromDate: filters?.fromDate || undefined,
+        toDate: filters?.toDate || undefined,
+        search: filters?.search || undefined,
+        area: filters?.area || undefined,
+      },
     });
 
     return res.data;

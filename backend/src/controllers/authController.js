@@ -1,109 +1,17 @@
-import User from "../models/User.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import logger from "../config/logger.js";
+import {
+  loginService,
+  logoutService,
+  getMeService,
+} from "../services/auth/auth.service.js";
 
-export const login = async (req, res) => {
+// ======================================
+// Login
+// ======================================
+
+export const login = async (req, res, next) => {
   try {
-    const { userId: rawUserId, password } = req.body;
+    const { token, user } = await loginService(req.body);
 
-    // Validate input
-    if (!rawUserId || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID and password are required",
-      });
-    }
-
-    // Normalize User ID
-    const userId = rawUserId.trim().toUpperCase();
-
-    logger.info({
-      message: "Login attempt",
-      userId,
-    });
-
-    // Find user
-    const user = await User.findOne({ userId }).select("+password");
-
-    if (!user) {
-      logger.warn({
-        message: "Login failed: user not found",
-        userId,
-      });
-
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
-
-    // Check if account is active
-    if (!user.isActive) {
-      logger.warn({
-        message: "Login failed: account inactive",
-        userId,
-      });
-
-      return res.status(403).json({
-        success: false,
-        message: "Your account is inactive. Please contact an administrator.",
-      });
-    }
-
-    // Check password
-    if (!user.password) {
-      logger.error({
-        message: "Login failed: password not configured",
-        userId,
-      });
-
-      return res.status(500).json({
-        success: false,
-        message: "User account is incorrectly configured",
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      logger.warn({
-        message: "Login failed: incorrect password",
-        userId,
-      });
-
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
-
-    // Check JWT secret
-    if (!process.env.JWT_SECRET) {
-      logger.error({
-        message: "JWT_SECRET is missing",
-      });
-
-      return res.status(500).json({
-        success: false,
-        message: "Authentication service is not configured",
-      });
-    }
-
-    // Create token
-    const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role,
-        userId: user.userId,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1h",
-      },
-    );
-
-    // Cookie settings
     const isProduction = process.env.NODE_ENV === "production";
 
     res.cookie("token", token, {
@@ -113,36 +21,24 @@ export const login = async (req, res) => {
       maxAge: 60 * 60 * 1000,
     });
 
-    logger.info({
-      message: "Login successful",
-      userId,
-    });
-
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        role: user.role,
-        userId: user.userId,
-      },
+      user,
     });
   } catch (error) {
-    logger.error({
-      message: "Login error",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
-export const logout = async (req, res) => {
+// ======================================
+// Logout
+// ======================================
+
+export const logout = async (req, res, next) => {
   try {
+    await logoutService();
+
     const isProduction = process.env.NODE_ENV === "production";
 
     res.clearCookie("token", {
@@ -156,41 +52,19 @@ export const logout = async (req, res) => {
       message: "Logged out successfully",
     });
   } catch (error) {
-    logger.error({
-      message: "Logout error",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to logout",
-    });
+    next(error);
   }
 };
 
-export const getMe = async (req, res) => {
+// ======================================
+// Get Current User
+// ======================================
+
+export const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Check if account was deactivated after login
-    if (!user.isActive) {
-      logger.warn({
-        message: "Authenticated user is inactive",
-        userId: user.userId,
-      });
-
-      return res.status(403).json({
-        success: false,
-        message: "Your account is inactive. Please contact an administrator.",
-      });
-    }
+    const user = await getMeService({
+      userId: req.user.id,
+    });
 
     res.set({
       "Cache-Control": "no-store, no-cache, must-revalidate, private",
@@ -200,22 +74,9 @@ export const getMe = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      user: {
-        id: user._id.toString(),
-        name: user.name,
-        role: user.role,
-        userId: user.userId,
-      },
+      user,
     });
   } catch (error) {
-    logger.error({
-      message: "Get current user error",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };

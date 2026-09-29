@@ -18,6 +18,9 @@ export default function LocationView() {
     search,
     setSearch,
 
+    area,
+    setArea,
+
     sector,
     setSector,
 
@@ -50,6 +53,17 @@ export default function LocationView() {
   const [editingLocationId, setEditingLocationId] = useState<string | null>(
     null,
   );
+
+  const handleAreaChange = (nextArea?: string) => {
+    setArea(nextArea);
+    if (nextArea !== area) {
+      setSector(undefined);
+    }
+  };
+
+  const handleSectorChange = (nextSector?: string) => {
+    setSector(nextSector);
+  };
 
   const totalLocations = locations.length;
   const activeLocations = locations.filter(
@@ -102,9 +116,12 @@ export default function LocationView() {
       <LocationFilters
         search={search}
         onSearchChange={setSearch}
+        area={area}
+        selectedAreaLabel={area ? "Area selected" : undefined}
+        onAreaChange={handleAreaChange}
         sector={sector}
         selectedSectorLabel={sector ? sectorLabelMap[sector] : undefined}
-        onSectorChange={setSector}
+        onSectorChange={handleSectorChange}
         isActive={isActive}
         onStatusChange={setIsActive}
         onClearFilters={handleClearFilters}

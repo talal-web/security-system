@@ -14,6 +14,7 @@ type SectorSelectProps = Omit<
   placeholder?: string;
   includeInactive?: boolean;
   wrapperClassName?: string;
+  areaId?: string;
 };
 
 export default function SectorSelect({
@@ -26,13 +27,17 @@ export default function SectorSelect({
   wrapperClassName,
   className,
   disabled,
+  areaId,
   ...props
 }: SectorSelectProps) {
   const { data, isLoading } = useSectors({
     isActive: includeInactive ? undefined : true,
+    area: areaId,
   });
 
   const sectors = data?.data ?? [];
+
+  const isAreaMissing = !areaId;
 
   return (
     <div className={showLabel ? "space-y-2" : undefined}>
@@ -56,13 +61,19 @@ export default function SectorSelect({
 
         <select
           {...props}
-          disabled={disabled || isLoading}
+          disabled={disabled || isLoading || isAreaMissing}
           className={`h-full w-full bg-transparent text-sm text-slate-900 outline-none disabled:cursor-not-allowed disabled:text-slate-400 ${
             className ?? ""
           }`}
         >
           <option value="">
-            {isLoading ? "Loading sectors..." : placeholder}
+            {isAreaMissing
+              ? "Select an area first"
+              : isLoading
+                ? "Loading sectors..."
+                : sectors.length === 0
+                  ? "No sectors available"
+                  : placeholder}
           </option>
 
           {sectors.map((sector) => (

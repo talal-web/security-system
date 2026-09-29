@@ -2,9 +2,11 @@ import type { UserRole } from "./user";
 
 export interface User {
   id: string;
+  _id?: string;
   name: string;
   role: UserRole;
   userId: string;
+  areas?: string[];
 }
 
 export interface LoginPayload {

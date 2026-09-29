@@ -8,9 +8,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useCreateSector } from "@/hooks/sector/useSector";
 import { getApiErrorMessage } from "@/lib/apiError";
+import AreaSelect from "@/components/area/AreaSelect";
 import type { CreateSectorPayload } from "@/types/sector";
 
 const sectorSchema = z.object({
+  area: z.string().min(1, "Area is required"),
+
   name: z
     .string()
     .trim()
@@ -43,10 +46,13 @@ export default function CreateSectorForm() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<SectorFormInput, unknown, SectorFormData>({
     resolver: zodResolver(sectorSchema),
     defaultValues: {
+      area: "",
       name: "",
       code: "",
       description: "",
@@ -55,6 +61,7 @@ export default function CreateSectorForm() {
 
   const onSubmit = (data: SectorFormData) => {
     const payload: CreateSectorPayload = {
+      area: data.area,
       name: data.name,
       code: data.code,
       ...(data.description ? { description: data.description } : {}),
@@ -76,6 +83,19 @@ export default function CreateSectorForm() {
       <h1 className="mb-6 text-2xl font-bold">Create Sector</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <AreaSelect
+          showLabel={true}
+          label="Area"
+          placeholder="Select an area"
+          value={watch("area") ?? ""}
+          onChange={(event) => setValue("area", event.target.value)}
+          className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"
+        />
+
+        {errors.area && (
+          <p className="text-sm text-red-500">{errors.area.message}</p>
+        )}
+
         {/* Name */}
         <div>
           <label className="mb-2 block text-sm font-medium">Sector Name</label>

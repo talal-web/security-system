@@ -5,13 +5,18 @@ import { useState } from "react";
 import { X, MapPin, Loader2 } from "lucide-react";
 
 import { useLocation, useUpdateLocation } from "@/hooks/location/useLocation";
+import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
 
 import type { LocationSectorId, UpdateLocationPayload } from "@/types/location";
 
-type UpdateLocationFormState = Omit<UpdateLocationPayload, "sector"> & {
+type UpdateLocationFormState = Omit<
+  UpdateLocationPayload,
+  "sector" | "area"
+> & {
   name: string;
   address: string;
+  area: string;
   sector: LocationSectorId | "";
   isActive: boolean;
 };
@@ -42,6 +47,7 @@ export default function UpdateLocationModal({
   const form: UpdateLocationFormState = {
     name: draft.name ?? data?.name ?? "",
     address: draft.address ?? data?.address ?? "",
+    area: draft.area ?? data?.sector?.area?._id ?? "",
     sector: draft.sector ?? data?.sector?._id ?? "",
     isActive: draft.isActive ?? data?.isActive ?? true,
   };
@@ -55,6 +61,16 @@ export default function UpdateLocationModal({
       setDraft((prev) => ({
         ...prev,
         isActive: value === "true",
+      }));
+
+      return;
+    }
+
+    if (name === "area") {
+      setDraft((prev) => ({
+        ...prev,
+        area: value,
+        sector: "",
       }));
 
       return;
@@ -92,6 +108,7 @@ export default function UpdateLocationModal({
       name: form.name,
       address: form.address,
       isActive: form.isActive,
+      area: form.area || undefined,
       sector: form.sector || undefined,
     };
 
@@ -199,6 +216,22 @@ export default function UpdateLocationModal({
                 />
               </div>
 
+              {/* AREA */}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Area *
+                </label>
+
+                <AreaSelect
+                  showLabel={false}
+                  name="area"
+                  value={form.area}
+                  onChange={handleChange}
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  required
+                />
+              </div>
+
               {/* SECTOR */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -208,10 +241,12 @@ export default function UpdateLocationModal({
                 <SectorSelect
                   showLabel={false}
                   name="sector"
+                  areaId={form.area || undefined}
                   value={form.sector}
                   onChange={handleChange}
                   className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
                   required
+                  disabled={!form.area}
                 />
               </div>
 

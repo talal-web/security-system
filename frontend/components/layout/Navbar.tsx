@@ -8,6 +8,7 @@ import Image from "next/image";
 
 import { useLogout } from "@/hooks/auth/useLogout";
 import { useMe } from "@/hooks/auth/useMe";
+import AreaSwitcher from "@/components/area/AreaSwitcher";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -72,6 +73,7 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 lg:flex">
           {user ? (
             <>
+              <AreaSwitcher />
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}

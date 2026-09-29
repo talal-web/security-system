@@ -1,8 +1,8 @@
 // types/employee.ts
 
-import { ILocation } from "./location";
-
-import { Sector } from "./sector";
+import type { ILocation } from "./location";
+import type { Sector } from "./sector";
+import type { Area } from "./area";
 
 export type EmployeeStatus = "active" | "inactive";
 
@@ -17,6 +17,7 @@ export type EducationLevel =
   | "master";
 
 export type SectorOptions = Sector;
+export type AreaOptions = Area;
 
 export type EmployeeDesignation =
   | "guard"
@@ -30,46 +31,34 @@ export type EmployeeDesignation =
 export interface Employee {
   _id: string;
   empId: string;
-
   name: string;
   fatherName: string;
   birthDate: string;
   age: number;
-
   cnic: string;
   address: string;
-
   phone1: string;
   phone2?: string;
-
   education?: EducationLevel | null;
-
   designation: EmployeeDesignation;
-
   reference?: string;
 
   sector?: SectorOptions | null;
+  area?: AreaOptions | null;
 
   currentLocation?: string | ILocation | null;
 
   status: EmployeeStatus;
-
   defaultShift?: EmployeeShift | null;
-
   entryDate: string;
-
   exitDate?: string | null;
 
   profileImage?: string;
-
   cnicFrontImage?: string;
-
   cnicBackImage?: string;
-
   notes?: string;
 
   createdAt: string;
-
   updatedAt: string;
 }
 
@@ -84,22 +73,16 @@ export interface EmployeeLookupResult {
 
 export interface EmployeeFilters {
   status?: EmployeeStatus;
-
   designation?: EmployeeDesignation;
-
   sector?: string;
-
+  area?: string;
   education?: EducationLevel;
-
   defaultShift?: EmployeeShift;
 
-  unassigned?: "" | "sector" | "shift" | "currentLocation";
+  unassigned?: "" | "sector" | "area" | "shift" | "currentLocation";
 
   search?: string;
-
   entryFrom?: string;
-
   entryTo?: string;
-
   hasExited?: boolean;
 }

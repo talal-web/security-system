@@ -8,7 +8,8 @@ export function useLogout() {
   return useMutation({
     mutationFn: logoutUser,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      queryClient.setQueryData(["me"], null);
+      await queryClient.cancelQueries({ queryKey: ["me"] });
     },
   });
 }

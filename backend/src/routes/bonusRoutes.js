@@ -9,16 +9,23 @@ import {
 } from "../controllers/bonusController.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
 // Create bonus
-router.post("/", authorizeRoles("developer", "admin", "clerk"), createBonus);
+router.post(
+  "/",
+  authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
+  createBonus,
+);
 
 // Get all bonuses / filter by employee or status
 router.get(
   "/",
   authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  requireAreaAccess,
   getBonuses,
 );
 
@@ -26,6 +33,7 @@ router.get(
 router.get(
   "/employee/:employeeId",
   authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  requireAreaAccess,
   getEmployeeBonuses,
 );
 
@@ -33,6 +41,7 @@ router.get(
 router.patch(
   "/:id",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   updateBonus,
 );
 
@@ -40,6 +49,7 @@ router.patch(
 router.patch(
   "/:id/cancel",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   cancelBonus,
 );
 

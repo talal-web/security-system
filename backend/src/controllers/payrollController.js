@@ -1,171 +1,42 @@
-// backend/src/controllers/payrollController.js
-
 import mongoose from "mongoose";
 
 import Payroll from "../models/Payroll.js";
-import Employee from "../models/Employee.js";
+import ApiError from "../utils/ApiError.js";
+
+import {
+  getPayrollsService,
+  getPayrollByIdService,
+  getEmployeePayrollsService,
+} from "../services/payroll/payrollQueryService.js";
+
 import {
   finalizePayrollById,
   generatePayrollForEmployee,
   generatePayrollForMonth,
   markPayrollPaid,
-} from "../services/payrollService.js";
+} from "../services/payroll/payrollService.js";
+
+const validatePeriod = (year, month) => {
+  const parsedYear = Number(year);
+  const parsedMonth = Number(month);
+
+  if (!Number.isInteger(parsedYear) || parsedYear < 2000 || parsedYear > 2100) {
+    throw new ApiError(400, "Invalid year");
+  }
+
+  if (!Number.isInteger(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
+    throw new ApiError(400, "Invalid month");
+  }
+
+  return { year: parsedYear, month: parsedMonth };
+};
 
 /**
  * GET /api/payroll
- *
- * Optional query:
- * ?year=2026&month=9&employee=EMPLOYEE_ID&status=draft
  */
-
-export const getPayrolls = async (req, res) => {
+export const getPayrolls = async (req, res, next) => {
   try {
-    const { year, month, employee, status, search } = req.query;
-
-    const filter = {};
-
-    // ==========================================================================
-    // YEAR
-    // ==========================================================================
-
-    if (year !== undefined) {
-      const parsedYear = Number(year);
-
-      if (
-        !Number.isInteger(parsedYear) ||
-        parsedYear < 2000 ||
-        parsedYear > 2100
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid year",
-        });
-      }
-
-      filter.year = parsedYear;
-    }
-
-    // ==========================================================================
-    // MONTH
-    // ==========================================================================
-
-    if (month !== undefined) {
-      const parsedMonth = Number(month);
-
-      if (
-        !Number.isInteger(parsedMonth) ||
-        parsedMonth < 1 ||
-        parsedMonth > 12
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid month",
-        });
-      }
-
-      filter.month = parsedMonth;
-    }
-
-    // ==========================================================================
-    // EMPLOYEE ID
-    // ==========================================================================
-
-    if (employee !== undefined) {
-      if (!mongoose.isValidObjectId(employee)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid employee ID",
-        });
-      }
-
-      filter.employee = employee;
-    }
-
-    // ==========================================================================
-    // STATUS
-    // ==========================================================================
-
-    if (status !== undefined && status !== "all") {
-      const allowedStatuses = ["draft", "finalized", "paid"];
-
-      if (!allowedStatuses.includes(status)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid payroll status",
-        });
-      }
-
-      filter.status = status;
-    }
-
-    // ==========================================================================
-    // EMPLOYEE SEARCH
-    // Search by employee name OR empId
-    // ==========================================================================
-
-    if (search?.trim()) {
-      const searchRegex = new RegExp(search.trim(), "i");
-
-      const matchingEmployees = await Employee.find({
-        $or: [{ name: searchRegex }, { empId: searchRegex }],
-      })
-        .select("_id")
-        .lean();
-
-      const employeeIds = matchingEmployees.map((item) => item._id);
-
-      if (employeeIds.length === 0) {
-        return res.status(200).json({
-          success: true,
-          count: 0,
-          data: [],
-        });
-      }
-
-      if (filter.employee) {
-        const matchesSelectedEmployee = employeeIds.some(
-          (id) => String(id) === String(filter.employee),
-        );
-
-        if (!matchesSelectedEmployee) {
-          return res.status(200).json({
-            success: true,
-            count: 0,
-            data: [],
-          });
-        }
-      } else {
-        filter.employee = {
-          $in: employeeIds,
-        };
-      }
-    }
-
-    // ==========================================================================
-    // FETCH PAYROLLS
-    // ==========================================================================
-
-    const payrolls = await Payroll.find(filter)
-      .populate("employee", "empId name fatherName designation status")
-      .populate("finalizedBy", "userId name role")
-      .populate("paidBy", "userId name role")
-      .lean();
-
-    // ==========================================================================
-    // SORT BY EMPLOYEE ID
-    // Natural sorting: EMP-1, EMP-2, EMP-10
-    // ==========================================================================
-
-    payrolls.sort((a, b) =>
-      String(a.employee?.empId ?? "").localeCompare(
-        String(b.employee?.empId ?? ""),
-        undefined,
-        {
-          numeric: true,
-          sensitivity: "base",
-        },
-      ),
-    );
+    const payrolls = await getPayrollsService(req.query, req.areaScope);
 
     return res.status(200).json({
       success: true,
@@ -173,81 +44,35 @@ export const getPayrolls = async (req, res) => {
       data: payrolls,
     });
   } catch (error) {
-    console.error("getPayrolls error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch payrolls",
-      error: error.message,
-    });
+    return next(error);
   }
 };
 
 /**
  * GET /api/payroll/:id
  */
-export const getPayrollById = async (req, res) => {
+export const getPayrollById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid payroll ID",
-      });
-    }
-
-    const payroll = await Payroll.findById(id)
-      .populate(
-        "employee",
-        "empId name fatherName designation status entryDate exitDate",
-      )
-      .populate("finalizedBy", "userId role")
-      .populate("paidBy", "userId role");
-
-    if (!payroll) {
-      return res.status(404).json({
-        success: false,
-        message: "Payroll not found",
-      });
-    }
+    const payroll = await getPayrollByIdService(req.params.id, req.areaScope);
 
     return res.status(200).json({
       success: true,
       data: payroll,
     });
   } catch (error) {
-    console.error("getPayrollById error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch payroll",
-      error: error.message,
-    });
+    return next(error);
   }
 };
 
 /**
  * GET /api/payroll/employee/:employeeId
  */
-export const getEmployeePayrolls = async (req, res) => {
+export const getEmployeePayrolls = async (req, res, next) => {
   try {
-    const { employeeId } = req.params;
-
-    if (!mongoose.isValidObjectId(employeeId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid employee ID",
-      });
-    }
-
-    const payrolls = await Payroll.find({
-      employee: employeeId,
-    })
-      .sort({ year: -1, month: -1 })
-      .populate("employee", "empId name fatherName designation status")
-      .populate("finalizedBy", "userId name role")
-      .populate("paidBy", "userId name role");
+    const payrolls = await getEmployeePayrollsService(
+      req.params.employeeId,
+      req.areaScope,
+    );
 
     return res.status(200).json({
       success: true,
@@ -255,76 +80,29 @@ export const getEmployeePayrolls = async (req, res) => {
       data: payrolls,
     });
   } catch (error) {
-    console.error("getEmployeePayrolls error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch employee payroll history",
-      error: error.message,
-    });
+    return next(error);
   }
 };
 
 /**
  * POST /api/payroll/generate
- *
- * Generate payroll for one employee.
- *
- * Body:
- * {
- *   employeeId,
- *   year,
- *   month
- * }
  */
-export const generatePayroll = async (req, res) => {
+export const generatePayroll = async (req, res, next) => {
   try {
-    const { employeeId, year, month } = req.body;
+    const { employeeId } = req.body;
 
     if (!employeeId || !mongoose.isValidObjectId(employeeId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Valid employeeId is required",
-      });
+      throw new ApiError(400, "Valid employeeId is required");
     }
 
-    const parsedYear = Number(year);
-    const parsedMonth = Number(month);
-
-    if (
-      !Number.isInteger(parsedYear) ||
-      parsedYear < 2000 ||
-      parsedYear > 2100
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid year",
-      });
-    }
-
-    if (!Number.isInteger(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid month",
-      });
-    }
-
-    const employee = await Employee.findById(employeeId).select(
-      "_id empId name status entryDate exitDate",
-    );
-
-    if (!employee) {
-      return res.status(404).json({
-        success: false,
-        message: "Employee not found",
-      });
-    }
+    const { year, month } = validatePeriod(req.body.year, req.body.month);
 
     const payroll = await generatePayrollForEmployee({
       employeeId,
-      year: parsedYear,
-      month: parsedMonth,
+      year,
+      month,
       userId: req.user.id,
+      areaScope: req.areaScope,
     });
 
     return res.status(201).json({
@@ -333,63 +111,31 @@ export const generatePayroll = async (req, res) => {
       data: payroll,
     });
   } catch (error) {
-    console.error("generatePayroll error:", error);
-
     if (
       error.code === 11000 ||
       error.message === "Payroll already exists for this employee and month"
     ) {
-      return res.status(409).json({
-        success: false,
-        message: "Payroll already exists for this employee and month",
-      });
+      return next(
+        new ApiError(409, "Payroll already exists for this employee and month"),
+      );
     }
 
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to generate payroll",
-    });
+    return next(error);
   }
 };
 
 /**
  * POST /api/payroll/generate-month
- *
- * Generate payroll for all eligible employees.
- *
- * Body:
- * {
- *   year,
- *   month
- * }
  */
-export const generateMonthlyPayroll = async (req, res) => {
+export const generateMonthlyPayroll = async (req, res, next) => {
   try {
-    const parsedYear = Number(req.body.year);
-    const parsedMonth = Number(req.body.month);
-
-    if (
-      !Number.isInteger(parsedYear) ||
-      parsedYear < 2000 ||
-      parsedYear > 2100
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid year",
-      });
-    }
-
-    if (!Number.isInteger(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid month",
-      });
-    }
+    const { year, month } = validatePeriod(req.body.year, req.body.month);
 
     const result = await generatePayrollForMonth({
-      year: parsedYear,
-      month: parsedMonth,
+      year,
+      month,
       userId: req.user.id,
+      areaScope: req.areaScope,
     });
 
     return res.status(201).json({
@@ -398,45 +144,29 @@ export const generateMonthlyPayroll = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error("generateMonthlyPayroll error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to generate monthly payroll",
-    });
+    return next(error);
   }
 };
 
 /**
  * POST /api/payroll/:id/recalculate
- *
- * Only draft payroll can be recalculated.
  */
-export const recalculatePayroll = async (req, res) => {
+export const recalculatePayroll = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid payroll ID",
-      });
+      throw new ApiError(400, "Invalid payroll ID");
     }
 
     const payroll = await Payroll.findById(id);
 
     if (!payroll) {
-      return res.status(404).json({
-        success: false,
-        message: "Payroll not found",
-      });
+      throw new ApiError(404, "Payroll not found");
     }
 
     if (payroll.status !== "draft") {
-      return res.status(400).json({
-        success: false,
-        message: "Only draft payroll can be recalculated",
-      });
+      throw new ApiError(400, "Only draft payroll can be recalculated");
     }
 
     const updatedPayroll = await generatePayrollForEmployee({
@@ -446,6 +176,7 @@ export const recalculatePayroll = async (req, res) => {
       userId: req.user.id,
       payrollId: payroll._id,
       recalculate: true,
+      areaScope: req.areaScope,
     });
 
     return res.status(200).json({
@@ -454,52 +185,20 @@ export const recalculatePayroll = async (req, res) => {
       data: updatedPayroll,
     });
   } catch (error) {
-    console.error("recalculatePayroll error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to recalculate payroll",
-    });
+    return next(error);
   }
 };
 
 /**
  * POST /api/payroll/recalculate-month
- *
- * Recalculate all existing draft payrolls for a month.
- *
- * Body:
- * {
- *   year,
- *   month
- * }
  */
-export const recalculateMonthlyPayroll = async (req, res) => {
+export const recalculateMonthlyPayroll = async (req, res, next) => {
   try {
-    const parsedYear = Number(req.body.year);
-    const parsedMonth = Number(req.body.month);
-
-    if (
-      !Number.isInteger(parsedYear) ||
-      parsedYear < 2000 ||
-      parsedYear > 2100
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid year",
-      });
-    }
-
-    if (!Number.isInteger(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid month",
-      });
-    }
+    const { year, month } = validatePeriod(req.body.year, req.body.month);
 
     const payrolls = await Payroll.find({
-      year: parsedYear,
-      month: parsedMonth,
+      year,
+      month,
       status: "draft",
     }).select("_id employee year month");
 
@@ -525,6 +224,7 @@ export const recalculateMonthlyPayroll = async (req, res) => {
           userId: req.user.id,
           payrollId: payroll._id,
           recalculate: true,
+          areaScope: req.areaScope,
         }),
       ),
     );
@@ -546,7 +246,9 @@ export const recalculateMonthlyPayroll = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Monthly payroll recalculation completed. ${recalculated} of ${payrolls.length} payrolls recalculated.`,
+      message:
+        `Monthly payroll recalculation completed. ` +
+        `${recalculated} of ${payrolls.length} payrolls recalculated.`,
       data: {
         total: payrolls.length,
         recalculated,
@@ -555,32 +257,25 @@ export const recalculateMonthlyPayroll = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("recalculateMonthlyPayroll error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to recalculate monthly payroll",
-    });
+    return next(error);
   }
 };
 
 /**
  * PATCH /api/payroll/:id/finalize
  */
-export const finalizePayroll = async (req, res) => {
+export const finalizePayroll = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid payroll ID",
-      });
+      throw new ApiError(400, "Invalid payroll ID");
     }
 
     const payroll = await finalizePayrollById({
       payrollId: id,
       userId: req.user.id,
+      areaScope: req.areaScope,
     });
 
     return res.status(200).json({
@@ -589,28 +284,20 @@ export const finalizePayroll = async (req, res) => {
       data: payroll,
     });
   } catch (error) {
-    console.error("finalizePayroll error:", error);
-
-    return res.status(error.message === "Payroll not found" ? 404 : 400).json({
-      success: false,
-      message: error.message || "Failed to finalize payroll",
-    });
+    return next(error);
   }
 };
 
 /**
  * PATCH /api/payroll/:id/pay
  */
-export const markPayrollAsPaid = async (req, res) => {
+export const markPayrollAsPaid = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { paymentMethod, paymentReference } = req.body;
 
     if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid payroll ID",
-      });
+      throw new ApiError(400, "Invalid payroll ID");
     }
 
     const payroll = await markPayrollPaid({
@@ -618,6 +305,7 @@ export const markPayrollAsPaid = async (req, res) => {
       userId: req.user.id,
       paymentMethod,
       paymentReference,
+      areaScope: req.areaScope,
     });
 
     return res.status(200).json({
@@ -626,11 +314,6 @@ export const markPayrollAsPaid = async (req, res) => {
       data: payroll,
     });
   } catch (error) {
-    console.error("markPayrollAsPaid error:", error);
-
-    return res.status(error.message === "Payroll not found" ? 404 : 400).json({
-      success: false,
-      message: error.message || "Failed to mark payroll as paid",
-    });
+    return next(error);
   }
 };

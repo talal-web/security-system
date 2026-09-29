@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
+
 import {
   cancelDeduction,
   createDeduction,
@@ -35,9 +37,15 @@ export const deductionKeys = {
 // ======================================
 
 export function useDeductions(filters: DeductionFilters = {}) {
+  const { selectedAreaId } = useSelectedArea();
+  const effectiveFilters = {
+    ...filters,
+    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+  };
+
   return useQuery({
-    queryKey: deductionKeys.list(filters),
-    queryFn: () => getDeductions(filters),
+    queryKey: deductionKeys.list(effectiveFilters),
+    queryFn: () => getDeductions(effectiveFilters),
   });
 }
 

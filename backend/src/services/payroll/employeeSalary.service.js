@@ -1,4 +1,4 @@
-import EmployeeSalary from "../models/EmployeeSalary.js";
+import EmployeeSalary from "../../models/EmployeeSalary.js";
 
 export const getFirstDayOfPayrollMonth = (year, month) => {
   if (!Number.isInteger(year) || !Number.isInteger(month)) {

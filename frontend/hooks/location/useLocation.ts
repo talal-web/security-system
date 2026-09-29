@@ -4,6 +4,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import {
   createLocation,
   deleteLocation,
@@ -22,21 +23,27 @@ import {
 export const useLocations = ({
   search,
   sector,
+  area,
   isActive,
   enabled,
 }: {
   search?: string;
   sector?: LocationSectorId;
+  area?: string;
   isActive?: boolean;
   enabled?: boolean;
 } = {}) => {
+  const { selectedAreaId } = useSelectedArea();
+  const effectiveArea = area ?? selectedAreaId ?? undefined;
+
   return useQuery({
-    queryKey: ["locations", search, sector, isActive],
+    queryKey: ["locations", search, sector, effectiveArea, isActive],
 
     queryFn: () =>
       getLocations({
         search,
         sector,
+        area: effectiveArea,
         isActive,
       }),
 

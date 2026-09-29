@@ -8,16 +8,23 @@ import {
 } from "../controllers/employeeSalaryController.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
 // Create initial salary or a new salary record
-router.post("/", authorizeRoles("developer", "admin"), createEmployeeSalary);
+router.post(
+  "/",
+  authorizeRoles("developer", "admin"),
+  requireAreaAccess,
+  createEmployeeSalary,
+);
 
 // Get current applicable salary for an employee
 router.get(
   "/:employeeId/current",
   authorizeRoles("developer", "admin"),
+  requireAreaAccess,
   getCurrentEmployeeSalary,
 );
 
@@ -25,6 +32,7 @@ router.get(
 router.get(
   "/:employeeId/history",
   authorizeRoles("developer", "admin"),
+  requireAreaAccess,
   getEmployeeSalaryHistory,
 );
 

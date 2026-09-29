@@ -14,6 +14,7 @@ export type EmployeeFormValues = {
   phone2: string;
   education?: EducationLevel | "";
   designation: EmployeeDesignation;
+  area?: string | "";
   sector?: string | "";
   currentLocation?: string;
   defaultShift?: EmployeeShift | "";
@@ -35,6 +36,7 @@ export const defaultEmployeeValues: EmployeeFormValues = {
   education: "",
   designation: "guard",
   defaultShift: "",
+  area: "",
   sector: "",
   currentLocation: "",
   monthlySalary: 22000,

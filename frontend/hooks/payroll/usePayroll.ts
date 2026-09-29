@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import {
   finalizePayroll,
   generateMonthlyPayroll,
@@ -45,9 +46,15 @@ export const payrollKeys = {
 // ============================================================================
 
 export function usePayrolls(filters?: PayrollFilters) {
+  const { selectedAreaId } = useSelectedArea();
+  const effectiveFilters = {
+    ...filters,
+    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+  };
+
   return useQuery({
-    queryKey: payrollKeys.list(filters),
-    queryFn: () => getPayrolls(filters),
+    queryKey: payrollKeys.list(effectiveFilters),
+    queryFn: () => getPayrolls(effectiveFilters),
   });
 }
 

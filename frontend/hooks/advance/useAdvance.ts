@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
+
 import {
   cancelAdvance,
   createAdvance,
@@ -35,9 +37,15 @@ export const advanceKeys = {
 // ======================================
 
 export function useAdvances(filters?: AdvanceFilters) {
+  const { selectedAreaId } = useSelectedArea();
+  const effectiveFilters = {
+    ...filters,
+    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+  };
+
   return useQuery({
-    queryKey: advanceKeys.list(filters),
-    queryFn: () => getAdvances(filters),
+    queryKey: advanceKeys.list(effectiveFilters),
+    queryFn: () => getAdvances(effectiveFilters),
   });
 }
 

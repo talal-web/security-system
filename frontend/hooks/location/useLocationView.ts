@@ -16,6 +16,7 @@ export function useLocationView() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
+  const [area, setArea] = useState<string>();
   const [sector, setSector] = useState<LocationSectorId>();
   const [isActive, setIsActive] = useState<boolean | undefined>(true);
 
@@ -50,6 +51,7 @@ export function useLocationView() {
     error,
   } = useLocations({
     search: debouncedSearch,
+    area,
     sector,
     isActive,
   });
@@ -99,6 +101,7 @@ export function useLocationView() {
   // ==========================
   const handleClearFilters = () => {
     setSearch("");
+    setArea(undefined);
     setSector(undefined);
     setIsActive(undefined);
   };
@@ -127,6 +130,9 @@ export function useLocationView() {
     // filters
     search,
     setSearch,
+
+    area,
+    setArea,
 
     sector,
     setSector,

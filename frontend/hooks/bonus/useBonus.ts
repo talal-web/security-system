@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
+
 import {
   cancelBonus,
   createBonus,
@@ -35,10 +37,16 @@ export const bonusKeys = {
 // ============================================================
 
 export function useBonuses(filters: BonusFilters = {}) {
-  return useQuery({
-    queryKey: bonusKeys.list(filters),
+  const { selectedAreaId } = useSelectedArea();
+  const effectiveFilters = {
+    ...filters,
+    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+  };
 
-    queryFn: () => getBonuses(filters),
+  return useQuery({
+    queryKey: bonusKeys.list(effectiveFilters),
+
+    queryFn: () => getBonuses(effectiveFilters),
   });
 }
 

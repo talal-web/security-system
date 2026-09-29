@@ -256,4 +256,5 @@ export interface PayrollFilters {
   employee?: string;
   status?: PayrollStatusFilter;
   search?: string;
+  area?: string;
 }

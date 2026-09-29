@@ -5,6 +5,7 @@ import { useState } from "react";
 import { X, MapPin } from "lucide-react";
 
 import { useCreateLocation } from "@/hooks/location/useLocation";
+import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
 
 type Props = {
@@ -15,6 +16,7 @@ type Props = {
 export default function CreateLocationModal({ open, onClose }: Props) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [area, setArea] = useState("");
   const [sector, setSector] = useState("");
 
   const { mutate, isPending, isError, error } = useCreateLocation();
@@ -30,12 +32,14 @@ export default function CreateLocationModal({ open, onClose }: Props) {
       {
         name: name.trim(),
         address: address.trim(),
+        area,
         sector,
       },
       {
         onSuccess: () => {
           setName("");
           setAddress("");
+          setArea("");
           setSector("");
           onClose();
         },
@@ -109,6 +113,25 @@ export default function CreateLocationModal({ open, onClose }: Props) {
               />
             </div>
 
+            {/* AREA */}
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Area *
+              </label>
+
+              <AreaSelect
+                showLabel={false}
+                value={area}
+                onChange={(e) => {
+                  const nextArea = e.target.value;
+                  setArea(nextArea);
+                  setSector("");
+                }}
+                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                required
+              />
+            </div>
+
             {/* SECTOR */}
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -117,10 +140,12 @@ export default function CreateLocationModal({ open, onClose }: Props) {
 
               <SectorSelect
                 showLabel={false}
+                areaId={area || undefined}
                 value={sector}
                 onChange={(e) => setSector(e.target.value)}
                 className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
                 required
+                disabled={!area}
               />
             </div>
           </div>

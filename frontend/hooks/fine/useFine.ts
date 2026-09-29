@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
+
 import {
   cancelFine,
   createFine,
@@ -35,9 +37,15 @@ export const fineKeys = {
 // ======================================
 
 export function useFines(filters?: FineFilters) {
+  const { selectedAreaId } = useSelectedArea();
+  const effectiveFilters = {
+    ...filters,
+    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+  };
+
   return useQuery({
-    queryKey: fineKeys.list(filters),
-    queryFn: () => getFines(filters),
+    queryKey: fineKeys.list(effectiveFilters),
+    queryFn: () => getFines(effectiveFilters),
   });
 }
 

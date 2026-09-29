@@ -34,7 +34,14 @@ export async function getAdvances(
 ): Promise<AdvancesResponse> {
   try {
     const res = await api.get("/advances", {
-      params: filters,
+      params: {
+        employee: filters?.employee || undefined,
+        status: filters?.status || undefined,
+        fromDate: filters?.fromDate || undefined,
+        toDate: filters?.toDate || undefined,
+        search: filters?.search || undefined,
+        area: filters?.area || undefined,
+      },
     });
 
     return res.data;

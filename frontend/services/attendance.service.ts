@@ -26,6 +26,7 @@ export async function getAttendanceReport(
         status: filters?.status,
         shift: filters?.shift,
         date: filters?.date,
+        area: filters?.area,
       },
     });
 
@@ -39,9 +40,14 @@ export async function getAttendanceReport(
 // SINGLE ATTENDANCE RECORD
 // ======================================
 
-export async function getAttendanceById(id: string): Promise<AttendanceRecord> {
+export async function getAttendanceById(
+  id: string,
+  area?: string,
+): Promise<AttendanceRecord> {
   try {
-    const res = await api.get<AttendanceRecordResponse>(`/attendance/${id}`);
+    const res = await api.get<AttendanceRecordResponse>(`/attendance/${id}`, {
+      params: area ? { area } : {},
+    });
 
     return res.data.data;
   } catch (error) {
@@ -56,11 +62,12 @@ export async function getAttendanceById(id: string): Promise<AttendanceRecord> {
 export async function updateAttendance(
   id: string,
   payload: UpdateAttendancePayload,
+  area?: string,
 ): Promise<AttendanceRecord> {
   try {
     const res = await api.patch<UpdateAttendanceResponse>(
       `/attendance/${id}`,
-      payload,
+      area ? { ...payload, area } : payload,
     );
 
     return res.data.data;
@@ -80,7 +87,10 @@ export async function getMonthlyAttendanceReport(
     const res = await api.get<MonthlyAttendanceResponse>(
       "/attendance/report/monthly",
       {
-        params: filters,
+        params: {
+          ...filters,
+          area: filters?.area,
+        },
       },
     );
 

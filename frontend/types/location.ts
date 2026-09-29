@@ -7,7 +7,12 @@ export type LocationSectorId = string;
 export type LocationSectorSummary = Pick<
   Sector,
   "_id" | "name" | "code" | "sortOrder" | "isActive"
->;
+> & {
+  area?: {
+    _id: string;
+    name: string;
+  } | null;
+};
 
 export interface ILocation {
   _id: string;
@@ -32,6 +37,8 @@ export interface CreateLocationPayload {
 
   address?: string;
 
+  area?: string;
+
   sector: LocationSectorId;
 }
 
@@ -39,6 +46,8 @@ export interface UpdateLocationPayload {
   name?: string;
 
   address?: string;
+
+  area?: string;
 
   sector?: LocationSectorId;
 

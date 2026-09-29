@@ -10,6 +10,7 @@ export interface AdvanceFilters {
   fromDate?: string;
   toDate?: string;
   search?: string;
+  area?: string;
 }
 
 export interface AdvanceEmployee {

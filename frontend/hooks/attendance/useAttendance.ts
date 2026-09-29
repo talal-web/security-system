@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import {
   getAttendanceById,
   getAttendanceReport,
@@ -47,9 +48,16 @@ export const attendanceKeys = {
 // ======================================
 
 export function useAttendanceReport(filters?: AttendanceFilters) {
+  const { selectedAreaId } = useSelectedArea();
+  const effectiveFilters = {
+    ...filters,
+    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+  };
+
   return useQuery({
-    queryKey: attendanceKeys.dailyReport(filters),
-    queryFn: () => getAttendanceReport(filters),
+    queryKey: attendanceKeys.dailyReport(effectiveFilters),
+    queryFn: () => getAttendanceReport(effectiveFilters),
+    enabled: !filters?.date || Boolean(filters.date),
   });
 }
 
@@ -58,9 +66,11 @@ export function useAttendanceReport(filters?: AttendanceFilters) {
 // ======================================
 
 export function useAttendanceById(id?: string) {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: attendanceKeys.detail(id ?? ""),
-    queryFn: () => getAttendanceById(id!),
+    queryKey: attendanceKeys.detail(`${id ?? ""}:${selectedAreaId ?? "all"}`),
+    queryFn: () => getAttendanceById(id!, selectedAreaId ?? undefined),
     enabled: Boolean(id),
   });
 }
@@ -71,6 +81,7 @@ export function useAttendanceById(id?: string) {
 
 export function useUpdateAttendance() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
     mutationFn: ({
@@ -79,7 +90,7 @@ export function useUpdateAttendance() {
     }: {
       id: string;
       payload: UpdateAttendancePayload;
-    }) => updateAttendance(id, payload),
+    }) => updateAttendance(id, payload, selectedAreaId ?? undefined),
 
     onSuccess: (updatedAttendance, variables) => {
       // Update the individual attendance cache
@@ -101,8 +112,14 @@ export function useUpdateAttendance() {
 // ======================================
 
 export function useMonthlyAttendanceReport(filters: MonthlyAttendanceFilters) {
+  const { selectedAreaId } = useSelectedArea();
+  const effectiveFilters = {
+    ...filters,
+    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+  };
+
   return useQuery({
-    queryKey: attendanceKeys.monthlyReport(filters),
-    queryFn: () => getMonthlyAttendanceReport(filters),
+    queryKey: attendanceKeys.monthlyReport(effectiveFilters),
+    queryFn: () => getMonthlyAttendanceReport(effectiveFilters),
   });
 }

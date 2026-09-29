@@ -1,8 +1,9 @@
-import Attendance from "../models/Attendance.js";
-import Employee from "../models/Employee.js";
-import Location from "../models/Location.js";
+import Attendance from "../../models/Attendance.js";
+import Employee from "../../models/Employee.js";
+import Location from "../../models/Location.js";
+import Sector from "../../models/Sector.js";
 
-import { normalizeDate } from "../utils/normalize.js";
+import { normalizeDate } from "../../utils/normalize.js";
 
 const UNASSIGNED_SECTOR = {
   _id: null,
@@ -10,23 +11,63 @@ const UNASSIGNED_SECTOR = {
   code: "UNASSIGNED",
 };
 
-export const buildAttendanceSession = async () => {
+const getAreaIdsFromScope = (scope = {}) => {
+  const requested = scope.requestedAreaIds ?? scope.permittedAreaIds ?? [];
+
+  if (!Array.isArray(requested)) {
+    return [];
+  }
+
+  return [...new Set(requested.map((value) => String(value)).filter(Boolean))];
+};
+
+export const buildAttendanceSession = async (areaScope = {}) => {
   const attendanceDate = normalizeDate(new Date());
+  const areaIds = getAreaIdsFromScope(areaScope);
 
   const attendanceExists = await Attendance.exists({
     date: attendanceDate,
   });
 
+  let locationQuery = { isActive: true };
+
+  if (areaIds.length && !areaScope.isAdmin) {
+    const sectors = await Sector.find({
+      area: { $in: areaIds },
+      isActive: true,
+    })
+      .select("_id")
+      .lean();
+
+    const sectorIds = sectors.map((sector) => sector._id.toString());
+
+    if (!sectorIds.length) {
+      return {
+        attendanceDate,
+        alreadyMarked: Boolean(attendanceExists),
+        stats: {
+          totalEmployees: 0,
+          totalLocations: 0,
+          totalSectors: 0,
+        },
+        sectors: [],
+      };
+    }
+
+    locationQuery = {
+      isActive: true,
+      sector: { $in: sectorIds },
+    };
+  }
+
   // ==========================================
   // GET ACTIVE LOCATIONS
   // ==========================================
-  const locations = await Location.find({
-    isActive: true,
-  })
+  const locations = await Location.find(locationQuery)
     .select("name sector sortOrder isActive")
     .populate({
       path: "sector",
-      select: "name code sortOrder",
+      select: "name code sortOrder area",
     })
     .sort({
       sortOrder: 1,
@@ -34,13 +75,19 @@ export const buildAttendanceSession = async () => {
     })
     .lean();
 
+  const employeeQuery = { status: "active" };
+
+  if (areaIds.length && !areaScope.isAdmin) {
+    employeeQuery.area = { $in: areaIds };
+  }
+
   // ==========================================
   // GET ACTIVE EMPLOYEES
   // ==========================================
-  const employees = await Employee.find({
-    status: "active",
-  })
-    .select("empId name fatherName designation defaultShift currentLocation")
+  const employees = await Employee.find(employeeQuery)
+    .select(
+      "empId name fatherName designation defaultShift currentLocation area",
+    )
     .lean();
 
   // ==========================================

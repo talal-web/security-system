@@ -1,12 +1,13 @@
 import { useState } from "react";
 
 import { useCreateLocation } from "@/hooks/location/useLocation";
+import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
 
 export default function CreateLocationForm() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-
+  const [area, setArea] = useState("");
   const [sector, setSector] = useState("");
 
   const { mutate, isPending, isError, error } = useCreateLocation();
@@ -20,6 +21,7 @@ export default function CreateLocationForm() {
       {
         name: name.trim(),
         address: address.trim(),
+        area,
         sector,
       },
       {
@@ -88,16 +90,34 @@ export default function CreateLocationForm() {
 
           {/* SECTOR */}
           <div>
+            <label className="text-sm font-medium text-slate-700">Area *</label>
+
+            <AreaSelect
+              showLabel={false}
+              value={area}
+              onChange={(e) => {
+                const nextArea = e.target.value;
+                setArea(nextArea);
+                setSector("");
+              }}
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 outline-none transition focus:border-blue-500"
+              required
+            />
+          </div>
+
+          <div>
             <label className="text-sm font-medium text-slate-700">
               Sector *
             </label>
 
             <SectorSelect
               showLabel={false}
+              areaId={area || undefined}
               value={sector}
               onChange={(e) => setSector(e.target.value)}
               className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 outline-none transition focus:border-blue-500"
               required
+              disabled={!area}
             />
           </div>
         </div>

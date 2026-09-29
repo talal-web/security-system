@@ -42,6 +42,7 @@ export async function getDeductions(
         fromDate: filters.fromDate || undefined,
         toDate: filters.toDate || undefined,
         search: filters.search?.trim() || undefined,
+        area: filters.area || undefined,
       },
     });
 

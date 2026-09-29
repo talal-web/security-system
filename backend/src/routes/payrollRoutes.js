@@ -15,6 +15,7 @@ import {
 } from "../controllers/payrollController.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
@@ -23,29 +24,46 @@ const router = express.Router();
 // ============================================================================
 
 // Get all payroll records with filters
-router.get("/", authorizeRoles("developer", "admin"), getPayrolls);
+router.get(
+  "/",
+  authorizeRoles("developer", "admin"),
+  requireAreaAccess,
+  getPayrolls,
+);
 
 // Get payrolls for a specific employee
 router.get(
   "/employee/:employeeId",
   authorizeRoles("developer", "admin"),
+  requireAreaAccess,
   getEmployeePayrolls,
 );
 
 // Get a single payroll record
-router.get("/:id", authorizeRoles("developer", "admin"), getPayrollById);
+router.get(
+  "/:id",
+  authorizeRoles("developer", "admin"),
+  requireAreaAccess,
+  getPayrollById,
+);
 
 // ============================================================================
 // GENERATE PAYROLL
 // ============================================================================
 
 // Generate payroll for one employee
-router.post("/generate", authorizeRoles("developer", "admin"), generatePayroll);
+router.post(
+  "/generate",
+  authorizeRoles("developer", "admin"),
+  requireAreaAccess,
+  generatePayroll,
+);
 
 // Generate payroll for all eligible employees for a month
 router.post(
   "/generate-month",
   authorizeRoles("developer", "admin"),
+  requireAreaAccess,
   generateMonthlyPayroll,
 );
 

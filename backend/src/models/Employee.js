@@ -119,6 +119,11 @@ const employeeSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    area: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Area",
+      default: null,
+    },
     sector: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Sector",

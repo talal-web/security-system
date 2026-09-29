@@ -12,6 +12,7 @@ import {
 } from "../controllers/sectorController.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
@@ -25,7 +26,7 @@ router.post("/", authorizeRoles("admin", "developer", "clerk"), createSector);
 // GET ALL
 // ======================================
 
-router.get("/", getSectors);
+router.get("/", requireAreaAccess, getSectors);
 
 // ======================================
 // REORDER
@@ -41,7 +42,7 @@ router.patch(
 // GET SINGLE
 // ======================================
 
-router.get("/:id", getSectorById);
+router.get("/:id", requireAreaAccess, getSectorById);
 
 // ======================================
 // UPDATE

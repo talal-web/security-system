@@ -14,7 +14,7 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.id)
-      .select("role userId isActive")
+      .select("role userId isActive areas")
       .lean();
 
     if (!user) {
@@ -33,6 +33,7 @@ export const protect = async (req, res, next) => {
       id: decoded.id,
       role: user.role,
       userId: user.userId,
+      areas: Array.isArray(user.areas) ? user.areas.map(String) : [],
     };
 
     next();

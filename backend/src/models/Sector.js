@@ -6,7 +6,6 @@ const sectorSchema = new mongoose.Schema(
       type: String,
       required: [true, "Sector name is required"],
       trim: true,
-      unique: true,
     },
 
     code: {
@@ -15,6 +14,13 @@ const sectorSchema = new mongoose.Schema(
       trim: true,
       uppercase: true,
       unique: true,
+    },
+
+    area: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Area",
+      required: [true, "Area is required"],
+      index: true,
     },
 
     description: {
@@ -41,6 +47,7 @@ const sectorSchema = new mongoose.Schema(
 );
 
 sectorSchema.index({ sortOrder: 1, name: 1 });
+sectorSchema.index({ area: 1, sortOrder: 1, name: 1 });
 
 const Sector = mongoose.models.Sector || mongoose.model("Sector", sectorSchema);
 

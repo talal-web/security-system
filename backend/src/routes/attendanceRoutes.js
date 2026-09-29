@@ -12,6 +12,7 @@ import {
 } from "../controllers/attendanceController.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
@@ -23,6 +24,7 @@ const router = express.Router();
 router.get(
   "/session",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   getAttendanceSession,
 );
 
@@ -30,6 +32,7 @@ router.get(
 router.patch(
   "/session/locations",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   updateEmployeeLocations,
 );
 
@@ -37,6 +40,7 @@ router.patch(
 router.patch(
   "/session/shifts",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   updateEmployeeShifts,
 );
 
@@ -44,6 +48,7 @@ router.patch(
 router.post(
   "/session",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   submitAttendanceSession,
 );
 
@@ -55,6 +60,7 @@ router.post(
 router.get(
   "/report",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   getAttendanceReport,
 );
 
@@ -62,6 +68,7 @@ router.get(
 router.get(
   "/report/monthly",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   getMonthlyAttendanceReport,
 );
 
@@ -73,10 +80,16 @@ router.get(
 router.get(
   "/:id",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   getAttendanceById,
 );
 
 // Update single attendance record
-router.patch("/:id", authorizeRoles("developer", "admin"), updateAttendance);
+router.patch(
+  "/:id",
+  authorizeRoles("developer", "admin"),
+  requireAreaAccess,
+  updateAttendance,
+);
 
 export default router;

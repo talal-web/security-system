@@ -14,6 +14,7 @@ import {
 import upload from "../middleware/uploadMiddleware.js";
 
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
@@ -38,6 +39,7 @@ const employeeImageUpload = upload.fields([
 router.post(
   "/",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   employeeImageUpload,
   createEmployee,
 );
@@ -46,6 +48,7 @@ router.post(
 router.get(
   "/",
   authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  requireAreaAccess,
   getEmployees,
 );
 
@@ -53,6 +56,7 @@ router.get(
 router.get(
   "/lookup",
   authorizeRoles("developer", "admin", "clerk", "supervisor"),
+  requireAreaAccess,
   lookupEmployee,
 );
 
@@ -60,6 +64,7 @@ router.get(
 router.get(
   "/:id",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   getEmployeeById,
 );
 
@@ -67,6 +72,7 @@ router.get(
 router.put(
   "/:id",
   authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
   employeeImageUpload,
   updateEmployee,
 );

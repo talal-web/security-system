@@ -43,6 +43,7 @@ export async function getBonuses(
         search: filters.search,
         fromDate: filters.fromDate,
         toDate: filters.toDate,
+        area: filters.area,
       },
     });
 

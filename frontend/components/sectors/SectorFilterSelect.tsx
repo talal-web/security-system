@@ -4,6 +4,7 @@ import SectorSelect from "./SectorSelect";
 
 interface SectorFilterSelectProps {
   value?: string;
+  areaId?: string;
   disabled?: boolean;
   onChange: (value?: string) => void;
   className?: string;
@@ -11,6 +12,7 @@ interface SectorFilterSelectProps {
 
 export default function SectorFilterSelect({
   value,
+  areaId,
   disabled = false,
   onChange,
   className,
@@ -19,9 +21,10 @@ export default function SectorFilterSelect({
     <SectorSelect
       showLabel={false}
       value={value ?? ""}
-      disabled={disabled}
+      areaId={areaId}
+      disabled={disabled || (!areaId && !!value)}
       onChange={(event) => onChange(event.target.value || undefined)}
-      placeholder="All Sectors"
+      placeholder={areaId ? "All Sectors" : "Select an area first"}
       wrapperClassName={className}
     />
   );

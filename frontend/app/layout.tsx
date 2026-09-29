@@ -10,6 +10,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 import QueryProvider from "@/providers/QueryProvider";
+import { AreaProvider } from "@/components/area/AreaContext";
 import { Geist } from "next/font/google";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
@@ -28,25 +29,27 @@ export default function RootLayout({
     <html lang="en" className={geist.variable}>
       <body className="bg-slate-100 text-slate-900 font-sans antialiased">
         <QueryProvider>
-          {/* TOAST */}
-          <Toaster
-            position="top-right"
-            richColors
-            closeButton
-            duration={3000}
-            toastOptions={{
-              className: "!rounded-2xl !border !border-slate-800",
-            }}
-          />
+          <AreaProvider>
+            {/* TOAST */}
+            <Toaster
+              position="top-right"
+              richColors
+              closeButton
+              duration={3000}
+              toastOptions={{
+                className: "!rounded-2xl !border !border-slate-800",
+              }}
+            />
 
-          {/* NAVBAR */}
-          <Navbar />
+            {/* NAVBAR */}
+            <Navbar />
 
-          {/* PAGE CONTENT */}
-          <main className="min-h-screen pt-20">{children}</main>
+            {/* PAGE CONTENT */}
+            <main className="min-h-screen pt-20">{children}</main>
 
-          {/* FOOTER */}
-          <Footer />
+            {/* FOOTER */}
+            <Footer />
+          </AreaProvider>
         </QueryProvider>
       </body>
     </html>

@@ -11,11 +11,16 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 
+import AreaSelect from "@/components/area/AreaSelect";
 import SectorFilterSelect from "@/components/sectors/SectorFilterSelect";
 
 interface LocationFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
+
+  area?: string;
+  selectedAreaLabel?: string;
+  onAreaChange: (value?: string) => void;
 
   sector?: string;
   selectedSectorLabel?: string;
@@ -39,6 +44,10 @@ export default function LocationFilters({
   search,
   onSearchChange,
 
+  area,
+  selectedAreaLabel,
+  onAreaChange,
+
   sector,
   selectedSectorLabel,
   onSectorChange,
@@ -57,7 +66,10 @@ export default function LocationFilters({
   inactiveLocations,
 }: LocationFiltersProps) {
   const hasFilters =
-    search.trim() !== "" || sector !== undefined || isActive !== undefined;
+    search.trim() !== "" ||
+    area !== undefined ||
+    sector !== undefined ||
+    isActive !== undefined;
 
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -190,7 +202,7 @@ export default function LocationFilters({
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-4">
           {/* SEARCH */}
 
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-1">
             <label className="mb-2 block text-sm font-semibold text-slate-700">
               Search
             </label>
@@ -231,6 +243,43 @@ export default function LocationFilters({
             </div>
           </div>
 
+          {/* AREA */}
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              Area
+            </label>
+
+            <AreaSelect
+              showLabel={false}
+              value={area ?? ""}
+              disabled={disabled}
+              onChange={(event) =>
+                onAreaChange(event.target.value || undefined)
+              }
+              className="
+    h-12
+    w-full
+    rounded-2xl
+    border
+    border-slate-200
+    bg-slate-50
+    px-4
+    text-sm
+    outline-none
+    transition-all
+    duration-200
+    hover:border-slate-300
+    focus:border-blue-500
+    focus:bg-white
+    focus:ring-4
+    focus:ring-blue-100
+    disabled:cursor-not-allowed
+    disabled:opacity-60
+  "
+            />
+          </div>
+
           {/* SECTOR */}
 
           <div>
@@ -240,6 +289,7 @@ export default function LocationFilters({
 
             <SectorFilterSelect
               value={sector}
+              areaId={area}
               disabled={disabled}
               onChange={onSectorChange}
               className="
@@ -344,6 +394,12 @@ export default function LocationFilters({
                   {search && (
                     <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
                       Search: {search}
+                    </span>
+                  )}
+
+                  {area && (
+                    <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                      {selectedAreaLabel ?? "Selected area"}
                     </span>
                   )}
 

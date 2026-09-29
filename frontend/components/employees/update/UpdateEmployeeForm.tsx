@@ -14,6 +14,7 @@ import { shiftOptions } from "@/constants/shiftOptions";
 import { useEmployeeLocations } from "@/hooks/employee/create/useEmployeeLocations";
 import { useUpdateEmployee } from "@/hooks/employee/useUpdateEmployee";
 
+import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
 import Input from "@/components/Input";
 import Select from "@/components/Select";
@@ -56,6 +57,7 @@ type FormValues = {
   education: EducationLevel | "";
   designation: EmployeeDesignation;
 
+  area: string;
   sector: string;
   currentLocation: string;
 
@@ -70,6 +72,16 @@ type FormValues = {
 
 type Props = {
   employee: Employee;
+};
+
+const getAreaId = (area?: { _id?: string } | string | null): string => {
+  if (!area) return "";
+
+  if (typeof area === "object") {
+    return area._id || "";
+  }
+
+  return area;
 };
 
 const getSectorId = (sector?: SectorOptions | string | null): string => {
@@ -114,6 +126,7 @@ const getEmployeeFormValues = (employee: Employee): FormValues => ({
   phone2: employee.phone2 || "",
   education: employee.education ?? "",
   designation: employee.designation,
+  area: getAreaId(employee.area),
   sector: getSectorId(employee.sector),
   currentLocation: getCurrentLocationId(employee.currentLocation),
   defaultShift: employee.defaultShift ?? "",
@@ -166,6 +179,11 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     name: "entryDate",
   });
 
+  const watchedArea = useWatch({
+    control,
+    name: "area",
+  });
+
   const watchedSector = useWatch({
     control,
     name: "sector",
@@ -176,6 +194,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     name: "status",
   });
 
+  const previousAreaRef = useRef<string>(getAreaId(employee.area));
   const previousSectorRef = useRef<string>(getSectorId(employee.sector));
 
   const {
@@ -185,6 +204,19 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     statusMessage: locationStatusMessage,
     isLoading: isLocationsLoading,
   } = useEmployeeLocations(watchedSector || undefined);
+
+  useEffect(() => {
+    if (!watchedArea && !watchedSector) return;
+
+    if (watchedArea && watchedSector) {
+      return;
+    }
+
+    setValue("currentLocation", "", {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  }, [watchedArea, watchedSector, setValue]);
 
   const age = watchedBirthDate ? calculateAge(watchedBirthDate) : 0;
 
@@ -297,6 +329,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     data.append("phone2", values.phone2.trim());
     data.append("education", values.education || "");
     data.append("designation", values.designation);
+    data.append("area", values.area || "");
     data.append("sector", values.sector || "");
     data.append("currentLocation", values.currentLocation || "");
     data.append("defaultShift", values.defaultShift || "");
@@ -441,10 +474,41 @@ export default function UpdateEmployeeForm({ employee }: Props) {
         />
 
         <Controller
+          name="area"
+          control={control}
+          render={({ field }) => (
+            <AreaSelect
+              {...field}
+              value={field.value ?? ""}
+              onChange={(event) => {
+                const nextArea = event.target.value;
+                const prevArea = previousAreaRef.current;
+
+                field.onChange(nextArea);
+
+                if (prevArea && prevArea !== nextArea) {
+                  setValue("sector", "", {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
+                  setValue("currentLocation", "", {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
+                }
+
+                previousAreaRef.current = nextArea;
+              }}
+            />
+          )}
+        />
+
+        <Controller
           name="sector"
           control={control}
           render={({ field }) => (
             <SectorSelect
+              areaId={watchedArea || undefined}
               {...field}
               value={field.value ?? ""}
               onChange={(event) => {
