@@ -50,6 +50,8 @@ export interface AttendanceRecord {
 
   employee: string;
 
+  area?: string;
+
   employeeSnapshot: AttendanceEmployeeSnapshot;
 
   date: string;

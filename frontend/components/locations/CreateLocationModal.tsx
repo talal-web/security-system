@@ -5,6 +5,7 @@ import { useState } from "react";
 import { X, MapPin } from "lucide-react";
 
 import { useCreateLocation } from "@/hooks/location/useLocation";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
 
@@ -14,46 +15,62 @@ type Props = {
 };
 
 export default function CreateLocationModal({ open, onClose }: Props) {
+  const { selectedAreaId } = useSelectedArea();
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [area, setArea] = useState("");
-  const [sector, setSector] = useState("");
+  const [sectorSelection, setSectorSelection] = useState({
+    areaId: selectedAreaId,
+    sectorId: "",
+  });
+  const sector =
+    sectorSelection.areaId === selectedAreaId ? sectorSelection.sectorId : "";
 
   const { mutate, isPending, isError, error } = useCreateLocation();
+
+  const handleClose = () => {
+    setName("");
+    setAddress("");
+    setSectorSelection({ areaId: selectedAreaId, sectorId: "" });
+    onClose();
+  };
 
   if (!open) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim() || !sector) return;
+    if (!selectedAreaId || !name.trim() || !sector) return;
 
     mutate(
       {
         name: name.trim(),
         address: address.trim(),
-        area,
+        area: selectedAreaId,
         sector,
       },
       {
         onSuccess: () => {
-          setName("");
-          setAddress("");
-          setArea("");
-          setSector("");
-          onClose();
+          handleClose();
         },
       },
     );
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-location-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+    >
       <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200">
         {/* HEADER */}
         <div className="relative border-b border-slate-200 bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-6 text-white">
           <button
-            onClick={onClose}
+            type="button"
+            onClick={handleClose}
+            disabled={isPending}
+            aria-label="Close create location dialog"
             className="absolute right-4 top-4 rounded-xl p-2 transition hover:bg-white/10"
           >
             <X size={20} />
@@ -65,7 +82,9 @@ export default function CreateLocationModal({ open, onClose }: Props) {
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold">Create Location</h2>
+              <h2 id="create-location-title" className="text-2xl font-bold">
+                Create Location
+              </h2>
               <p className="mt-1 text-sm text-blue-100">
                 Add a new location to your security management system
               </p>
@@ -121,12 +140,9 @@ export default function CreateLocationModal({ open, onClose }: Props) {
 
               <AreaSelect
                 showLabel={false}
-                value={area}
-                onChange={(e) => {
-                  const nextArea = e.target.value;
-                  setArea(nextArea);
-                  setSector("");
-                }}
+                value={selectedAreaId ?? ""}
+                useGlobalSelection
+                disabled={isPending}
                 className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
                 required
               />
@@ -140,12 +156,17 @@ export default function CreateLocationModal({ open, onClose }: Props) {
 
               <SectorSelect
                 showLabel={false}
-                areaId={area || undefined}
+                areaId={selectedAreaId ?? undefined}
                 value={sector}
-                onChange={(e) => setSector(e.target.value)}
+                onChange={(e) =>
+                  setSectorSelection({
+                    areaId: selectedAreaId,
+                    sectorId: e.target.value,
+                  })
+                }
                 className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
                 required
-                disabled={!area}
+                disabled={!selectedAreaId || isPending}
               />
             </div>
           </div>
@@ -154,7 +175,8 @@ export default function CreateLocationModal({ open, onClose }: Props) {
           <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
+              disabled={isPending}
               className="rounded-2xl border border-slate-300 px-5 py-3 font-medium text-slate-700 transition hover:bg-slate-50"
             >
               Cancel
@@ -162,7 +184,7 @@ export default function CreateLocationModal({ open, onClose }: Props) {
 
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || !selectedAreaId || !name.trim() || !sector}
               className="rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isPending ? "Creating..." : "Create Location"}

@@ -36,7 +36,8 @@ export function useAttendanceSession() {
 
   return useQuery({
     queryKey: attendanceSessionKeys.list(selectedAreaId),
-    queryFn: () => getAttendanceSession(selectedAreaId ?? undefined),
+    queryFn: () => getAttendanceSession(selectedAreaId!),
+    enabled: Boolean(selectedAreaId),
   });
 }
 
@@ -53,11 +54,13 @@ export function useUpdateEmployeeLocations() {
     Error,
     UpdateEmployeeLocationsPayload
   >({
-    mutationFn: (payload) =>
-      updateEmployeeLocations(payload, selectedAreaId ?? undefined),
+    mutationFn: (payload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateEmployeeLocations(payload, selectedAreaId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: attendanceSessionKeys.list(selectedAreaId),
+        queryKey: attendanceSessionKeys.all,
       });
     },
   });
@@ -76,11 +79,13 @@ export function useUpdateEmployeeShifts() {
     Error,
     UpdateEmployeeShiftsPayload
   >({
-    mutationFn: (payload) =>
-      updateEmployeeShifts(payload, selectedAreaId ?? undefined),
+    mutationFn: (payload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateEmployeeShifts(payload, selectedAreaId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: attendanceSessionKeys.list(selectedAreaId),
+        queryKey: attendanceSessionKeys.all,
       });
     },
   });
@@ -99,12 +104,14 @@ export function useMarkAttendanceSession() {
     Error,
     MarkAttendanceSessionPayload
   >({
-    mutationFn: (payload) =>
-      markAttendanceSession(payload, selectedAreaId ?? undefined),
+    mutationFn: (payload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return markAttendanceSession(payload, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: attendanceSessionKeys.list(selectedAreaId),
+        queryKey: attendanceSessionKeys.all,
       });
 
       queryClient.invalidateQueries({

@@ -63,6 +63,7 @@ export async function createEmployee(
   try {
     employeeData.set("area", areaId);
     const res = await api.post("/employees", employeeData, {
+      params: { area: areaId },
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -84,6 +85,7 @@ export async function updateEmployee(
   try {
     employeeData.set("area", areaId);
     const res = await api.put(`/employees/${id}`, employeeData, {
+      params: { area: areaId },
       headers: {
         "Content-Type": "multipart/form-data",
       },

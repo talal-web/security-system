@@ -16,13 +16,13 @@ import type {
 // ======================================
 
 export async function getAttendanceSession(
-  area?: string,
+  areaId: string,
 ): Promise<AttendanceSessionResponse> {
   try {
     const res = await api.get<AttendanceSessionResponse>(
       "/attendance/session",
       {
-        params: area ? { area } : {},
+        params: { area: areaId },
       },
     );
 
@@ -38,12 +38,12 @@ export async function getAttendanceSession(
 
 export async function updateEmployeeLocations(
   payload: UpdateEmployeeLocationsPayload,
-  area?: string,
+  areaId: string,
 ): Promise<UpdateEmployeeLocationsResponse> {
   try {
     const res = await api.patch<UpdateEmployeeLocationsResponse>(
       "/attendance/session/locations",
-      area ? { ...payload, area } : payload,
+      { ...payload, area: areaId },
     );
 
     return res.data;
@@ -58,12 +58,12 @@ export async function updateEmployeeLocations(
 
 export async function updateEmployeeShifts(
   payload: UpdateEmployeeShiftsPayload,
-  area?: string,
+  areaId: string,
 ): Promise<UpdateEmployeeShiftsResponse> {
   try {
     const res = await api.patch<UpdateEmployeeShiftsResponse>(
       "/attendance/session/shifts",
-      area ? { ...payload, area } : payload,
+      { ...payload, area: areaId },
     );
 
     return res.data;
@@ -78,12 +78,12 @@ export async function updateEmployeeShifts(
 
 export async function markAttendanceSession(
   payload: MarkAttendanceSessionPayload,
-  area?: string,
+  areaId: string,
 ): Promise<MarkAttendanceSessionResponse> {
   try {
     const res = await api.post<MarkAttendanceSessionResponse>(
       "/attendance/session",
-      area ? { ...payload, area } : payload,
+      { ...payload, area: areaId },
     );
 
     return res.data;

@@ -59,7 +59,7 @@ export function usePayrolls(filters?: PayrollFilters) {
     queryKey: selectedAreaId
       ? payrollKeys.list(selectedAreaId, effectiveFilters)
       : [...payrollKeys.all, "disabled", "list"],
-    queryFn: () => getPayrolls(effectiveFilters),
+    queryFn: () => getPayrolls(effectiveFilters, selectedAreaId!),
     enabled: !!selectedAreaId,
   });
 }

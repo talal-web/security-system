@@ -11,24 +11,6 @@ import {
   validateAttendanceShift,
 } from "./attendance.validation.js";
 
-const EMPTY_REPORT = {
-  success: true,
-  message: "Attendance report fetched successfully",
-  data: {
-    globalStats: {
-      total: 0,
-      present: 0,
-      absent: 0,
-      leave: 0,
-      day: 0,
-      night: 0,
-    },
-    presentSectors: [],
-    absentEmployees: [],
-    leaveEmployees: [],
-  },
-};
-
 // enforceAreaScope has already validated exactly one area.
 // areaScope.areaId is the single source of truth. query.area is ignored.
 const getScopedAreaId = (areaScope = {}) => {
@@ -85,21 +67,23 @@ export const getAttendanceReportService = async ({
 
   match.date = reportDate;
 
-  // ======================================
-  // Find Employees in Selected Area
-  // ======================================
+  // Legacy records without an area use the employee's current area.
 
   const employeesInScope = await Employee.find({ area: areaId })
     .select("_id")
     .lean();
 
   const employeeIds = employeesInScope.map((employee) => employee._id);
+  const areaConditions = [{ area: new mongoose.Types.ObjectId(areaId) }];
 
-  if (!employeeIds.length) {
-    return EMPTY_REPORT;
+  if (employeeIds.length) {
+    areaConditions.push({
+      area: null,
+      employee: { $in: employeeIds },
+    });
   }
 
-  match.employee = { $in: employeeIds };
+  match.$or = areaConditions;
 
   // ======================================
   // Aggregate Attendance Report
@@ -423,6 +407,7 @@ export const getAttendanceReportService = async ({
           {
             $project: {
               _id: 0,
+              attendanceId: "$_id",
               empId: "$employeeSnapshot.empId",
               name: "$employeeSnapshot.name",
               fatherName: "$employeeSnapshot.fatherName",

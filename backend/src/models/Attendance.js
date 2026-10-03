@@ -9,6 +9,12 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
     },
 
+    area: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Area",
+      required: true,
+    },
+
     employeeSnapshot: {
       empId: {
         type: String,
@@ -102,6 +108,7 @@ attendanceSchema.index(
 
 attendanceSchema.index({ date: 1 });
 attendanceSchema.index({ employee: 1 });
+attendanceSchema.index({ area: 1, date: 1 });
 attendanceSchema.index({ location: 1 });
 
 const Attendance =

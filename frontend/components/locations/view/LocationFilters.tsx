@@ -67,7 +67,6 @@ export default function LocationFilters({
 }: LocationFiltersProps) {
   const hasFilters =
     search.trim() !== "" ||
-    area !== undefined ||
     sector !== undefined ||
     isActive !== undefined;
 
@@ -89,7 +88,7 @@ export default function LocationFilters({
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  Search and filter locations by sector or status.
+                  Search locations in the selected area by sector or status.
                 </p>
               </div>
             </div>
@@ -253,6 +252,7 @@ export default function LocationFilters({
             <AreaSelect
               showLabel={false}
               value={area ?? ""}
+              useGlobalSelection
               disabled={disabled}
               onChange={(event) =>
                 onAreaChange(event.target.value || undefined)
@@ -364,7 +364,7 @@ export default function LocationFilters({
 
         {/* ================= ACTIVE FILTERS ================= */}
 
-        {(hasFilters || disabled) && (
+        {(hasFilters || disabled || area) && (
           <div className="mt-6 space-y-4">
             {/* Reorder Banner */}
 
@@ -397,7 +397,7 @@ export default function LocationFilters({
                     </span>
                   )}
 
-                  {area && (
+                    {area && (
                     <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
                       {selectedAreaLabel ?? "Selected area"}
                     </span>
@@ -422,11 +422,12 @@ export default function LocationFilters({
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={onClearFilters}
-                  className="
+                {hasFilters && (
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={onClearFilters}
+                    className="
                     inline-flex
                     items-center
                     justify-center
@@ -448,8 +449,9 @@ export default function LocationFilters({
                     disabled:opacity-60
                   "
                 >
-                  Clear Filters
-                </button>
+                    Clear Filters
+                  </button>
+                )}
               </div>
             )}
           </div>

@@ -40,7 +40,8 @@ export const attendanceKeys = {
   monthlyList: (filters: MonthlyAttendanceFilters) =>
     attendanceKeys.monthlyReport(filters),
 
-  detail: (id: string) => [...attendanceKeys.all, "detail", id] as const,
+  detail: (areaId: string, id: string) =>
+    [...attendanceKeys.all, "detail", areaId, id] as const,
 };
 
 // ======================================
@@ -51,13 +52,13 @@ export function useAttendanceReport(filters?: AttendanceFilters) {
   const { selectedAreaId } = useSelectedArea();
   const effectiveFilters = {
     ...filters,
-    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+    area: selectedAreaId ?? undefined,
   };
 
   return useQuery({
     queryKey: attendanceKeys.dailyReport(effectiveFilters),
-    queryFn: () => getAttendanceReport(effectiveFilters),
-    enabled: !filters?.date || Boolean(filters.date),
+    queryFn: () => getAttendanceReport(effectiveFilters, selectedAreaId!),
+    enabled: Boolean(selectedAreaId),
   });
 }
 
@@ -69,9 +70,9 @@ export function useAttendanceById(id?: string) {
   const { selectedAreaId } = useSelectedArea();
 
   return useQuery({
-    queryKey: attendanceKeys.detail(`${id ?? ""}:${selectedAreaId ?? "all"}`),
-    queryFn: () => getAttendanceById(id!, selectedAreaId ?? undefined),
-    enabled: Boolean(id),
+    queryKey: attendanceKeys.detail(selectedAreaId ?? "", id ?? ""),
+    queryFn: () => getAttendanceById(id!, selectedAreaId!),
+    enabled: Boolean(id && selectedAreaId),
   });
 }
 
@@ -90,12 +91,15 @@ export function useUpdateAttendance() {
     }: {
       id: string;
       payload: UpdateAttendancePayload;
-    }) => updateAttendance(id, payload, selectedAreaId ?? undefined),
+    }) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateAttendance(id, payload, selectedAreaId);
+    },
 
     onSuccess: (updatedAttendance, variables) => {
       // Update the individual attendance cache
       queryClient.setQueryData(
-        attendanceKeys.detail(variables.id),
+        attendanceKeys.detail(selectedAreaId!, variables.id),
         updatedAttendance,
       );
 
@@ -115,11 +119,12 @@ export function useMonthlyAttendanceReport(filters: MonthlyAttendanceFilters) {
   const { selectedAreaId } = useSelectedArea();
   const effectiveFilters = {
     ...filters,
-    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+    area: selectedAreaId ?? undefined,
   };
 
   return useQuery({
     queryKey: attendanceKeys.monthlyReport(effectiveFilters),
-    queryFn: () => getMonthlyAttendanceReport(effectiveFilters),
+    queryFn: () => getMonthlyAttendanceReport(effectiveFilters, selectedAreaId!),
+    enabled: Boolean(selectedAreaId),
   });
 }

@@ -9,54 +9,46 @@ const originalFindById = Employee.findById;
 const originalBonusCreate = Bonus.create;
 
 test("createBonus rejects employees outside a restricted user's area scope", async () => {
-  const res = {
-    status(code) {
-      this.code = code;
-      return this;
-    },
-    json(payload) {
-      this.payload = payload;
-      return payload;
-    },
-  };
+  let bonusCreateCalled = false;
 
-  Employee.findById = async () => ({
-    _id: "507f1f77bcf86cd799439011",
-    area: "507f1f77bcf86cd799439099",
-    status: "active",
-    select: () => ({
+  Employee.findById = () => ({
+    select: async () => ({
       _id: "507f1f77bcf86cd799439011",
-      area: "507f1f77bcf86cd799439099",
+      area: "507f1f77bcf86cd799439011",
+      empId: "TEST-0001",
+      name: "Test Employee",
+      fatherName: "Parent",
+      designation: "guard",
       status: "active",
     }),
   });
 
-  Bonus.create = async () => ({
-    _id: "bonus-1",
-  });
+  Bonus.create = async () => {
+    bonusCreateCalled = true;
+    return { _id: "bonus-1" };
+  };
 
   try {
-    await createBonusService(
-      {
-        body: {
-          employee: "507f1f77bcf86cd799439011",
-          amount: 1000,
-          bonusDate: "2025-01-10",
-          reason: "Test bonus",
-        },
-        user: { id: "user-1" },
-        areaScope: {
-          isAdmin: false,
-          permittedAreaIds: ["507f1f77bcf86cd799439022"],
-          requestedAreaIds: ["507f1f77bcf86cd799439022"],
-          filter: { area: { $in: ["507f1f77bcf86cd799439022"] } },
-        },
+    await assert.rejects(
+      () =>
+        createBonusService(
+          {
+            employeeId: "507f1f77bcf86cd799439011",
+            amount: 1000,
+            bonusDate: "2025-01-10",
+            reason: "Test bonus",
+          },
+          "user-1",
+          { areaId: "507f1f77bcf86cd799439022" },
+        ),
+      (error) => {
+        assert.equal(error.statusCode, 404);
+        assert.match(error.message, /not found in the selected area/i);
+        return true;
       },
-      res,
     );
 
-    assert.equal(res.code, 403);
-    assert.match(res.payload.message, /Unauthorized area access/i);
+    assert.equal(bonusCreateCalled, false);
   } finally {
     Employee.findById = originalFindById;
     Bonus.create = originalBonusCreate;

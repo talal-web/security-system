@@ -20,12 +20,28 @@ export default function AttendanceSessionPage() {
     );
   }
 
+  if (!attendance.hasSelectedArea) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-800">
+        Select an area to load its attendance session.
+      </div>
+    );
+  }
+
   if (attendance.error) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">
         {attendance.error instanceof Error
           ? attendance.error.message
           : "Something went wrong."}
+      </div>
+    );
+  }
+
+  if (!attendance.isFormReady) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
       </div>
     );
   }

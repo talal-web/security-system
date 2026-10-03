@@ -20,7 +20,12 @@ const router = express.Router();
 // CREATE LOCATION
 // ======================================
 
-router.post("/", authorizeRoles("admin", "developer", "clerk"), createLocation);
+router.post(
+  "/",
+  authorizeRoles("admin", "developer", "clerk"),
+  requireAreaAccess,
+  createLocation,
+);
 
 // ======================================
 // REORDER LOCATIONS
@@ -29,6 +34,7 @@ router.post("/", authorizeRoles("admin", "developer", "clerk"), createLocation);
 router.patch(
   "/reorder",
   authorizeRoles("admin", "developer", "clerk"),
+  requireAreaAccess,
   reorderLocations,
 );
 
@@ -51,6 +57,7 @@ router.get("/:id", requireAreaAccess, getLocationById);
 router.put(
   "/:id",
   authorizeRoles("admin", "developer", "clerk"),
+  requireAreaAccess,
   updateLocation,
 );
 
@@ -58,6 +65,11 @@ router.put(
 // DELETE LOCATION
 // ======================================
 
-router.delete("/:id", authorizeRoles("admin", "developer"), deleteLocation);
+router.delete(
+  "/:id",
+  authorizeRoles("admin", "developer"),
+  requireAreaAccess,
+  deleteLocation,
+);
 
 export default router;

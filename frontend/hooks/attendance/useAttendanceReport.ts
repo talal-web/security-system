@@ -26,12 +26,13 @@ export function useAttendanceReport(filters?: AttendanceFilters) {
   const { selectedAreaId } = useSelectedArea();
   const effectiveFilters = {
     ...filters,
-    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+    area: selectedAreaId ?? undefined,
   };
 
   return useQuery<AttendanceReportResponse, Error>({
     queryKey: attendanceKeys.list(effectiveFilters),
-    queryFn: () => getAttendanceReport(effectiveFilters),
+    queryFn: () => getAttendanceReport(effectiveFilters, selectedAreaId!),
+    enabled: Boolean(selectedAreaId),
     staleTime: 1000 * 60,
   });
 }
@@ -44,13 +45,13 @@ export function useMonthlyAttendanceReport(filters: MonthlyAttendanceFilters) {
   const { selectedAreaId } = useSelectedArea();
   const effectiveFilters = {
     ...filters,
-    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+    area: selectedAreaId ?? undefined,
   };
 
   return useQuery<MonthlyAttendanceResponse, Error>({
     queryKey: attendanceKeys.monthlyList(effectiveFilters),
-    queryFn: () => getMonthlyAttendanceReport(effectiveFilters),
-    enabled: Boolean(filters.month),
+    queryFn: () => getMonthlyAttendanceReport(effectiveFilters, selectedAreaId!),
+    enabled: Boolean(filters.month && selectedAreaId),
     staleTime: 1000 * 60 * 5,
   });
 }

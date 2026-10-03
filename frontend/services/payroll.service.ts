@@ -25,7 +25,8 @@ function toPayrollApiError(error: unknown): ApiError {
 // ============================================================================
 
 export async function getPayrolls(
-  filters?: PayrollFilters,
+  filters: PayrollFilters | undefined,
+  areaId: string,
 ): Promise<PayrollListResponse> {
   try {
     const { status, ...otherFilters } = filters ?? {};
@@ -33,6 +34,7 @@ export async function getPayrolls(
     const res = await api.get("/payroll", {
       params: {
         ...otherFilters,
+        area: areaId,
         ...(status && status !== "all" ? { status } : {}),
       },
     });

@@ -11,12 +11,9 @@ import { toast } from "sonner";
 
 import { useSector, useUpdateSector } from "@/hooks/sector/useSector";
 import { getApiErrorMessage } from "@/lib/apiError";
-import AreaSelect from "@/components/area/AreaSelect";
 import type { UpdateSectorPayload } from "@/types/sector";
 
 const sectorUpdateSchema = z.object({
-  area: z.string().min(1, "Area is required"),
-
   name: z
     .string()
     .trim()
@@ -61,7 +58,6 @@ export default function UpdateSectorForm({ id }: UpdateSectorFormProps) {
   } = useForm<SectorUpdateInput, unknown, SectorUpdateData>({
     resolver: zodResolver(sectorUpdateSchema),
     defaultValues: {
-      area: "",
       name: "",
       code: "",
       description: "",
@@ -75,10 +71,6 @@ export default function UpdateSectorForm({ id }: UpdateSectorFormProps) {
     if (!sector) return;
 
     reset({
-      area:
-        typeof sector.area === "string"
-          ? sector.area
-          : (sector.area?._id ?? ""),
       name: sector.name,
       code: sector.code,
       description: sector.description || "",
@@ -88,7 +80,6 @@ export default function UpdateSectorForm({ id }: UpdateSectorFormProps) {
 
   const onSubmit = (formData: SectorUpdateData) => {
     const payload: UpdateSectorPayload = {
-      area: formData.area,
       name: formData.name,
       code: formData.code,
       description: formData.description || "",
@@ -137,17 +128,6 @@ export default function UpdateSectorForm({ id }: UpdateSectorFormProps) {
       <h1 className="mb-6 text-2xl font-bold text-slate-900">Update Sector</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <AreaSelect
-          label="Area"
-          placeholder="Select area"
-          {...register("area")}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-blue-600"
-        />
-
-        {errors.area && (
-          <p className="mt-1 text-sm text-red-500">{errors.area.message}</p>
-        )}
-
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">
             Sector Name

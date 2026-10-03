@@ -94,7 +94,7 @@ export function useCreateBonus() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: bonusKeys.employee(selectedAreaId!, variables.employee),
+        queryKey: bonusKeys.employee(selectedAreaId!, variables.employeeId),
       });
     },
   });

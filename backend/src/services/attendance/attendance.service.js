@@ -117,14 +117,20 @@ export const getAttendanceByIdService = async ({ id, areaScope = {} }) => {
     throw new ApiError(404, "Attendance record not found");
   }
 
-  const employee = await Employee.exists({
-    _id: attendance.employee,
-    area: areaId,
-  });
-
-  // 404 so records in other areas are not revealed.
-  if (!employee) {
+  if (attendance.area && attendance.area.toString() !== areaId) {
     throw new ApiError(404, "Attendance record not found");
+  }
+
+  if (!attendance.area) {
+    const legacyEmployee = await Employee.exists({
+      _id: attendance.employee,
+      area: areaId,
+    });
+
+    // Legacy records without an area retain their former employee-area scope.
+    if (!legacyEmployee) {
+      throw new ApiError(404, "Attendance record not found");
+    }
   }
 
   return {
@@ -154,11 +160,19 @@ export const updateAttendanceService = async ({
     throw new ApiError(404, "Attendance record not found");
   }
 
+  if (attendance.area && attendance.area.toString() !== areaId) {
+    throw new ApiError(404, "Attendance record not found");
+  }
+
   const employee = await getEmployeeInArea(attendance.employee, areaId);
 
   // 404 so records in other areas are not revealed.
   if (!employee) {
     throw new ApiError(404, "Attendance record not found");
+  }
+
+  if (!attendance.area) {
+    attendance.area = areaId;
   }
 
   const { status, shift, location, remarks } = body;
@@ -417,6 +431,7 @@ export const submitAttendanceSessionService = async ({
         update: {
           $set: {
             employee: employee._id,
+            area: areaId,
             employeeSnapshot: {
               empId: employee.empId,
               name: employee.name,

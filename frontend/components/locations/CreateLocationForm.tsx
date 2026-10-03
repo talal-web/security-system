@@ -1,34 +1,40 @@
 import { useState } from "react";
 
 import { useCreateLocation } from "@/hooks/location/useLocation";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
 
 export default function CreateLocationForm() {
+  const { selectedAreaId } = useSelectedArea();
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [area, setArea] = useState("");
-  const [sector, setSector] = useState("");
+  const [sectorSelection, setSectorSelection] = useState({
+    areaId: selectedAreaId,
+    sectorId: "",
+  });
+  const sector =
+    sectorSelection.areaId === selectedAreaId ? sectorSelection.sectorId : "";
 
   const { mutate, isPending, isError, error } = useCreateLocation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!sector) return;
+    if (!selectedAreaId || !sector || !name.trim()) return;
 
     mutate(
       {
         name: name.trim(),
         address: address.trim(),
-        area,
+        area: selectedAreaId,
         sector,
       },
       {
         onSuccess: () => {
           setName("");
           setAddress("");
-          setSector("");
+          setSectorSelection({ areaId: selectedAreaId, sectorId: "" });
         },
       },
     );
@@ -94,12 +100,9 @@ export default function CreateLocationForm() {
 
             <AreaSelect
               showLabel={false}
-              value={area}
-              onChange={(e) => {
-                const nextArea = e.target.value;
-                setArea(nextArea);
-                setSector("");
-              }}
+              value={selectedAreaId ?? ""}
+              useGlobalSelection
+              disabled={isPending}
               className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 outline-none transition focus:border-blue-500"
               required
             />
@@ -112,12 +115,17 @@ export default function CreateLocationForm() {
 
             <SectorSelect
               showLabel={false}
-              areaId={area || undefined}
+              areaId={selectedAreaId ?? undefined}
               value={sector}
-              onChange={(e) => setSector(e.target.value)}
+              onChange={(e) =>
+                setSectorSelection({
+                  areaId: selectedAreaId,
+                  sectorId: e.target.value,
+                })
+              }
               className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 outline-none transition focus:border-blue-500"
               required
-              disabled={!area}
+              disabled={!selectedAreaId || isPending}
             />
           </div>
         </div>
@@ -125,7 +133,7 @@ export default function CreateLocationForm() {
         {/* SUBMIT */}
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || !selectedAreaId || !name.trim() || !sector}
           className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? "Creating Location..." : "Create Location"}

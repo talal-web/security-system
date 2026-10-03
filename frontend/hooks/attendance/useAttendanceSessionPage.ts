@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMe } from "@/hooks/auth/useMe";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
 import {
   useAttendanceSession,
@@ -47,6 +48,8 @@ import { moveAttendanceEmployee } from "@/utils/attendance/session/moveAttendanc
 type AttendanceConfirmationAction = "saveSettings" | "submitAttendance";
 
 export function useAttendanceSessionPage() {
+  const { selectedAreaId, isAreaLoading } = useSelectedArea();
+
   // ======================================
   // API
   // ======================================
@@ -87,6 +90,32 @@ export function useAttendanceSessionPage() {
   const [formInitializedKey, setFormInitializedKey] = useState<string | null>(
     null,
   );
+  const previousAreaIdRef = useRef(selectedAreaId);
+
+  useEffect(() => {
+    if (previousAreaIdRef.current === selectedAreaId) return;
+
+    previousAreaIdRef.current = selectedAreaId;
+
+    queueMicrotask(() => {
+      setDate("");
+      setQuery("");
+      setStatusFilter("all");
+      setSectors([]);
+      setConfirmationAction(null);
+      setIsSavingSettings(false);
+      setDraftStatus("idle");
+      setFormInitializedKey(null);
+      markAttendanceMutation.reset();
+      updateEmployeeLocationsMutation.reset();
+      updateEmployeeShiftsMutation.reset();
+    });
+  }, [
+    selectedAreaId,
+    markAttendanceMutation,
+    updateEmployeeLocationsMutation,
+    updateEmployeeShiftsMutation,
+  ]);
 
   // ======================================
   // DATE
@@ -103,7 +132,10 @@ export function useAttendanceSessionPage() {
 
   const userId = me?.user?.id;
 
-  const draftKey = userId ? getDraftKey(userId, dateValue) : null;
+  const draftKey =
+    userId && selectedAreaId
+      ? getDraftKey(userId, selectedAreaId, dateValue)
+      : null;
 
   // ======================================
   // INITIALIZE FORM
@@ -115,11 +147,16 @@ export function useAttendanceSessionPage() {
   );
 
   useEffect(() => {
-    if (!data?.sectors || !draftKey || formInitializedKey === draftKey) {
+    if (
+      !selectedAreaId ||
+      !data?.sectors ||
+      !draftKey ||
+      formInitializedKey === draftKey
+    ) {
       return;
     }
 
-    const draft = readDraft(draftKey);
+    const draft = readDraft(draftKey, selectedAreaId);
 
     queueMicrotask(() => {
       setFormInitializedKey(draftKey);
@@ -131,7 +168,17 @@ export function useAttendanceSessionPage() {
 
       setSectors(mergeAttendanceDraft(initialSectors, draft));
     });
-  }, [data?.sectors, draftKey, formInitializedKey, initialSectors]);
+  }, [
+    data?.sectors,
+    draftKey,
+    formInitializedKey,
+    initialSectors,
+    selectedAreaId,
+  ]);
+
+  const isFormReady = Boolean(
+    selectedAreaId && data?.sectors && draftKey && formInitializedKey === draftKey,
+  );
 
   // ======================================
   // ALL EMPLOYEES
@@ -144,12 +191,13 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const handleSaveDraft = () => {
-    if (!draftKey || allEmployees.length === 0) {
+    if (!selectedAreaId || !isFormReady || !draftKey || allEmployees.length === 0) {
       return;
     }
 
     const draft: AttendanceDraft = createAttendanceDraft(
       allEmployees,
+      selectedAreaId,
       dateValue,
     );
 
@@ -339,6 +387,11 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const handleSaveSettings = async () => {
+    if (!selectedAreaId || !isFormReady) {
+      toast.error("Select an area and wait for its attendance session to load.");
+      return;
+    }
+
     const presentEmployees = allEmployees.filter(
       (employee) => employee.status === "present",
     );
@@ -391,6 +444,11 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const handleSubmit = async () => {
+    if (!selectedAreaId || !isFormReady) {
+      toast.error("Select an area and wait for its attendance session to load.");
+      return;
+    }
+
     try {
       await markAttendanceMutation.mutateAsync({
         date: dateValue,
@@ -434,7 +492,7 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const openSaveSettingsConfirmation = () => {
-    if (isConfirmationPending) {
+    if (!selectedAreaId || !isFormReady || isConfirmationPending) {
       return;
     }
 
@@ -446,7 +504,7 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const openSubmitAttendanceConfirmation = () => {
-    if (isConfirmationPending) {
+    if (!selectedAreaId || !isFormReady || isConfirmationPending) {
       return;
     }
 
@@ -507,7 +565,9 @@ export function useAttendanceSessionPage() {
     // ----------------------------------
 
     data,
-    isLoading,
+    isLoading: isAreaLoading || Boolean(selectedAreaId && isLoading),
+    hasSelectedArea: Boolean(selectedAreaId),
+    isFormReady,
     error,
 
     // ----------------------------------

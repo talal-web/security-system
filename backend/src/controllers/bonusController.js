@@ -34,10 +34,7 @@ export const createBonus = async (req, res, next) => {
 
 export const getBonuses = async (req, res, next) => {
   try {
-    const bonuses = await getBonusesService({
-      ...req.query,
-      areaScope: req.areaScope,
-    });
+    const bonuses = await getBonusesService(req.query, req.areaScope);
 
     return res.status(200).json({
       success: true,
@@ -55,10 +52,10 @@ export const getBonuses = async (req, res, next) => {
 
 export const getEmployeeBonuses = async (req, res, next) => {
   try {
-    const result = await getEmployeeBonusesService({
-      employeeId: req.params.employeeId,
-      areaScope: req.areaScope,
-    });
+    const result = await getEmployeeBonusesService(
+      req.params.employeeId,
+      req.areaScope,
+    );
 
     return res.status(200).json({
       success: true,
@@ -76,12 +73,12 @@ export const getEmployeeBonuses = async (req, res, next) => {
 
 export const updateBonus = async (req, res, next) => {
   try {
-    const bonus = await updateBonusService({
-      id: req.params.id,
-      ...req.body,
-      areaScope: req.areaScope,
-      updatedBy: req.user.id,
-    });
+    const bonus = await updateBonusService(
+      req.params.id,
+      req.body,
+      req.user.id,
+      req.areaScope,
+    );
 
     return res.status(200).json({
       success: true,
@@ -99,11 +96,11 @@ export const updateBonus = async (req, res, next) => {
 
 export const cancelBonus = async (req, res, next) => {
   try {
-    const bonus = await cancelBonusService({
-      id: req.params.id,
-      areaScope: req.areaScope,
-      updatedBy: req.user.id,
-    });
+    const bonus = await cancelBonusService(
+      req.params.id,
+      req.user.id,
+      req.areaScope,
+    );
 
     return res.status(200).json({
       success: true,

@@ -40,6 +40,7 @@ router.get(
 router.patch(
   "/:id",
   authorizeRoles("developer", "admin"),
+  requireAreaAccess,
   updateEmployeeSalary,
 );
 

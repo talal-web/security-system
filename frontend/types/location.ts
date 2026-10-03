@@ -47,8 +47,6 @@ export interface UpdateLocationPayload {
 
   address?: string;
 
-  area?: string;
-
   sector?: LocationSectorId;
 
   isActive?: boolean;

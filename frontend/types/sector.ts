@@ -22,7 +22,6 @@ export interface CreateSectorPayload {
 export interface UpdateSectorPayload {
   name?: string;
   code?: string;
-  area?: string;
   description?: string;
   isActive?: boolean;
 }

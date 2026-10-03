@@ -18,7 +18,8 @@ import type { AttendanceReportResponse } from "@/types/attendance-report";
 // ======================================
 
 export async function getAttendanceReport(
-  filters?: AttendanceFilters,
+  filters: AttendanceFilters | undefined,
+  areaId: string,
 ): Promise<AttendanceReportResponse> {
   try {
     const res = await api.get<AttendanceReportResponse>("/attendance/report", {
@@ -26,7 +27,7 @@ export async function getAttendanceReport(
         status: filters?.status,
         shift: filters?.shift,
         date: filters?.date,
-        area: filters?.area,
+        area: areaId,
       },
     });
 
@@ -42,11 +43,11 @@ export async function getAttendanceReport(
 
 export async function getAttendanceById(
   id: string,
-  area?: string,
+  areaId: string,
 ): Promise<AttendanceRecord> {
   try {
     const res = await api.get<AttendanceRecordResponse>(`/attendance/${id}`, {
-      params: area ? { area } : {},
+      params: { area: areaId },
     });
 
     return res.data.data;
@@ -62,12 +63,12 @@ export async function getAttendanceById(
 export async function updateAttendance(
   id: string,
   payload: UpdateAttendancePayload,
-  area?: string,
+  areaId: string,
 ): Promise<AttendanceRecord> {
   try {
     const res = await api.patch<UpdateAttendanceResponse>(
       `/attendance/${id}`,
-      area ? { ...payload, area } : payload,
+      { ...payload, area: areaId },
     );
 
     return res.data.data;
@@ -82,6 +83,7 @@ export async function updateAttendance(
 
 export async function getMonthlyAttendanceReport(
   filters: MonthlyAttendanceFilters,
+  areaId: string,
 ): Promise<MonthlyAttendanceResponse> {
   try {
     const res = await api.get<MonthlyAttendanceResponse>(
@@ -89,7 +91,7 @@ export async function getMonthlyAttendanceReport(
       {
         params: {
           ...filters,
-          area: filters?.area,
+          area: areaId,
         },
       },
     );

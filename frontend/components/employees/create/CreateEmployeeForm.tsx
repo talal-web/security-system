@@ -73,9 +73,17 @@ export default function CreateEmployeeForm() {
   });
 
   useEffect(() => {
-    if (!selectedAreaId || selectedArea) return;
+    if (!selectedAreaId || selectedArea === selectedAreaId) return;
 
     setValue("area", selectedAreaId, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+    setValue("sector", "", {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+    setValue("currentLocation", "", {
       shouldDirty: true,
       shouldTouch: true,
     });
@@ -341,6 +349,7 @@ export default function CreateEmployeeForm() {
                   <AreaSelect
                     label="Area"
                     placeholder="Select Area"
+                    useGlobalSelection
                     value={selectedArea ?? ""}
                     onChange={(event) => {
                       const nextArea = event.target.value;

@@ -11,15 +11,22 @@ import LocationSector from "./LocationSector";
 
 import { MapPinned } from "lucide-react";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { useLocationView } from "@/hooks/location/useLocationView";
 
 export default function LocationView() {
+  const { selectedAreaId } = useSelectedArea();
+
+  return <LocationViewContent key={selectedAreaId ?? "no-area"} />;
+}
+
+function LocationViewContent() {
   const {
     search,
     setSearch,
 
     area,
-    setArea,
+    selectedAreaLabel,
 
     sector,
     setSector,
@@ -55,7 +62,6 @@ export default function LocationView() {
   );
 
   const handleAreaChange = (nextArea?: string) => {
-    setArea(nextArea);
     if (nextArea !== area) {
       setSector(undefined);
     }
@@ -101,6 +107,7 @@ export default function LocationView() {
     <div className="min-h-150 space-y-6">
       {/* Create */}
       <CreateLocationModal
+        key={area ?? "no-area"}
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
@@ -117,7 +124,7 @@ export default function LocationView() {
         search={search}
         onSearchChange={setSearch}
         area={area}
-        selectedAreaLabel={area ? "Area selected" : undefined}
+        selectedAreaLabel={selectedAreaLabel}
         onAreaChange={handleAreaChange}
         sector={sector}
         selectedSectorLabel={sector ? sectorLabelMap[sector] : undefined}

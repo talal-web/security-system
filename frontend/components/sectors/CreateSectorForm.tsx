@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateSector } from "@/hooks/sector/useSector";
 import { getApiErrorMessage } from "@/lib/apiError";
 import AreaSelect from "@/components/area/AreaSelect";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import type { CreateSectorPayload } from "@/types/sector";
 
 const sectorSchema = z.object({
@@ -40,6 +42,7 @@ type SectorFormData = z.output<typeof sectorSchema>;
 
 export default function CreateSectorForm() {
   const router = useRouter();
+  const { selectedAreaId } = useSelectedArea();
 
   const { mutate, isPending } = useCreateSector();
 
@@ -59,6 +62,12 @@ export default function CreateSectorForm() {
     },
   });
   const area = useWatch({ control, name: "area" });
+
+  useEffect(() => {
+    if (selectedAreaId && area !== selectedAreaId) {
+      setValue("area", selectedAreaId, { shouldValidate: true });
+    }
+  }, [selectedAreaId, area, setValue]);
 
   const onSubmit = (data: SectorFormData) => {
     const payload: CreateSectorPayload = {
@@ -88,6 +97,7 @@ export default function CreateSectorForm() {
           showLabel={true}
           label="Area"
           placeholder="Select an area"
+          useGlobalSelection
           value={area ?? ""}
           onChange={(event) => setValue("area", event.target.value)}
           className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"

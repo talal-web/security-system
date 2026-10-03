@@ -45,7 +45,11 @@ test("empty permitted area lists are never treated as unrestricted for restricte
   );
 
   assert.throws(
-    () => createAreaScopeFilter({ role: "supervisor", areas: [] }),
+    () =>
+      createAreaScopeFilter(
+        { role: "supervisor", areas: [] },
+        validAreaA,
+      ),
     {
       message: /no area access assigned|unauthorized/i,
     },
@@ -66,31 +70,36 @@ test("resolveScopedAreaIds rejects unauthorized and malformed area requests", ()
 
   assert.throws(
     () =>
-      resolveScopedAreaIds({ role: "clerk", areas: [validAreaA, validAreaB] }, [
-        validAreaA,
-        validAreaB,
+      resolveScopedAreaIds(
+        { role: "clerk", areas: [validAreaA, validAreaB] },
         "ffffffffffffffffffffffff",
-      ]),
+      ),
     {
       message: /unauthorized/i,
+    },
+  );
+
+  assert.throws(
+    () =>
+      resolveScopedAreaIds(
+        { role: "clerk", areas: [validAreaA, validAreaB] },
+        [validAreaA, validAreaB],
+      ),
+    {
+      message: /exactly one area/i,
     },
   );
 });
 
 test("createAreaScopeFilter applies a trusted area scope for restricted users", () => {
-  const filter = createAreaScopeFilter({
-    role: "clerk",
-    areas: [validAreaA, validAreaB],
-  });
+  const user = { role: "clerk", areas: [validAreaA, validAreaB] };
+  const filter = createAreaScopeFilter(user, validAreaA);
 
-  assert.deepEqual(filter, { area: { $in: [validAreaA, validAreaB] } });
+  assert.deepEqual(filter, { area: validAreaA });
 
-  const narrowed = createAreaScopeFilter(
-    { role: "clerk", areas: [validAreaA, validAreaB] },
-    [validAreaA],
-  );
+  const selectedOtherPermittedArea = createAreaScopeFilter(user, validAreaB);
 
-  assert.deepEqual(narrowed, { area: { $in: [validAreaA] } });
+  assert.deepEqual(selectedOtherPermittedArea, { area: validAreaB });
 });
 
 test("validateRequestedAreaAccess rejects injection-shaped values and unauthorized selections", () => {

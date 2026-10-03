@@ -79,23 +79,13 @@ export const getMonthlyAttendanceReportService = async ({
   // ======================================
 
   const employeeIds = employees.map((employee) => employee._id);
+  const areaConditions = [{ area: areaId }];
 
-  if (!employeeIds.length) {
-    return {
-      success: true,
-      message: "Monthly attendance report fetched successfully",
-      data: {
-        month: monthInfo,
-        overall: {
-          employees: 0,
-          present: 0,
-          leave: 0,
-          absent: 0,
-          total: 0,
-        },
-        employees: [],
-      },
-    };
+  if (employeeIds.length) {
+    areaConditions.push({
+      area: null,
+      employee: { $in: employeeIds },
+    });
   }
 
   const attendance = await Attendance.find({
@@ -103,11 +93,9 @@ export const getMonthlyAttendanceReportService = async ({
       $gte: monthStart,
       $lte: monthEnd,
     },
-    employee: {
-      $in: employeeIds,
-    },
+    $or: areaConditions,
   })
-    .select("employee date status")
+    .select("employee area employeeSnapshot date status")
     .lean();
 
   // ======================================
@@ -115,7 +103,7 @@ export const getMonthlyAttendanceReportService = async ({
   // ======================================
 
   const overall = {
-    employees: employees.length,
+    employees: 0,
     present: 0,
     leave: 0,
     absent: 0,
@@ -167,7 +155,35 @@ export const getMonthlyAttendanceReportService = async ({
       continue;
     }
 
-    const employee = employeeMap.get(record.employee.toString());
+    let employee = employeeMap.get(record.employee.toString());
+
+    if (
+      !employee &&
+      record.area?.toString() === areaId &&
+      record.employeeSnapshot?.empId
+    ) {
+      const snapshot = record.employeeSnapshot;
+      const attendanceDays = Object.fromEntries(
+        days.map((day) => [day, "-"]),
+      );
+
+      employee = {
+        employeeId: record.employee,
+        empId: snapshot.empId,
+        name: snapshot.name,
+        fatherName: snapshot.fatherName,
+        designation: snapshot.designation,
+        summary: {
+          present: 0,
+          leave: 0,
+          absent: 0,
+          total: 0,
+        },
+        attendance: attendanceDays,
+      };
+
+      employeeMap.set(record.employee.toString(), employee);
+    }
 
     if (!employee) continue;
 
@@ -205,6 +221,7 @@ export const getMonthlyAttendanceReportService = async ({
   // ======================================
 
   const report = Array.from(employeeMap.values());
+  overall.employees = report.length;
 
   const getEmployeeNumber = (empId) => {
     const match = empId?.match(/(\d+)$/);

@@ -23,53 +23,55 @@ import {
 export const useLocations = ({
   search,
   sector,
-  area,
   isActive,
   enabled,
 }: {
   search?: string;
   sector?: LocationSectorId;
-  area?: string;
   isActive?: boolean;
   enabled?: boolean;
 } = {}) => {
   const { selectedAreaId } = useSelectedArea();
-  const effectiveArea = area ?? selectedAreaId ?? undefined;
+  const effectiveArea = selectedAreaId ?? undefined;
 
   return useQuery({
-    queryKey: ["locations", search, sector, effectiveArea, isActive],
+    queryKey: ["locations", effectiveArea, search, sector, isActive],
 
     queryFn: () =>
       getLocations({
         search,
         sector,
-        area: effectiveArea,
         isActive,
-      }),
+      }, selectedAreaId!),
 
-    enabled: enabled ?? true,
+    enabled: Boolean(selectedAreaId) && (enabled ?? true),
     staleTime: 60 * 1000,
-    placeholderData: (previousData) => previousData,
   });
 };
 
 // ================= GET SINGLE LOCATION =================
 export const useLocation = (id: string) => {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: ["location", id],
+    queryKey: ["location", selectedAreaId ?? "", id],
 
-    queryFn: () => getLocationById(id),
+    queryFn: () => getLocationById(id, selectedAreaId!),
 
-    enabled: !!id,
+    enabled: Boolean(id && selectedAreaId),
   });
 };
 
 // ================= CREATE LOCATION =================
 export const useCreateLocation = () => {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payload: CreateLocationPayload) => createLocation(payload),
+    mutationFn: (payload: CreateLocationPayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return createLocation(payload, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -82,6 +84,7 @@ export const useCreateLocation = () => {
 // ================= UPDATE LOCATION =================
 export const useUpdateLocation = () => {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
     mutationFn: ({
@@ -90,7 +93,10 @@ export const useUpdateLocation = () => {
     }: {
       id: string;
       payload: UpdateLocationPayload;
-    }) => updateLocation({ id, payload }),
+    }) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateLocation({ id, payload, areaId: selectedAreaId });
+    },
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -98,7 +104,7 @@ export const useUpdateLocation = () => {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["location", variables.id],
+        queryKey: ["location", selectedAreaId!, variables.id],
       });
     },
   });
@@ -107,9 +113,13 @@ export const useUpdateLocation = () => {
 // ================= DELETE LOCATION =================
 export const useDeleteLocation = () => {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (id: string) => deleteLocation(id),
+    mutationFn: (id: string) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return deleteLocation(id, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({

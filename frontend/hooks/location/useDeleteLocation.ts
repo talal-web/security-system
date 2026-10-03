@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { deleteLocation } from "@/services/location.service";
 
 type Props = {
@@ -11,10 +12,12 @@ type Props = {
 
 export function useDeleteLocation({ onSuccess, onError }: Props = {}) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   const mutation = useMutation({
     mutationFn: async (id: string) => {
-      return await deleteLocation(id);
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return await deleteLocation(id, selectedAreaId);
     },
 
     onSuccess: () => {

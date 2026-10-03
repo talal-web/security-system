@@ -20,7 +20,12 @@ const router = express.Router();
 // CREATE
 // ======================================
 
-router.post("/", authorizeRoles("admin", "developer", "clerk"), createSector);
+router.post(
+  "/",
+  authorizeRoles("admin", "developer", "clerk"),
+  requireAreaAccess,
+  createSector,
+);
 
 // ======================================
 // GET ALL
@@ -35,6 +40,7 @@ router.get("/", requireAreaAccess, getSectors);
 router.patch(
   "/reorder",
   authorizeRoles("admin", "developer", "clerk"),
+  requireAreaAccess,
   reorderSectors,
 );
 
@@ -51,6 +57,7 @@ router.get("/:id", requireAreaAccess, getSectorById);
 router.patch(
   "/:id",
   authorizeRoles("admin", "developer", "clerk"),
+  requireAreaAccess,
   updateSector,
 );
 
@@ -58,6 +65,11 @@ router.patch(
 // DELETE
 // ======================================
 
-router.delete("/:id", authorizeRoles("admin", "developer"), deleteSector);
+router.delete(
+  "/:id",
+  authorizeRoles("admin", "developer"),
+  requireAreaAccess,
+  deleteSector,
+);
 
 export default router;

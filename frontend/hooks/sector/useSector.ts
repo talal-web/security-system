@@ -37,15 +37,12 @@ export function useSectors(
 ) {
   const { selectedAreaId } = useSelectedArea();
 
-  const effectiveParams = {
-    ...params,
-    ...(selectedAreaId && !params?.area ? { area: selectedAreaId } : {}),
-  };
+  const effectiveParams = { ...params, area: selectedAreaId ?? undefined };
 
   return useQuery({
     queryKey: [...SECTOR_QUERY_KEY, effectiveParams ?? {}],
-    queryFn: () => getSectors(effectiveParams),
-    enabled: options?.enabled ?? true,
+    queryFn: () => getSectors(effectiveParams, selectedAreaId!),
+    enabled: Boolean(selectedAreaId) && (options?.enabled ?? true),
 
     staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
@@ -56,10 +53,12 @@ export function useSectors(
  * Get Single Sector
  */
 export function useSector(id: string) {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: [...SECTOR_QUERY_KEY, "detail", id],
-    queryFn: () => getSectorById(id),
-    enabled: !!id,
+    queryKey: [...SECTOR_QUERY_KEY, "detail", selectedAreaId ?? "", id],
+    queryFn: () => getSectorById(id, selectedAreaId!),
+    enabled: Boolean(id && selectedAreaId),
   });
 }
 
@@ -68,9 +67,13 @@ export function useSector(id: string) {
  */
 export function useCreateSector() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payload: CreateSectorPayload) => createSector(payload),
+    mutationFn: (payload: CreateSectorPayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return createSector(payload, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -85,6 +88,7 @@ export function useCreateSector() {
  */
 export function useUpdateSector() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
     mutationFn: ({
@@ -93,7 +97,10 @@ export function useUpdateSector() {
     }: {
       id: string;
       payload: UpdateSectorPayload;
-    }) => updateSector(id, payload),
+    }) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateSector(id, payload, selectedAreaId);
+    },
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -101,7 +108,12 @@ export function useUpdateSector() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: [...SECTOR_QUERY_KEY, "detail", variables.id],
+        queryKey: [
+          ...SECTOR_QUERY_KEY,
+          "detail",
+          selectedAreaId!,
+          variables.id,
+        ],
       });
     },
   });
@@ -112,9 +124,13 @@ export function useUpdateSector() {
  */
 export function useDeleteSector() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (id: string) => deleteSector(id),
+    mutationFn: (id: string) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return deleteSector(id, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -129,9 +145,13 @@ export function useDeleteSector() {
  */
 export function useReorderSectors() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payload: ReorderSectorPayload) => reorderSectors(payload),
+    mutationFn: (payload: ReorderSectorPayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return reorderSectors(payload, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({

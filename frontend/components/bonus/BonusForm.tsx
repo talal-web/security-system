@@ -217,7 +217,7 @@ export default function BonusForm({
     // ======================================
 
     const payload: CreateBonusPayload = {
-      employee: selectedEmployeeId,
+      employeeId: selectedEmployeeId,
       amount: parsedAmount,
       bonusDate,
       reason: reason.trim(),

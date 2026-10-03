@@ -5,6 +5,7 @@ import { useState } from "react";
 import { X, MapPin, Loader2 } from "lucide-react";
 
 import { useLocation, useUpdateLocation } from "@/hooks/location/useLocation";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
 
@@ -12,11 +13,10 @@ import type { LocationSectorId, UpdateLocationPayload } from "@/types/location";
 
 type UpdateLocationFormState = Omit<
   UpdateLocationPayload,
-  "sector" | "area"
+  "sector"
 > & {
   name: string;
   address: string;
-  area: string;
   sector: LocationSectorId | "";
   isActive: boolean;
 };
@@ -35,19 +35,46 @@ export default function UpdateLocationModal({
   onClose,
 }: Props) {
   const effectiveLocationId = locationId ?? id ?? null;
+  const { selectedAreaId } = useSelectedArea();
   const isModal = open !== undefined;
   const shouldRender = open !== false;
 
-  const { data, isLoading } = useLocation(effectiveLocationId ?? "");
+  const {
+    data,
+    isLoading,
+    isError: isLocationError,
+    error: locationError,
+  } = useLocation(
+    effectiveLocationId ?? "",
+  );
 
-  const { mutate, isPending, isError, error } = useUpdateLocation();
+  const {
+    mutate,
+    isPending,
+    isError: isUpdateError,
+    error: updateError,
+  } = useUpdateLocation();
 
-  const [draft, setDraft] = useState<Partial<UpdateLocationFormState>>({});
+  const draftScopeKey = `${selectedAreaId ?? ""}:${effectiveLocationId ?? ""}:${open !== false}`;
+  const [draftState, setDraftState] = useState<{
+    scopeKey: string;
+    values: Partial<UpdateLocationFormState>;
+  }>({ scopeKey: draftScopeKey, values: {} });
+  const draft =
+    draftState.scopeKey === draftScopeKey ? draftState.values : {};
+  const updateDraft = (values: Partial<UpdateLocationFormState>) => {
+    setDraftState((previous) => ({
+      scopeKey: draftScopeKey,
+      values: {
+        ...(previous.scopeKey === draftScopeKey ? previous.values : {}),
+        ...values,
+      },
+    }));
+  };
 
   const form: UpdateLocationFormState = {
     name: draft.name ?? data?.name ?? "",
     address: draft.address ?? data?.address ?? "",
-    area: draft.area ?? data?.sector?.area?._id ?? "",
     sector: draft.sector ?? data?.sector?._id ?? "",
     isActive: draft.isActive ?? data?.isActive ?? true,
   };
@@ -58,43 +85,30 @@ export default function UpdateLocationModal({
     const { name, value } = e.target;
 
     if (name === "isActive") {
-      setDraft((prev) => ({
-        ...prev,
+      updateDraft({
         isActive: value === "true",
-      }));
-
-      return;
-    }
-
-    if (name === "area") {
-      setDraft((prev) => ({
-        ...prev,
-        area: value,
-        sector: "",
-      }));
+      });
 
       return;
     }
 
     if (name === "sector") {
-      setDraft((prev) => ({
-        ...prev,
+      updateDraft({
         sector: value,
-      }));
+      });
 
       return;
     }
 
     if (name === "name" || name === "address") {
-      setDraft((prev) => ({
-        ...prev,
+      updateDraft({
         [name]: value,
-      }));
+      });
     }
   };
 
   const handleClose = () => {
-    setDraft({});
+    setDraftState({ scopeKey: draftScopeKey, values: {} });
 
     onClose?.();
   };
@@ -108,7 +122,6 @@ export default function UpdateLocationModal({
       name: form.name,
       address: form.address,
       isActive: form.isActive,
-      area: form.area || undefined,
       sector: form.sector || undefined,
     };
 
@@ -129,6 +142,9 @@ export default function UpdateLocationModal({
 
   return (
     <div
+      role={isModal ? "dialog" : undefined}
+      aria-modal={isModal ? true : undefined}
+      aria-label={isModal ? "Update location" : undefined}
       className={
         isModal
           ? "fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
@@ -148,7 +164,9 @@ export default function UpdateLocationModal({
             <button
               type="button"
               onClick={handleClose}
-              className="absolute right-4 top-4 rounded-xl p-2 transition hover:bg-white/10"
+              disabled={isPending}
+              aria-label="Close update location dialog"
+              className="absolute right-4 top-4 rounded-xl p-2 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <X size={20} />
             </button>
@@ -174,11 +192,30 @@ export default function UpdateLocationModal({
           <div className="flex items-center justify-center py-20">
             <Loader2 size={32} className="animate-spin text-blue-600" />
           </div>
+        ) : isLocationError || !data ? (
+          <div className="space-y-4 p-6">
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {locationError instanceof Error
+                ? locationError.message
+                : "This location is unavailable in the selected area."}
+            </div>
+            {isModal && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Close
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6 p-6">
-            {isError && (
+            {isUpdateError && (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-                {error?.message}
+                {updateError?.message}
               </div>
             )}
 
@@ -224,9 +261,9 @@ export default function UpdateLocationModal({
 
                 <AreaSelect
                   showLabel={false}
-                  name="area"
-                  value={form.area}
-                  onChange={handleChange}
+                  value={selectedAreaId ?? ""}
+                  useGlobalSelection
+                  disabled
                   className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
                   required
                 />
@@ -241,12 +278,12 @@ export default function UpdateLocationModal({
                 <SectorSelect
                   showLabel={false}
                   name="sector"
-                  areaId={form.area || undefined}
+                  areaId={selectedAreaId ?? undefined}
                   value={form.sector}
                   onChange={handleChange}
                   className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
                   required
-                  disabled={!form.area}
+                  disabled={!selectedAreaId || isPending}
                 />
               </div>
 
@@ -272,7 +309,7 @@ export default function UpdateLocationModal({
               <button
                 type="button"
                 onClick={handleClose}
-                disabled={isPending}
+                disabled={isPending || !selectedAreaId || !form.sector}
                 className="rounded-2xl border border-slate-300 px-5 py-3 font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel

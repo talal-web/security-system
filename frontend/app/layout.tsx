@@ -1,6 +1,7 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { Toaster } from "sonner";
 
@@ -29,27 +30,38 @@ export default function RootLayout({
     <html lang="en" className={geist.variable}>
       <body className="bg-slate-100 text-slate-900 font-sans antialiased">
         <QueryProvider>
-          <AreaProvider>
-            {/* TOAST */}
-            <Toaster
-              position="top-right"
-              richColors
-              closeButton
-              duration={3000}
-              toastOptions={{
-                className: "!rounded-2xl !border !border-slate-800",
-              }}
-            />
+          <Suspense
+            fallback={
+              <div
+                className="flex min-h-screen items-center justify-center bg-slate-100 text-sm text-slate-500"
+                role="status"
+              >
+                Loading application...
+              </div>
+            }
+          >
+            <AreaProvider>
+              {/* TOAST */}
+              <Toaster
+                position="top-right"
+                richColors
+                closeButton
+                duration={3000}
+                toastOptions={{
+                  className: "!rounded-2xl !border !border-slate-800",
+                }}
+              />
 
-            {/* NAVBAR */}
-            <Navbar />
+              {/* NAVBAR */}
+              <Navbar />
 
-            {/* PAGE CONTENT */}
-            <main className="min-h-screen pt-20">{children}</main>
+              {/* PAGE CONTENT */}
+              <main className="min-h-screen pt-20">{children}</main>
 
-            {/* FOOTER */}
-            <Footer />
-          </AreaProvider>
+              {/* FOOTER */}
+              <Footer />
+            </AreaProvider>
+          </Suspense>
         </QueryProvider>
       </body>
     </html>

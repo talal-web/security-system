@@ -35,13 +35,27 @@ export const buildAttendanceSession = async (areaScope = {}) => {
   const attendanceDate = normalizeDate(new Date());
   const areaId = resolveAreaId(areaScope);
 
+  // Legacy attendance records without an area use the employee's current area.
+  const employees = await Employee.find({
+    status: "active",
+    area: areaId,
+  })
+    .select(
+      "empId name fatherName designation defaultShift currentLocation area",
+    )
+    .lean();
+  const employeeIds = employees.map((employee) => employee._id);
+
   // ==========================================
   // CHECK EXISTING ATTENDANCE
   // ==========================================
 
   const attendanceExists = await Attendance.exists({
     date: attendanceDate,
-    area: areaId,
+    $or: [
+      { area: areaId },
+      { area: null, employee: { $in: employeeIds } },
+    ],
   });
 
   // ==========================================
@@ -87,19 +101,6 @@ export const buildAttendanceSession = async (areaScope = {}) => {
       sortOrder: 1,
       name: 1,
     })
-    .lean();
-
-  // ==========================================
-  // GET ACTIVE EMPLOYEES IN SELECTED AREA
-  // ==========================================
-
-  const employees = await Employee.find({
-    status: "active",
-    area: areaId,
-  })
-    .select(
-      "empId name fatherName designation defaultShift currentLocation area",
-    )
     .lean();
 
   // ==========================================

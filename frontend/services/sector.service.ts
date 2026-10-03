@@ -15,10 +15,11 @@ const BASE_URL = "/sectors";
  * Get All Sectors
  */
 export const getSectors = async (
-  params?: SectorQueryParams,
+  params: SectorQueryParams | undefined,
+  areaId: string,
 ): Promise<SectorsResponse> => {
   const { data } = await api.get(BASE_URL, {
-    params,
+    params: { ...params, area: areaId },
   });
 
   return data;
@@ -27,8 +28,13 @@ export const getSectors = async (
 /**
  * Get Sector By Id
  */
-export const getSectorById = async (id: string): Promise<SectorResponse> => {
-  const { data } = await api.get(`${BASE_URL}/${id}`);
+export const getSectorById = async (
+  id: string,
+  areaId: string,
+): Promise<SectorResponse> => {
+  const { data } = await api.get(`${BASE_URL}/${id}`, {
+    params: { area: areaId },
+  });
 
   return data;
 };
@@ -38,8 +44,13 @@ export const getSectorById = async (id: string): Promise<SectorResponse> => {
  */
 export const createSector = async (
   payload: CreateSectorPayload,
+  areaId: string,
 ): Promise<SectorResponse> => {
-  const { data } = await api.post(BASE_URL, payload);
+  const { data } = await api.post(
+    BASE_URL,
+    { ...payload, area: areaId },
+    { params: { area: areaId } },
+  );
 
   return data;
 };
@@ -50,8 +61,13 @@ export const createSector = async (
 export const updateSector = async (
   id: string,
   payload: UpdateSectorPayload,
+  areaId: string,
 ): Promise<SectorResponse> => {
-  const { data } = await api.patch(`${BASE_URL}/${id}`, payload);
+  const { data } = await api.patch(
+    `${BASE_URL}/${id}`,
+    { ...payload, area: areaId },
+    { params: { area: areaId } },
+  );
 
   return data;
 };
@@ -61,8 +77,11 @@ export const updateSector = async (
  */
 export const deleteSector = async (
   id: string,
+  areaId: string,
 ): Promise<{ success: boolean; message: string }> => {
-  const { data } = await api.delete(`${BASE_URL}/${id}`);
+  const { data } = await api.delete(`${BASE_URL}/${id}`, {
+    params: { area: areaId },
+  });
 
   return data;
 };
@@ -72,8 +91,11 @@ export const deleteSector = async (
  */
 export const reorderSectors = async (
   payload: ReorderSectorPayload,
+  areaId: string,
 ): Promise<{ success: boolean; message: string }> => {
-  const { data } = await api.patch(`${BASE_URL}/reorder`, payload);
+  const { data } = await api.patch(`${BASE_URL}/reorder`, payload, {
+    params: { area: areaId },
+  });
 
   return data;
 };

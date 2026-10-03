@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { useSectors } from "@/hooks/sector/useSector";
 
 import { useLocations } from "./useLocation";
@@ -16,7 +17,8 @@ export function useLocationView() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [area, setArea] = useState<string>();
+  const { selectedAreaId, selectedArea } = useSelectedArea();
+  const area = selectedAreaId ?? undefined;
   const [sector, setSector] = useState<LocationSectorId>();
   const [isActive, setIsActive] = useState<boolean | undefined>(true);
 
@@ -51,7 +53,6 @@ export function useLocationView() {
     error,
   } = useLocations({
     search: debouncedSearch,
-    area,
     sector,
     isActive,
   });
@@ -101,7 +102,6 @@ export function useLocationView() {
   // ==========================
   const handleClearFilters = () => {
     setSearch("");
-    setArea(undefined);
     setSector(undefined);
     setIsActive(undefined);
   };
@@ -132,7 +132,7 @@ export function useLocationView() {
     setSearch,
 
     area,
-    setArea,
+    selectedAreaLabel: selectedArea?.name,
 
     sector,
     setSector,

@@ -2,7 +2,7 @@ import type { AttendanceFormEmployee } from "@/types/attendance-session";
 import type { AttendanceFormSector } from "@/types/attendance-session";
 import type { AttendanceStatus } from "@/types/attendance";
 
-const ATTENDANCE_DRAFT_VERSION = 1;
+const ATTENDANCE_DRAFT_VERSION = 2;
 
 export type AttendanceDraftEmployee = Pick<
   AttendanceFormEmployee,
@@ -11,20 +11,23 @@ export type AttendanceDraftEmployee = Pick<
 
 export type AttendanceDraft = {
   version: number;
+  areaId: string;
   date: string;
   savedAt: string;
   employees: AttendanceDraftEmployee[];
 };
 
-export const getDraftKey = (userId: string, date: string) =>
-  `attendance-draft:${userId}:${date}`;
+export const getDraftKey = (userId: string, areaId: string, date: string) =>
+  `attendance-draft:${userId}:${areaId}:${date}`;
 
 export const createAttendanceDraft = (
   employees: AttendanceFormEmployee[],
+  areaId: string,
   attendanceDate: string,
 ): AttendanceDraft => {
   return {
     version: ATTENDANCE_DRAFT_VERSION,
+    areaId,
     date: attendanceDate,
     savedAt: new Date().toISOString(),
     employees: employees.map((employee) => ({
@@ -35,7 +38,10 @@ export const createAttendanceDraft = (
   };
 };
 
-export const readDraft = (key: string): AttendanceDraft | null => {
+export const readDraft = (
+  key: string,
+  areaId: string,
+): AttendanceDraft | null => {
   if (typeof window === "undefined") return null;
 
   try {
@@ -46,6 +52,7 @@ export const readDraft = (key: string): AttendanceDraft | null => {
       typeof value !== "object" ||
       (value as AttendanceDraft).version !== ATTENDANCE_DRAFT_VERSION ||
       typeof (value as AttendanceDraft).date !== "string" ||
+      (value as AttendanceDraft).areaId !== areaId ||
       !Array.isArray((value as AttendanceDraft).employees) ||
       typeof (value as AttendanceDraft).savedAt !== "string"
     ) {

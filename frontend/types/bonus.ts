@@ -29,7 +29,7 @@ export interface Bonus {
 }
 
 export interface CreateBonusPayload {
-  employee: string;
+  employeeId: string;
   amount: number;
   bonusDate?: string;
   reason: string;
