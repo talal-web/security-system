@@ -8,128 +8,90 @@ import {
 } from "../services/attendance/attendance.service.js";
 
 import { getMonthlyAttendanceReportService } from "../services/attendance/attendanceMonthly.service.js";
+
 import { getAttendanceReportService } from "../services/attendance/attendanceReport.service.js";
 
-const sendError = (res, error) => {
-  const statusCode = error?.statusCode || 500;
-  const message = error?.message || "An unexpected error occurred";
-  const payload = {
-    success: false,
-    message,
-  };
+// Sends every error (ApiError or unexpected) to the central error handler.
+const handle = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res)).catch(next);
 
-  if (error?.details) {
-    Object.assign(payload, error.details);
-  }
+// Get Attendance Report
+export const getAttendanceReport = handle(async (req, res) => {
+  const result = await getAttendanceReportService({
+    query: req.query,
+    areaScope: req.areaScope,
+  });
 
-  return res.status(statusCode).json(payload);
-};
+  res.status(200).json(result);
+});
 
-export const getAttendanceReport = async (req, res) => {
-  try {
-    const result = await getAttendanceReportService({
-      query: req.query,
-      areaScope: req.areaScope || {},
-    });
+// Get Attendance By ID
+export const getAttendanceById = handle(async (req, res) => {
+  const result = await getAttendanceByIdService({
+    id: req.params.id,
+    areaScope: req.areaScope,
+  });
 
-    return res.status(200).json(result);
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
+  res.status(200).json(result);
+});
 
-export const getAttendanceById = async (req, res) => {
-  try {
-    const result = await getAttendanceByIdService({ id: req.params.id });
-    return res.status(200).json(result);
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
+// Update Attendance
+export const updateAttendance = handle(async (req, res) => {
+  const result = await updateAttendanceService({
+    id: req.params.id,
+    user: req.user,
+    areaScope: req.areaScope,
+    body: req.body,
+  });
 
-export const updateAttendance = async (req, res) => {
-  try {
-    const result = await updateAttendanceService({
-      id: req.params.id,
-      user: req.user,
-      areaScope: req.areaScope || {},
-      body: req.body,
-    });
+  res.status(200).json(result);
+});
 
-    return res.status(200).json(result);
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
+// Get Attendance Session
+export const getAttendanceSession = handle(async (req, res) => {
+  const result = await getAttendanceSessionService({
+    areaScope: req.areaScope,
+  });
 
-export const getAttendanceSession = async (req, res) => {
-  try {
-    const result = await getAttendanceSessionService({
-      areaScope: req.areaScope || {},
-    });
+  res.status(200).json({ success: true, ...result });
+});
 
-    return res.status(200).json({
-      success: true,
-      ...result,
-    });
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
+// Submit Attendance Session
+export const submitAttendanceSession = handle(async (req, res) => {
+  const result = await submitAttendanceSessionService({
+    body: req.body,
+    areaScope: req.areaScope,
+  });
 
-export const submitAttendanceSession = async (req, res) => {
-  try {
-    const result = await submitAttendanceSessionService({ body: req.body });
-    return res.status(200).json({
-      success: true,
-      ...result,
-    });
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
+  res.status(200).json({ success: true, ...result });
+});
 
-export const getMonthlyAttendanceReport = async (req, res) => {
-  try {
-    const result = await getMonthlyAttendanceReportService({
-      query: req.query,
-      areaScope: req.areaScope || {},
-    });
+// Get Monthly Attendance Report
+export const getMonthlyAttendanceReport = handle(async (req, res) => {
+  const result = await getMonthlyAttendanceReportService({
+    query: req.query,
+    areaScope: req.areaScope,
+  });
 
-    return res.status(200).json(result);
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
+  res.status(200).json(result);
+});
 
-export const updateEmployeeLocations = async (req, res) => {
-  try {
-    const result = await updateEmployeeLocationsService({
-      body: req.body,
-      areaScope: req.areaScope || {},
-    });
+// Update Employee Locations
+export const updateEmployeeLocations = handle(async (req, res) => {
+  const result = await updateEmployeeLocationsService({
+    body: req.body,
+    areaScope: req.areaScope,
+  });
 
-    return res.status(200).json({
-      success: true,
-      ...result,
-    });
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
+  res.status(200).json({ success: true, ...result });
+});
 
-export const updateEmployeeShifts = async (req, res) => {
-  try {
-    const result = await updateEmployeeShiftsService({
-      body: req.body,
-      areaScope: req.areaScope || {},
-    });
+// Update Employee Shifts
+export const updateEmployeeShifts = handle(async (req, res) => {
+  const result = await updateEmployeeShiftsService({
+    body: req.body,
+    areaScope: req.areaScope,
+  });
 
-    return res.status(200).json({
-      success: true,
-      ...result,
-    });
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
+  res.status(200).json({ success: true, ...result });
+});

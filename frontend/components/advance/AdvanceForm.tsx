@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { useCreateAdvance, useUpdateAdvance } from "@/hooks/advance/useAdvance";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { lookupEmployee } from "@/services/employee.service";
 import { formatText } from "@/utils/employee/employeeFormat";
 
@@ -33,6 +34,7 @@ export default function AdvanceForm({
   onSuccess,
   onCancel,
 }: AdvanceFormProps) {
+  const { selectedAreaId } = useSelectedArea();
   const isEditing = Boolean(advance);
 
   const createAdvance = useCreateAdvance();
@@ -78,6 +80,11 @@ export default function AdvanceForm({
   const handleLookup = async () => {
     const trimmed = searchEmpId.trim();
 
+    if (!selectedAreaId) {
+      setLookupError("No area is selected.");
+      return;
+    }
+
     if (!trimmed) {
       setLookupError("Please enter an Employee ID (e.g. BSS-0001).");
       return;
@@ -88,7 +95,7 @@ export default function AdvanceForm({
     setFormError("");
 
     try {
-      const employee = await lookupEmployee(trimmed);
+      const employee = await lookupEmployee(trimmed, selectedAreaId);
       setSelectedEmployee(employee);
       setSelectedEmployeeId(employee._id);
 

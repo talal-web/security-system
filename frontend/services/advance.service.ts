@@ -19,9 +19,10 @@ function toAdvanceApiError(error: unknown): ApiError {
 
 export async function createAdvance(
   advanceData: CreateAdvancePayload,
+  areaId: string,
 ): Promise<AdvanceResponse> {
   try {
-    const res = await api.post("/advances", advanceData);
+    const res = await api.post("/advances", { ...advanceData, area: areaId });
 
     return res.data;
   } catch (error) {
@@ -52,9 +53,12 @@ export async function getAdvances(
 
 export async function getEmployeeAdvances(
   employeeId: string,
+  areaId: string,
 ): Promise<EmployeeAdvancesResponse> {
   try {
-    const res = await api.get(`/advances/employee/${employeeId}`);
+    const res = await api.get(`/advances/employee/${employeeId}`, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {
@@ -65,9 +69,13 @@ export async function getEmployeeAdvances(
 export async function updateAdvance(
   advanceId: string,
   advanceData: UpdateAdvancePayload,
+  areaId: string,
 ): Promise<AdvanceResponse> {
   try {
-    const res = await api.patch(`/advances/${advanceId}`, advanceData);
+    const res = await api.patch(`/advances/${advanceId}`, {
+      ...advanceData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -77,9 +85,12 @@ export async function updateAdvance(
 
 export async function cancelAdvance(
   advanceId: string,
+  areaId: string,
 ): Promise<AdvanceResponse> {
   try {
-    const res = await api.patch(`/advances/${advanceId}/cancel`);
+    const res = await api.patch(`/advances/${advanceId}/cancel`, null, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {

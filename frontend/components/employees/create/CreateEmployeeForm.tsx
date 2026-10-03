@@ -49,7 +49,7 @@ import { buildEmployeeFormData } from "@/utils/employee/buildEmployeeFormData";
 
 export default function CreateEmployeeForm() {
   const router = useRouter();
-  const { selectedAreaId } = useSelectedArea();
+  const { selectedAreaId, getAreaAwareHref } = useSelectedArea();
 
   const {
     control,
@@ -84,7 +84,7 @@ export default function CreateEmployeeForm() {
   const { handleCreateEmployee, loading } = useCreateEmployee({
     onSuccess: () => {
       toast.success("Employee created successfully.");
-      router.push("/employees");
+      router.push(getAreaAwareHref("/employees"));
     },
     onError: (message) => {
       toast.error(message || "Failed to create employee.");

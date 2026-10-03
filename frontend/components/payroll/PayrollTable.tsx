@@ -5,6 +5,7 @@ import PayrollCard from "./PayrollCard";
 import PayrollActions from "./PayrollActions";
 import PayrollStatusBadge from "./PayrollStatusBadge";
 import type { Payroll } from "@/types/payroll";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
 const name = (payroll: Payroll) =>
   typeof payroll.employee === "string" ? "Employee" : payroll.employee.name;
@@ -17,6 +18,8 @@ export default function PayrollTable({
   payrolls: Payroll[];
   canManage?: boolean;
 }) {
+  const { getAreaAwareHref } = useSelectedArea();
+
   if (!payrolls.length)
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center">
@@ -45,7 +48,7 @@ export default function PayrollTable({
               <tr key={payroll._id} className="hover:bg-slate-50">
                 <td className="px-5 py-4">
                   <Link
-                    href={`/payroll/${payroll._id}`}
+                    href={getAreaAwareHref(`/payroll/${payroll._id}`)}
                     className="font-semibold text-slate-900 hover:text-emerald-700"
                   >
                     {name(payroll)}
@@ -72,7 +75,7 @@ export default function PayrollTable({
                 <td className="px-5 py-4">
                   <div className="flex items-center justify-end gap-2">
                     <Link
-                      href={`/payroll/${payroll._id}`}
+                      href={getAreaAwareHref(`/payroll/${payroll._id}`)}
                       className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                     >
                       View details

@@ -2,55 +2,38 @@ import mongoose from "mongoose";
 
 import Payroll from "../../models/Payroll.js";
 import Employee from "../../models/Employee.js";
+import ApiError from "../../utils/ApiError.js";
 
-const resolveAreaEmployeeIds = async (areaScope) => {
-  // No scope means unrestricted access.
-  // Pass the scope from your authorization middleware.
-  if (!areaScope) return null;
+// ======================================
+// Area scope helper
+// ======================================
 
-  const areaIds = Array.isArray(areaScope) ? areaScope : areaScope.areaIds;
+// enforceAreaScope has already validated exactly one area.
+// areaScope.areaId is the single source of truth. Payrolls are filtered
+// by their stored area, so a missing scope fails closed.
+const getScopedAreaId = (areaScope = {}) => {
+  const areaId = areaScope?.areaId;
 
-  if (!Array.isArray(areaIds)) {
-    throw new Error("Invalid area scope");
+  if (typeof areaId !== "string" || !areaId.trim()) {
+    throw new ApiError(400, "Area selection is required");
   }
 
-  if (areaIds.length === 0) return [];
-
-  const employees = await Employee.find({
-    area: { $in: areaIds },
-  })
-    .select("_id")
-    .lean();
-
-  return employees.map((employee) => employee._id);
-};
-
-const applyAreaScope = async (filter, areaScope) => {
-  const employeeIds = await resolveAreaEmployeeIds(areaScope);
-
-  if (employeeIds === null) return filter;
-
-  const existingEmployee = filter.employee;
-
-  if (Array.isArray(existingEmployee?.$in)) {
-    const allowed = new Set(employeeIds.map(String));
-    filter.employee.$in = existingEmployee.$in.filter((id) =>
-      allowed.has(String(id)),
-    );
-  } else if (existingEmployee) {
-    if (!employeeIds.some((id) => String(id) === String(existingEmployee))) {
-      filter.employee = { $in: [] };
-    }
-  } else {
-    filter.employee = { $in: employeeIds };
+  if (!mongoose.isValidObjectId(areaId)) {
+    throw new ApiError(400, "Invalid area ID");
   }
 
-  return filter;
+  return areaId;
 };
 
-export const getPayrollsService = async (query, areaScope) => {
+// ======================================
+// Get payrolls
+// ======================================
+
+export const getPayrollsService = async (query = {}, areaScope = {}) => {
   const { year, month, employee, status, search } = query;
-  const filter = {};
+
+  // Always limited to the single selected area.
+  const filter = { area: getScopedAreaId(areaScope) };
 
   if (year !== undefined) {
     const parsedYear = Number(year);
@@ -60,7 +43,7 @@ export const getPayrollsService = async (query, areaScope) => {
       parsedYear < 2000 ||
       parsedYear > 2100
     ) {
-      throw Object.assign(new Error("Invalid year"), { status: 400 });
+      throw new ApiError(400, "Invalid year");
     }
 
     filter.year = parsedYear;
@@ -70,7 +53,7 @@ export const getPayrollsService = async (query, areaScope) => {
     const parsedMonth = Number(month);
 
     if (!Number.isInteger(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
-      throw Object.assign(new Error("Invalid month"), { status: 400 });
+      throw new ApiError(400, "Invalid month");
     }
 
     filter.month = parsedMonth;
@@ -78,9 +61,7 @@ export const getPayrollsService = async (query, areaScope) => {
 
   if (employee !== undefined) {
     if (!mongoose.isValidObjectId(employee)) {
-      throw Object.assign(new Error("Invalid employee ID"), {
-        status: 400,
-      });
+      throw new ApiError(400, "Invalid employee ID");
     }
 
     filter.employee = employee;
@@ -90,24 +71,25 @@ export const getPayrollsService = async (query, areaScope) => {
     const allowedStatuses = ["draft", "finalized", "paid"];
 
     if (!allowedStatuses.includes(status)) {
-      throw Object.assign(new Error("Invalid payroll status"), {
-        status: 400,
-      });
+      throw new ApiError(400, "Invalid payroll status");
     }
 
     filter.status = status;
   }
 
-  if (search?.trim()) {
-    const searchRegex = new RegExp(search.trim(), "i");
+  if (typeof search === "string" && search.trim()) {
+    // Escape regex special characters so user input is treated as text.
+    const searchTerm = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    const matchingEmployees = await Employee.find({
-      $or: [{ name: searchRegex }, { empId: searchRegex }],
-    })
-      .select("_id")
-      .lean();
-
-    const employeeIds = matchingEmployees.map((item) => item._id);
+    // Not limited by the employee's current area: the payroll's stored
+    // area in the filter already restricts results, which also keeps
+    // payrolls of employees who moved searchable.
+    const employeeIds = await Employee.find({
+      $or: [
+        { name: { $regex: searchTerm, $options: "i" } },
+        { empId: { $regex: searchTerm, $options: "i" } },
+      ],
+    }).distinct("_id");
 
     if (employeeIds.length === 0) return [];
 
@@ -121,8 +103,6 @@ export const getPayrollsService = async (query, areaScope) => {
       filter.employee = { $in: employeeIds };
     }
   }
-
-  await applyAreaScope(filter, areaScope);
 
   const payrolls = await Payroll.find(filter)
     .populate("employee", "empId name fatherName designation status")
@@ -141,17 +121,20 @@ export const getPayrollsService = async (query, areaScope) => {
   return payrolls;
 };
 
-export const getPayrollByIdService = async (id, areaScope) => {
+// ======================================
+// Get one payroll
+// ======================================
+
+export const getPayrollByIdService = async (id, areaScope = {}) => {
   if (!mongoose.isValidObjectId(id)) {
-    throw Object.assign(new Error("Invalid payroll ID"), {
-      status: 400,
-    });
+    throw new ApiError(400, "Invalid payroll ID");
   }
 
-  const filter = { _id: id };
-  await applyAreaScope(filter, areaScope);
-
-  const payroll = await Payroll.findOne(filter)
+  // Returns 404 so payrolls in other areas are not revealed.
+  const payroll = await Payroll.findOne({
+    _id: id,
+    area: getScopedAreaId(areaScope),
+  })
     .populate(
       "employee",
       "empId name fatherName designation status entryDate exitDate",
@@ -160,35 +143,45 @@ export const getPayrollByIdService = async (id, areaScope) => {
     .populate("paidBy", "userId role");
 
   if (!payroll) {
-    throw Object.assign(new Error("Payroll not found"), {
-      status: 404,
-    });
+    throw new ApiError(404, "Payroll not found");
   }
 
   return payroll;
 };
 
-export const getEmployeePayrollsService = async (employeeId, areaScope) => {
+// ======================================
+// Get one employee's payrolls
+// ======================================
+
+export const getEmployeePayrollsService = async (
+  employeeId,
+  areaScope = {},
+) => {
   if (!mongoose.isValidObjectId(employeeId)) {
-    throw Object.assign(new Error("Invalid employee ID"), {
-      status: 400,
-    });
+    throw new ApiError(400, "Invalid employee ID");
   }
 
-  const employeeIds = await resolveAreaEmployeeIds(areaScope);
+  const areaId = getScopedAreaId(areaScope);
 
-  if (
-    employeeIds !== null &&
-    !employeeIds.some((id) => String(id) === String(employeeId))
-  ) {
-    throw Object.assign(new Error("Employee not found"), {
-      status: 404,
-    });
-  }
-
-  return Payroll.find({ employee: employeeId })
+  // Payroll records are filtered by their stored area.
+  const payrolls = await Payroll.find({
+    employee: employeeId,
+    area: areaId,
+  })
     .sort({ year: -1, month: -1 })
     .populate("employee", "empId name fatherName designation status")
     .populate("finalizedBy", "userId name role")
     .populate("paidBy", "userId name role");
+
+  // Don't reveal an employee from another area unless they currently
+  // belong to the selected area (an empty history is valid there).
+  if (payrolls.length === 0) {
+    const inArea = await Employee.exists({ _id: employeeId, area: areaId });
+
+    if (!inArea) {
+      throw new ApiError(404, "Employee not found");
+    }
+  }
+
+  return payrolls;
 };

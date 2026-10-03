@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import UpdateEmployeeForm from "@/components/employees/update/UpdateEmployeeForm";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { getEmployeeById } from "@/services/employee.service";
 
 export default function EditEmployeePage({
@@ -13,11 +14,13 @@ export default function EditEmployeePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params); // 🔥 FIX HERE
+  const { id } = use(params);
+  const { selectedAreaId } = useSelectedArea();
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["employee", id],
-    queryFn: () => getEmployeeById(id),
+    queryKey: ["employee", id, selectedAreaId],
+    queryFn: () => getEmployeeById(id, selectedAreaId!),
+    enabled: !!id && !!selectedAreaId,
   });
 
   if (isLoading) {

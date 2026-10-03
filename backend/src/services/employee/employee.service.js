@@ -11,7 +11,6 @@ import Location from "../../models/Location.js";
 import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
 import generateEmpId from "../../utils/generateEmpId.js";
 import { normalizeCnic, normalizePhone } from "../../utils/normalize.js";
-import { getPermittedAreaIds } from "../../utils/areaScope.js";
 
 // ======================================
 // ERROR HELPER
@@ -21,6 +20,35 @@ const createError = (message, statusCode = 400) => {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
+};
+
+// ======================================
+// AREA SCOPE HELPERS
+// ======================================
+
+// enforceAreaScope has already validated exactly one area.
+// areaScope.areaId is the single source of truth for every query below.
+const getScopedAreaId = (areaScope = {}) => {
+  const areaId = areaScope?.areaId;
+
+  if (typeof areaId !== "string" || !areaId.trim()) {
+    throw createError("Area selection is required", 400);
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(areaId)) {
+    throw createError("Invalid area ID", 400);
+  }
+
+  return areaId;
+};
+
+// Whether the user may place employees into the given area.
+const canAccessArea = (areaId, areaScope = {}) => {
+  if (areaScope?.isAdmin) return true;
+
+  return (areaScope?.permittedAreaIds || [])
+    .map(String)
+    .includes(String(areaId));
 };
 
 // ======================================
@@ -113,7 +141,7 @@ const uploadEmployeeImages = async (files = {}) => {
 };
 
 // ======================================
-// AREA VALIDATION
+// AREA / SECTOR / LOCATION VALIDATION
 // ======================================
 
 const validateArea = async (areaId) => {
@@ -182,6 +210,7 @@ const validateLocation = async (locationId, sectorId = null) => {
   return location;
 };
 
+// Kept exported in case other modules import it.
 export const validateEmployeeAreaRelationship = (
   employeeData,
   { areaId, sectorDoc, locationDoc },
@@ -190,8 +219,6 @@ export const validateEmployeeAreaRelationship = (
 
   const selectedArea = employeeData.area ?? areaId ?? null;
   const selectedSector = employeeData.sector ?? sectorDoc?._id ?? null;
-  const selectedLocation =
-    employeeData.currentLocation ?? locationDoc?._id ?? null;
 
   if (
     selectedArea &&
@@ -204,28 +231,6 @@ export const validateEmployeeAreaRelationship = (
   }
 
   if (
-    selectedSector &&
-    locationDoc &&
-    locationDoc.sector?.toString() !== selectedSector.toString()
-  ) {
-    throw createError(
-      "Area, sector, and current location must belong to the same area",
-    );
-  }
-
-  if (
-    selectedArea &&
-    selectedSector &&
-    sectorDoc &&
-    sectorDoc.area?.toString() !== selectedArea.toString()
-  ) {
-    throw createError(
-      "Area, sector, and current location must belong to the same area",
-    );
-  }
-
-  if (
-    selectedLocation &&
     selectedSector &&
     locationDoc &&
     locationDoc.sector?.toString() !== selectedSector.toString()
@@ -236,6 +241,22 @@ export const validateEmployeeAreaRelationship = (
   }
 };
 
+// Find an employee only inside the selected area.
+// Returns 404 so employees in other areas are not revealed.
+const findEmployeeInScope = async (id, areaScope, query = null) => {
+  const scopedAreaId = getScopedAreaId(areaScope);
+
+  const employee = await (query
+    ? query(Employee.findOne({ _id: id, area: scopedAreaId }))
+    : Employee.findOne({ _id: id, area: scopedAreaId }));
+
+  if (!employee) {
+    throw createError("Employee not found", 404);
+  }
+
+  return employee;
+};
+
 // ======================================
 // CREATE EMPLOYEE
 // ======================================
@@ -244,8 +265,7 @@ export const createEmployeeService = async ({
   data,
   files,
   userId,
-  user = null,
-  areaScope = null,
+  areaScope = {},
 }) => {
   const {
     name,
@@ -268,6 +288,18 @@ export const createEmployeeService = async ({
     currentLocation,
     defaultShift,
   } = data;
+
+  const scopedAreaId = getScopedAreaId(areaScope);
+
+  // Body area (if sent) must match the selected area.
+  if (
+    area !== undefined &&
+    area !== null &&
+    area !== "" &&
+    String(area) !== scopedAreaId
+  ) {
+    throw createError("Conflicting area selections", 400);
+  }
 
   const effectiveStatus = status || "active";
 
@@ -295,24 +327,8 @@ export const createEmployeeService = async ({
     );
   }
 
-  const validatedArea = await validateArea(area);
-
-  if (user && user.role !== "admin" && user.role !== "developer") {
-    const permittedAreas =
-      areaScope?.permittedAreaIds || getPermittedAreaIds(user);
-
-    if (!permittedAreas.length) {
-      throw createError("Unauthorized: no area access assigned", 403);
-    }
-
-    if (!validatedArea) {
-      throw createError("Area is required", 400);
-    }
-
-    if (!permittedAreas.includes(String(validatedArea))) {
-      throw createError("Unauthorized area access", 403);
-    }
-  }
+  // New employees always belong to the selected area.
+  const validatedArea = await validateArea(scopedAreaId);
 
   const normalized = normalizeEmployeeData({
     cnic,
@@ -332,19 +348,6 @@ export const createEmployeeService = async ({
   const validatedLocation = await validateLocation(
     currentLocation,
     validatedSector?._id ?? null,
-  );
-
-  validateEmployeeAreaRelationship(
-    {
-      area: validatedArea,
-      sector: validatedSector?._id ?? null,
-      currentLocation: validatedLocation?._id ?? null,
-    },
-    {
-      areaId: validatedArea,
-      sectorDoc: validatedSector,
-      locationDoc: validatedLocation,
-    },
   );
 
   const empId = await generateEmpId();
@@ -374,7 +377,7 @@ export const createEmployeeService = async ({
             area: validatedArea,
             sector: validatedSector?._id || null,
 
-            status: status || "active",
+            status: effectiveStatus,
             defaultShift: defaultShift || null,
 
             entryDate,
@@ -421,7 +424,7 @@ export const createEmployeeService = async ({
 // GET EMPLOYEES
 // ======================================
 
-export const getEmployeesService = async (query = {}, areaScope = null) => {
+export const getEmployeesService = async (query = {}, areaScope = {}) => {
   const normalizeQueryValue = (value) => {
     if (typeof value !== "string") return undefined;
 
@@ -429,22 +432,30 @@ export const getEmployeesService = async (query = {}, areaScope = null) => {
     return trimmed === "" ? undefined : trimmed;
   };
 
-  const trustedQuery = { ...query };
+  // Always limited to the single selected area.
+  const scopedAreaId = getScopedAreaId(areaScope);
 
-  const status = normalizeQueryValue(trustedQuery.status);
-  const designation = normalizeQueryValue(trustedQuery.designation);
-  const area = normalizeQueryValue(trustedQuery.area);
-  const sector = normalizeQueryValue(trustedQuery.sector);
-  const education = normalizeQueryValue(trustedQuery.education);
-  const currentLocation = normalizeQueryValue(trustedQuery.currentLocation);
-  const search = normalizeQueryValue(trustedQuery.search);
-  const entryFrom = normalizeQueryValue(trustedQuery.entryFrom);
-  const entryTo = normalizeQueryValue(trustedQuery.entryTo);
-  const hasExited = normalizeQueryValue(trustedQuery.hasExited);
-  const defaultShift = normalizeQueryValue(trustedQuery.defaultShift);
-  const unassigned = normalizeQueryValue(trustedQuery.unassigned);
+  const status = normalizeQueryValue(query.status);
+  const designation = normalizeQueryValue(query.designation);
+  const sector = normalizeQueryValue(query.sector);
+  const education = normalizeQueryValue(query.education);
+  const currentLocation = normalizeQueryValue(query.currentLocation);
+  const search = normalizeQueryValue(query.search);
+  const entryFrom = normalizeQueryValue(query.entryFrom);
+  const entryTo = normalizeQueryValue(query.entryTo);
+  const hasExited = normalizeQueryValue(query.hasExited);
+  const defaultShift = normalizeQueryValue(query.defaultShift);
+  const unassigned = normalizeQueryValue(query.unassigned);
 
-  const filter = {};
+  // The area itself is the scope, so it can't be "unassigned" inside it.
+  if (unassigned === "area") {
+    throw createError(
+      "Unassigned area filter is not available within a selected area.",
+      400,
+    );
+  }
+
+  const filter = { area: scopedAreaId };
   const andConditions = [];
 
   // STATUS
@@ -455,15 +466,6 @@ export const getEmployeesService = async (query = {}, areaScope = null) => {
   // DESIGNATION
   if (designation) {
     filter.designation = designation;
-  }
-
-  // AREA: client-selected filter (not authorization)
-  if (area && unassigned !== "area") {
-    if (!mongoose.Types.ObjectId.isValid(area)) {
-      throw createError("Invalid area.");
-    }
-
-    filter.area = area;
   }
 
   // SECTOR
@@ -481,7 +483,7 @@ export const getEmployeesService = async (query = {}, areaScope = null) => {
   }
 
   // CURRENT LOCATION
-  if (currentLocation) {
+  if (currentLocation && unassigned !== "currentLocation") {
     if (!mongoose.Types.ObjectId.isValid(currentLocation)) {
       throw createError("Invalid current location.");
     }
@@ -500,17 +502,6 @@ export const getEmployeesService = async (query = {}, areaScope = null) => {
     });
   } else if (education) {
     filter.education = education;
-  }
-
-  // UNASSIGNED AREA
-  if (unassigned === "area") {
-    if (areaScope && !areaScope.isAdmin) {
-      throw createError("You cannot filter for unassigned employees.", 403);
-    }
-
-    andConditions.push({
-      $or: [{ area: null }, { area: { $exists: false } }],
-    });
   }
 
   // UNASSIGNED SECTOR
@@ -600,34 +591,8 @@ export const getEmployeesService = async (query = {}, areaScope = null) => {
     filter.exitDate = null;
   }
 
-  // COMBINE ORDINARY FILTERS
-  if (Object.keys(filter).length > 0) {
-    andConditions.push(filter);
-  }
-
-  // APPLY TRUSTED AREA SCOPE
-  if (areaScope) {
-    const scopeFilter = areaScope.filter || {};
-
-    if (Object.keys(scopeFilter).length > 0) {
-      andConditions.push(scopeFilter);
-    }
-
-    if (
-      !areaScope.isAdmin &&
-      (!areaScope.permittedAreaIds || areaScope.permittedAreaIds.length === 0)
-    ) {
-      throw createError("No area access assigned.", 403);
-    }
-  }
-
-  // FINAL QUERY
   const finalFilter =
-    andConditions.length === 0
-      ? {}
-      : andConditions.length === 1
-        ? andConditions[0]
-        : { $and: andConditions };
+    andConditions.length === 0 ? filter : { $and: [filter, ...andConditions] };
 
   const employees = await Employee.find(finalFilter)
     .populate("area", "name")
@@ -642,16 +607,17 @@ export const getEmployeesService = async (query = {}, areaScope = null) => {
 // LOOKUP EMPLOYEE BY EMPID
 // ======================================
 
-export const lookupEmployeeService = async (empId) => {
+export const lookupEmployeeService = async (empId, areaScope = {}) => {
   if (!empId || typeof empId !== "string" || !empId.trim()) {
     throw createError("Employee ID (empId) is required");
   }
 
-  const trimmedEmpId = empId.trim();
+  const scopedAreaId = getScopedAreaId(areaScope);
 
-  const escaped = trimmedEmpId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escaped = empId.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
   const employee = await Employee.findOne({
+    area: scopedAreaId,
     empId: {
       $regex: `^${escaped}$`,
       $options: "i",
@@ -669,21 +635,17 @@ export const lookupEmployeeService = async (empId) => {
 // GET SINGLE EMPLOYEE
 // ======================================
 
-export const getEmployeeByIdService = async (id) => {
+export const getEmployeeByIdService = async (id, areaScope = {}) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw createError("Invalid employee ID");
   }
 
-  const employee = await Employee.findById(id)
-    .populate("area", "name")
-    .populate("currentLocation", "name")
-    .populate("sector", "name");
-
-  if (!employee) {
-    throw createError("Employee not found", 404);
-  }
-
-  return employee;
+  return findEmployeeInScope(id, areaScope, (q) =>
+    q
+      .populate("area", "name")
+      .populate("currentLocation", "name")
+      .populate("sector", "name"),
+  );
 };
 
 // ======================================
@@ -694,18 +656,14 @@ export const updateEmployeeService = async ({
   id,
   data,
   files,
-  user = null,
-  areaScope = null,
+  areaScope = {},
 }) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw createError("Invalid employee ID");
   }
 
-  const employee = await Employee.findById(id);
-
-  if (!employee) {
-    throw createError("Employee not found", 404);
-  }
+  // Employee must currently belong to the selected area.
+  const employee = await findEmployeeInScope(id, areaScope);
 
   const normalized = normalizeEmployeeData(data);
 
@@ -722,53 +680,59 @@ export const updateEmployeeService = async ({
     }
   }
 
-  // AREA VALIDATION
+  // AREA / SECTOR / LOCATION VALIDATION
+  // Only validated when one of them is being changed, so unrelated edits
+  // don't fail on older records.
 
-  if (data.area !== undefined) {
-    normalized.area = await validateArea(data.area);
-  }
+  const areaChanging = data.area !== undefined;
+  const sectorChanging = data.sector !== undefined;
+  const locationChanging = data.currentLocation !== undefined;
 
-  if (user && user.role !== "admin" && user.role !== "developer") {
-    const permittedAreas =
-      areaScope?.permittedAreaIds || getPermittedAreaIds(user);
-    const targetArea = normalized.area ?? employee.area ?? null;
+  let targetArea = employee.area;
+  let validatedSector = null;
+  let validatedLocation = null;
 
-    if (!targetArea || !permittedAreas.includes(String(targetArea))) {
-      throw createError("Unauthorized area access", 403);
+  if (areaChanging || sectorChanging || locationChanging) {
+    if (areaChanging) {
+      const newArea = await validateArea(data.area);
+
+      // An employee cannot be left without an area.
+      if (!newArea) {
+        throw createError("Employee must have an area", 400);
+      }
+
+      // Moving to another area requires access to that area.
+      if (!canAccessArea(newArea, areaScope)) {
+        throw createError("Unauthorized area access", 403);
+      }
+
+      targetArea = newArea;
+    }
+
+    const sectorId = sectorChanging
+      ? String(data.sector ?? "").trim() || null
+      : employee.sector;
+
+    const locationId = locationChanging
+      ? String(data.currentLocation ?? "").trim() || null
+      : employee.currentLocation;
+
+    validatedSector = await validateSector(sectorId, targetArea);
+    validatedLocation = await validateLocation(
+      locationId,
+      validatedSector?._id ?? null,
+    );
+
+    if (areaChanging) employee.area = targetArea;
+
+    if (sectorChanging) employee.sector = validatedSector?._id ?? null;
+
+    if (locationChanging) {
+      employee.currentLocation = validatedLocation?._id ?? null;
     }
   }
 
-  const selectedArea = normalized.area ?? employee.area ?? null;
-  const selectedSector =
-    normalized.sector !== undefined
-      ? normalized.sector
-      : (employee.sector ?? null);
-
-  const selectedSectorDoc =
-    selectedSector && (await Sector.findById(selectedSector).lean());
-
-  const selectedLocation =
-    data.currentLocation !== undefined
-      ? String(data.currentLocation).trim() || null
-      : (employee.currentLocation ?? null);
-
-  const selectedLocationDoc =
-    selectedLocation && (await Location.findById(selectedLocation).lean());
-
-  validateEmployeeAreaRelationship(
-    {
-      area: selectedArea,
-      sector: selectedSector,
-      currentLocation: selectedLocation,
-    },
-    {
-      areaId: selectedArea,
-      sectorDoc: selectedSectorDoc,
-      locationDoc: selectedLocationDoc,
-    },
-  );
-
-  // ALLOWED FIELDS
+  // ALLOWED FIELDS (area, sector and currentLocation are handled above)
 
   const allowedFields = [
     "name",
@@ -781,8 +745,6 @@ export const updateEmployeeService = async ({
     "education",
     "designation",
     "reference",
-    "area",
-    "sector",
     "defaultShift",
     "status",
     "entryDate",
@@ -790,13 +752,7 @@ export const updateEmployeeService = async ({
     "notes",
   ];
 
-  const nullableFields = [
-    "education",
-    "area",
-    "sector",
-    "defaultShift",
-    "exitDate",
-  ];
+  const nullableFields = ["education", "defaultShift", "exitDate"];
 
   for (const field of allowedFields) {
     if (normalized[field] === undefined) continue;
@@ -807,34 +763,6 @@ export const updateEmployeeService = async ({
     }
 
     employee[field] = normalized[field];
-  }
-
-  // CURRENT LOCATION
-
-  if (data.currentLocation !== undefined) {
-    const locationId = String(data.currentLocation).trim();
-
-    if (locationId && !mongoose.Types.ObjectId.isValid(locationId)) {
-      throw createError("Invalid current location ID");
-    }
-
-    const locationDoc =
-      locationId && (await Location.findById(locationId).lean());
-
-    if (locationDoc) {
-      const targetSector = selectedSector || employee.sector || null;
-
-      if (
-        targetSector &&
-        locationDoc.sector?.toString() !== targetSector.toString()
-      ) {
-        throw createError(
-          "Area, sector, and current location must belong to the same area",
-        );
-      }
-    }
-
-    employee.currentLocation = locationId || null;
   }
 
   // IMAGE UPDATES
@@ -854,16 +782,12 @@ export const updateEmployeeService = async ({
 // DELETE EMPLOYEE
 // ======================================
 
-export const deleteEmployeeService = async (id) => {
+export const deleteEmployeeService = async (id, areaScope = {}) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw createError("Invalid employee ID");
   }
 
-  const employee = await Employee.findById(id);
-
-  if (!employee) {
-    throw createError("Employee not found", 404);
-  }
+  const employee = await findEmployeeInScope(id, areaScope);
 
   await employee.deleteOne();
 

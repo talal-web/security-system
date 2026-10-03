@@ -1,3 +1,5 @@
+"use client";
+
 import { Clock3 } from "lucide-react";
 
 import CardHeading from "@/components/admin/shared/CardHeading";
@@ -9,8 +11,11 @@ import {
   quickAdminLinks,
   systemStatus,
 } from "@/components/admin/dashboard.config";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
 export default function DashboardSidebar() {
+  const { getAreaAwareHref } = useSelectedArea();
+
   return (
     <aside className="space-y-4">
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -45,7 +50,11 @@ export default function DashboardSidebar() {
 
         <div className="mt-3 space-y-1.5">
           {attendanceLinks.map((link) => (
-            <CompactLink key={link.label} {...link} />
+            <CompactLink
+              key={link.label}
+              {...link}
+              href={getAreaAwareHref(link.href)}
+            />
           ))}
         </div>
       </div>
@@ -60,7 +69,11 @@ export default function DashboardSidebar() {
 
         <div className="mt-3 space-y-1.5">
           {payrollLinks.map((link) => (
-            <CompactLink key={link.label} {...link} />
+            <CompactLink
+              key={link.label}
+              {...link}
+              href={getAreaAwareHref(link.href)}
+            />
           ))}
         </div>
       </div>
@@ -75,7 +88,11 @@ export default function DashboardSidebar() {
 
         <div className="mt-3 space-y-1.5">
           {quickAdminLinks.map((link) => (
-            <CompactLink key={link.label} {...link} />
+            <CompactLink
+              key={link.label}
+              {...link}
+              href={getAreaAwareHref(link.href)}
+            />
           ))}
         </div>
       </div>

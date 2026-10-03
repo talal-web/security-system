@@ -11,59 +11,73 @@ const UNASSIGNED_SECTOR = {
   code: "UNASSIGNED",
 };
 
-const getAreaIdsFromScope = (scope = {}) => {
-  const requested = scope.requestedAreaIds ?? scope.permittedAreaIds ?? [];
+// ==========================================
+// Resolve Selected Area
+// ==========================================
 
-  if (!Array.isArray(requested)) {
-    return [];
+const resolveAreaId = (areaScope = {}) => {
+  const areaId = areaScope.areaId;
+
+  if (typeof areaId !== "string" || !/^[a-fA-F0-9]{24}$/.test(areaId.trim())) {
+    const error = new Error("Valid selected area is required");
+    error.statusCode = 403;
+    throw error;
   }
 
-  return [...new Set(requested.map((value) => String(value)).filter(Boolean))];
+  return areaId.trim();
 };
+
+// ==========================================
+// Build Attendance Session
+// ==========================================
 
 export const buildAttendanceSession = async (areaScope = {}) => {
   const attendanceDate = normalizeDate(new Date());
-  const areaIds = getAreaIdsFromScope(areaScope);
+  const areaId = resolveAreaId(areaScope);
+
+  // ==========================================
+  // CHECK EXISTING ATTENDANCE
+  // ==========================================
 
   const attendanceExists = await Attendance.exists({
     date: attendanceDate,
+    area: areaId,
   });
 
-  let locationQuery = { isActive: true };
+  // ==========================================
+  // GET ACTIVE SECTORS IN SELECTED AREA
+  // ==========================================
 
-  if (areaIds.length && !areaScope.isAdmin) {
-    const sectors = await Sector.find({
-      area: { $in: areaIds },
-      isActive: true,
-    })
-      .select("_id")
-      .lean();
+  const sectors = await Sector.find({
+    area: areaId,
+    isActive: true,
+  })
+    .select("_id name code sortOrder")
+    .lean();
 
-    const sectorIds = sectors.map((sector) => sector._id.toString());
+  const sectorIds = sectors.map((sector) => sector._id);
 
-    if (!sectorIds.length) {
-      return {
-        attendanceDate,
-        alreadyMarked: Boolean(attendanceExists),
-        stats: {
-          totalEmployees: 0,
-          totalLocations: 0,
-          totalSectors: 0,
-        },
-        sectors: [],
-      };
-    }
-
-    locationQuery = {
-      isActive: true,
-      sector: { $in: sectorIds },
+  if (!sectorIds.length) {
+    return {
+      attendanceDate,
+      alreadyMarked: Boolean(attendanceExists),
+      stats: {
+        totalEmployees: 0,
+        totalLocations: 0,
+        totalSectors: 0,
+      },
+      sectors: [],
     };
   }
 
   // ==========================================
-  // GET ACTIVE LOCATIONS
+  // GET ACTIVE LOCATIONS IN SELECTED AREA
   // ==========================================
-  const locations = await Location.find(locationQuery)
+
+  const locations = await Location.find({
+    isActive: true,
+    sector: { $in: sectorIds },
+  })
     .select("name sector sortOrder isActive")
     .populate({
       path: "sector",
@@ -75,16 +89,14 @@ export const buildAttendanceSession = async (areaScope = {}) => {
     })
     .lean();
 
-  const employeeQuery = { status: "active" };
-
-  if (areaIds.length && !areaScope.isAdmin) {
-    employeeQuery.area = { $in: areaIds };
-  }
-
   // ==========================================
-  // GET ACTIVE EMPLOYEES
+  // GET ACTIVE EMPLOYEES IN SELECTED AREA
   // ==========================================
-  const employees = await Employee.find(employeeQuery)
+
+  const employees = await Employee.find({
+    status: "active",
+    area: areaId,
+  })
     .select(
       "empId name fatherName designation defaultShift currentLocation area",
     )
@@ -93,22 +105,23 @@ export const buildAttendanceSession = async (areaScope = {}) => {
   // ==========================================
   // CREATE LOCATION MAP
   // ==========================================
+
   const locationMap = new Map();
 
   for (const location of locations) {
+    // Defensive consistency check: the populated sector
+    // must still belong to the selected area.
+    if (!location.sector || location.sector.area?.toString() !== areaId) {
+      continue;
+    }
+
     locationMap.set(location._id.toString(), {
       _id: location._id,
-
       name: location.name,
-
-      sector: location.sector || UNASSIGNED_SECTOR,
-
+      sector: location.sector,
       sortOrder: location.sortOrder,
-
       isActive: Boolean(location.isActive),
-
       employeeCount: 0,
-
       employees: [],
     });
   }
@@ -116,6 +129,7 @@ export const buildAttendanceSession = async (areaScope = {}) => {
   // ==========================================
   // ASSIGN EMPLOYEES TO LOCATIONS
   // ==========================================
+
   for (const employee of employees) {
     if (!employee.currentLocation) continue;
 
@@ -125,15 +139,10 @@ export const buildAttendanceSession = async (areaScope = {}) => {
 
     location.employees.push({
       employeeId: employee._id,
-
       empId: employee.empId,
-
       name: employee.name,
-
       fatherName: employee.fatherName,
-
       designation: employee.designation,
-
       defaultShift: employee.defaultShift,
     });
 
@@ -143,62 +152,51 @@ export const buildAttendanceSession = async (areaScope = {}) => {
   // ==========================================
   // GROUP LOCATIONS BY SECTOR
   // ==========================================
+
   const sectorMap = new Map();
 
-  for (const location of locations) {
-    const locationData = locationMap.get(location._id.toString());
-
-    const sector = locationData.sector || UNASSIGNED_SECTOR;
-
-    const sectorKey = sector._id ? sector._id.toString() : "unassigned";
+  for (const location of locationMap.values()) {
+    const sector = location.sector || UNASSIGNED_SECTOR;
+    const sectorKey = sector._id?.toString() || "unassigned";
 
     if (!sectorMap.has(sectorKey)) {
       sectorMap.set(sectorKey, {
         sector,
-
         totalLocations: 0,
-
         totalEmployees: 0,
-
         locations: [],
       });
     }
 
     const sectorData = sectorMap.get(sectorKey);
 
-    sectorData.locations.push(locationData);
-
+    sectorData.locations.push(location);
     sectorData.totalLocations++;
-
-    sectorData.totalEmployees += locationData.employeeCount;
+    sectorData.totalEmployees += location.employeeCount;
   }
 
   // ==========================================
   // FINAL SECTORS
   // ==========================================
-  const sectors = Array.from(sectorMap.values()).sort((a, b) => {
-    return (
-      a.sector.sortOrder - b.sector.sortOrder ||
-      a.sector.name.localeCompare(b.sector.name)
-    );
-  });
+
+  const groupedSectors = Array.from(sectorMap.values()).sort(
+    (a, b) =>
+      (a.sector.sortOrder ?? 999999) - (b.sector.sortOrder ?? 999999) ||
+      a.sector.name.localeCompare(b.sector.name),
+  );
 
   // ==========================================
   // RESPONSE
   // ==========================================
+
   return {
     attendanceDate,
-
     alreadyMarked: Boolean(attendanceExists),
-
     stats: {
       totalEmployees: employees.length,
-
-      totalLocations: locations.length,
-
-      totalSectors: sectors.length,
+      totalLocations: locationMap.size,
+      totalSectors: groupedSectors.length,
     },
-
-    sectors,
+    sectors: groupedSectors,
   };
 };

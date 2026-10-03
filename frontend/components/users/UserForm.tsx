@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Save } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import { useAreas } from "@/hooks/area/useArea";
@@ -40,7 +40,7 @@ export default function UserForm({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setError,
     setValue,
     formState: { errors },
@@ -57,8 +57,8 @@ export default function UserForm({
     },
   });
 
-  const selectedRole = watch("role");
-  const selectedAreas = watch("areas") ?? [];
+  const selectedRole = useWatch({ control, name: "role" });
+  const selectedAreas = useWatch({ control, name: "areas" }) ?? [];
 
   const submit = (values: Values) => {
     /*

@@ -8,12 +8,14 @@ import PayrollActions from "@/components/payroll/PayrollActions";
 import PayrollDetails from "@/components/payroll/PayrollDetails";
 import { useMe } from "@/hooks/auth/useMe";
 import { usePayroll } from "@/hooks/payroll/usePayroll";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
 interface PayrollDetailPageProps {
   params: Promise<{ id: string }>;
 }
 export default function PayrollDetailPage({ params }: PayrollDetailPageProps) {
   const { id } = use(params);
+  const { getAreaAwareHref } = useSelectedArea();
   const { data: me } = useMe();
   const { data, isLoading, isError, error } = usePayroll(id);
   const canManage = ["developer", "admin", "clerk"].includes(
@@ -25,7 +27,7 @@ export default function PayrollDetailPage({ params }: PayrollDetailPageProps) {
     >
       <main className="space-y-5 p-4 sm:p-6">
         <Link
-          href="/payroll"
+          href={getAreaAwareHref("/payroll")}
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="h-4 w-4" />

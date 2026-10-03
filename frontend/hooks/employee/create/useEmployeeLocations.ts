@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { useLocations } from "@/hooks/location/useLocation";
 
 export const useEmployeeLocations = (sectorId?: string) => {
+  const { selectedAreaId } = useSelectedArea();
   const {
     data: locations = [],
     isLoading,
@@ -11,7 +13,7 @@ export const useEmployeeLocations = (sectorId?: string) => {
   } = useLocations({
     sector: sectorId,
     isActive: true,
-    enabled: Boolean(sectorId),
+    enabled: Boolean(sectorId && selectedAreaId),
   });
 
   const options = useMemo(

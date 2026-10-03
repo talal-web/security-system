@@ -5,25 +5,38 @@ import ApiError from "../../utils/ApiError.js";
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const hasAreaAccess = (employeeArea, areaScope = {}) => {
-  if (!employeeArea) {
-    return false;
+// ======================================
+// Area scope helpers
+// ======================================
+
+// The middleware (enforceAreaScope) has already validated exactly one area.
+// areaScope.areaId is the single source of truth for every query below.
+const getScopedAreaId = (areaScope = {}) => {
+  const areaId = areaScope.areaId;
+
+  if (typeof areaId !== "string" || !areaId.trim()) {
+    throw new ApiError(400, "Area selection is required");
   }
 
-  if (areaScope.isAdmin) {
-    return true;
+  if (!isValidObjectId(areaId)) {
+    throw new ApiError(400, "Invalid area ID");
   }
 
-  const permitted = areaScope.permittedAreaIds || [];
-  return permitted.includes(String(employeeArea));
+  return areaId;
 };
+
+const getAreaFilter = (areaScope = {}) => ({
+  area: getScopedAreaId(areaScope),
+});
 
 // ======================================
 // Create Advance
 // ======================================
 
-export const createAdvanceService = async (body, user, areaScope) => {
-  const { employee, amount, advanceDate, description } = body;
+export const createAdvanceService = async (body, user, areaScope = {}) => {
+  const { employee, amount, advanceDate, description, area } = body;
+
+  const scopedAreaId = getScopedAreaId(areaScope);
 
   if (!employee || !isValidObjectId(employee)) {
     throw new ApiError(400, "Valid employee ID is required");
@@ -58,12 +71,24 @@ export const createAdvanceService = async (body, user, areaScope) => {
     throw new ApiError(404, "Employee not found");
   }
 
-  if (!hasAreaAccess(existingEmployee.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
+  if (!existingEmployee.area) {
+    throw new ApiError(400, "Employee has no assigned area");
+  }
+
+  // Body area (if sent) is the selected area; it must match the scope.
+  if (area !== undefined && String(area) !== scopedAreaId) {
+    throw new ApiError(400, "Conflicting area selections");
+  }
+
+  // The employee must belong to the selected area.
+  // Returns 404 to avoid revealing employees in other areas.
+  if (String(existingEmployee.area) !== scopedAreaId) {
+    throw new ApiError(404, "Employee not found in the selected area");
   }
 
   const advance = await Advance.create({
-    employee: employee,
+    employee: existingEmployee._id,
+    area: existingEmployee.area,
     amount: advanceAmount,
     remainingAmount: advanceAmount,
     advanceDate: parsedAdvanceDate,
@@ -74,6 +99,7 @@ export const createAdvanceService = async (body, user, areaScope) => {
 
   const populatedAdvance = await Advance.findById(advance._id)
     .populate("employee", "empId name fatherName designation status")
+    .populate("area")
     .populate("createdBy", "name userId")
     .populate("updatedBy", "name userId");
 
@@ -88,25 +114,13 @@ export const createAdvanceService = async (body, user, areaScope) => {
 // Get All Advances
 // ======================================
 
-export const getAdvancesService = async (query, areaScope = {}) => {
+export const getAdvancesService = async (query = {}, areaScope = {}) => {
   const { employee, status, fromDate, toDate, search } = query;
-  const filter = {};
 
-  if (!areaScope.isAdmin) {
-    const permittedAreaIds = areaScope.permittedAreaIds || [];
-
-    if (!permittedAreaIds.length) {
-      throw new ApiError(403, "Unauthorized area access");
-    }
-
-    const employeeAreaQuery = await Employee.find({
-      area: { $in: permittedAreaIds },
-    }).select("_id");
-
-    const employeeIdsInScope = employeeAreaQuery.map((entry) => entry._id);
-
-    filter.employee = { $in: employeeIdsInScope };
-  }
+  // Always limited to the single selected area.
+  const filter = {
+    ...getAreaFilter(areaScope),
+  };
 
   if (employee !== undefined) {
     if (!isValidObjectId(employee)) {
@@ -153,6 +167,14 @@ export const getAdvancesService = async (query, areaScope = {}) => {
 
       filter.advanceDate.$lte = endDate;
     }
+
+    if (
+      filter.advanceDate.$gte &&
+      filter.advanceDate.$lte &&
+      filter.advanceDate.$gte > filter.advanceDate.$lte
+    ) {
+      throw new ApiError(400, "fromDate cannot be after toDate");
+    }
   } else {
     const today = new Date();
 
@@ -175,26 +197,35 @@ export const getAdvancesService = async (query, areaScope = {}) => {
     };
   }
 
-  if (search?.trim()) {
-    const searchTerm = search.trim();
+  if (typeof search === "string" && search.trim()) {
+    const searchTerm = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+    // Search only employees in the selected area.
     const employees = await Employee.find({
+      area: filter.area,
       $or: [
         { empId: { $regex: searchTerm, $options: "i" } },
         { name: { $regex: searchTerm, $options: "i" } },
       ],
     }).select("_id");
 
-    const employeeIds = employees.map((employee) => employee._id);
+    const employeeIds = employees.map((entry) => entry._id);
 
-    filter.employee = {
-      $in: employeeIds,
-    };
+    if (filter.employee) {
+      // Both conditions must hold: the requested employee AND a search match.
+      filter.employee = {
+        $in: employeeIds,
+        $eq: filter.employee,
+      };
+    } else {
+      filter.employee = { $in: employeeIds };
+    }
   }
 
   const advances = await Advance.find(filter)
     .sort({ advanceDate: -1, createdAt: -1 })
     .populate("employee", "empId name fatherName designation status")
+    .populate("area")
     .populate("createdBy", "name userId")
     .populate("updatedBy", "name userId");
 
@@ -209,7 +240,10 @@ export const getAdvancesService = async (query, areaScope = {}) => {
 // Get Employee Advance History
 // ======================================
 
-export const getEmployeeAdvancesService = async (employeeId, areaScope) => {
+export const getEmployeeAdvancesService = async (
+  employeeId,
+  areaScope = {},
+) => {
   if (!isValidObjectId(employeeId)) {
     throw new ApiError(400, "Invalid employee ID");
   }
@@ -222,14 +256,17 @@ export const getEmployeeAdvancesService = async (employeeId, areaScope) => {
     throw new ApiError(404, "Employee not found");
   }
 
-  if (!hasAreaAccess(employee.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
-  }
-
-  const advances = await Advance.find({
+  // History authorization is based on each advance's stored area,
+  // not the employee's current area. Only advances stored under the
+  // selected area are returned.
+  const filter = {
     employee: employeeId,
-  })
+    ...getAreaFilter(areaScope),
+  };
+
+  const advances = await Advance.find(filter)
     .sort({ advanceDate: -1, createdAt: -1 })
+    .populate("area")
     .populate("createdBy", "name userId")
     .populate("updatedBy", "name userId");
 
@@ -247,19 +284,18 @@ export const getEmployeeAdvancesService = async (employeeId, areaScope) => {
 // Update Advance
 // ======================================
 
-export const updateAdvanceService = async (id, body, user, areaScope) => {
+export const updateAdvanceService = async (id, body, user, areaScope = {}) => {
   if (!isValidObjectId(id)) {
     throw new ApiError(400, "Invalid advance ID");
   }
 
-  const advance = await Advance.findById(id).populate("employee", "area");
+  const advance = await Advance.findOne({
+    _id: id,
+    ...getAreaFilter(areaScope),
+  });
 
   if (!advance) {
     throw new ApiError(404, "Advance not found");
-  }
-
-  if (!hasAreaAccess(advance.employee?.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
   }
 
   if (
@@ -296,6 +332,10 @@ export const updateAdvanceService = async (id, body, user, areaScope) => {
   }
 
   if (description !== undefined) {
+    if (typeof description !== "string") {
+      throw new ApiError(400, "Description must be a string");
+    }
+
     advance.description = description.trim();
   }
 
@@ -305,6 +345,7 @@ export const updateAdvanceService = async (id, body, user, areaScope) => {
 
   const updatedAdvance = await Advance.findById(advance._id)
     .populate("employee", "empId name fatherName designation status")
+    .populate("area")
     .populate("createdBy", "name userId")
     .populate("updatedBy", "name userId");
 
@@ -319,19 +360,18 @@ export const updateAdvanceService = async (id, body, user, areaScope) => {
 // Cancel Advance
 // ======================================
 
-export const cancelAdvanceService = async (id, user, areaScope) => {
+export const cancelAdvanceService = async (id, user, areaScope = {}) => {
   if (!isValidObjectId(id)) {
     throw new ApiError(400, "Invalid advance ID");
   }
 
-  const advance = await Advance.findById(id).populate("employee", "area");
+  const advance = await Advance.findOne({
+    _id: id,
+    ...getAreaFilter(areaScope),
+  });
 
   if (!advance) {
     throw new ApiError(404, "Advance not found");
-  }
-
-  if (!hasAreaAccess(advance.employee?.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
   }
 
   if (
@@ -351,6 +391,7 @@ export const cancelAdvanceService = async (id, user, areaScope) => {
 
   const cancelledAdvance = await Advance.findById(advance._id)
     .populate("employee", "empId name fatherName designation status")
+    .populate("area")
     .populate("createdBy", "name userId")
     .populate("updatedBy", "name userId");
 

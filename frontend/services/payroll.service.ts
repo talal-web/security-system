@@ -49,9 +49,12 @@ export async function getPayrolls(
 
 export async function getPayrollById(
   payrollId: string,
+  areaId: string,
 ): Promise<PayrollResponse> {
   try {
-    const res = await api.get(`/payroll/${payrollId}`);
+    const res = await api.get(`/payroll/${payrollId}`, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {
@@ -65,9 +68,12 @@ export async function getPayrollById(
 
 export async function getEmployeePayrolls(
   employeeId: string,
+  areaId: string,
 ): Promise<PayrollListResponse> {
   try {
-    const res = await api.get(`/payroll/employee/${employeeId}`);
+    const res = await api.get(`/payroll/employee/${employeeId}`, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {
@@ -81,9 +87,13 @@ export async function getEmployeePayrolls(
 
 export async function generatePayroll(
   payrollData: GeneratePayrollPayload,
+  areaId: string,
 ): Promise<PayrollResponse> {
   try {
-    const res = await api.post("/payroll/generate", payrollData);
+    const res = await api.post("/payroll/generate", {
+      ...payrollData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -97,9 +107,13 @@ export async function generatePayroll(
 
 export async function generateMonthlyPayroll(
   payrollData: GenerateMonthlyPayrollPayload,
+  areaId: string,
 ): Promise<GenerateMonthlyPayrollResponse> {
   try {
-    const res = await api.post("/payroll/generate-month", payrollData);
+    const res = await api.post("/payroll/generate-month", {
+      ...payrollData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -113,9 +127,12 @@ export async function generateMonthlyPayroll(
 
 export async function recalculatePayroll(
   payrollId: string,
+  areaId: string,
 ): Promise<PayrollResponse> {
   try {
-    const res = await api.post(`/payroll/${payrollId}/recalculate`);
+    const res = await api.post(`/payroll/${payrollId}/recalculate`, {
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -129,9 +146,13 @@ export async function recalculatePayroll(
 
 export async function recalculateMonthlyPayroll(
   payrollData: RecalculateMonthlyPayrollPayload,
+  areaId: string,
 ): Promise<RecalculateMonthlyPayrollResponse> {
   try {
-    const res = await api.post("/payroll/recalculate-month", payrollData);
+    const res = await api.post("/payroll/recalculate-month", {
+      ...payrollData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -145,9 +166,12 @@ export async function recalculateMonthlyPayroll(
 
 export async function finalizePayroll(
   payrollId: string,
+  areaId: string,
 ): Promise<PayrollResponse> {
   try {
-    const res = await api.patch(`/payroll/${payrollId}/finalize`);
+    const res = await api.patch(`/payroll/${payrollId}/finalize`, {
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -162,9 +186,13 @@ export async function finalizePayroll(
 export async function markPayrollAsPaid(
   payrollId: string,
   paymentData: Omit<MarkPayrollPaidPayload, "payrollId">,
+  areaId: string,
 ): Promise<PayrollResponse> {
   try {
-    const res = await api.patch(`/payroll/${payrollId}/pay`, paymentData);
+    const res = await api.patch(`/payroll/${payrollId}/pay`, {
+      ...paymentData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {

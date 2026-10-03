@@ -13,18 +13,13 @@ import {
   X,
 } from "lucide-react";
 
-import {
-  useCreateBonus,
-  useUpdateBonus,
-} from "@/hooks/bonus/useBonus";
+import { useCreateBonus, useUpdateBonus } from "@/hooks/bonus/useBonus";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { lookupEmployee } from "@/services/employee.service";
 import { formatText } from "@/utils/employee/employeeFormat";
 
-import type {
-  Bonus,
-  CreateBonusPayload,
-} from "@/types/bonus";
+import type { Bonus, CreateBonusPayload } from "@/types/bonus";
 
 import type { EmployeeLookupResult } from "@/types/employee";
 
@@ -41,6 +36,7 @@ export default function BonusForm({
   onSuccess,
   onCancel,
 }: BonusFormProps) {
+  const { selectedAreaId } = useSelectedArea();
   const isEditing = Boolean(bonus);
 
   const createBonusMutation = useCreateBonus();
@@ -63,9 +59,7 @@ export default function BonusForm({
   // Form State
   // ======================================
 
-  const [amount, setAmount] = useState(
-    bonus?.amount?.toString() ?? "",
-  );
+  const [amount, setAmount] = useState(bonus?.amount?.toString() ?? "");
 
   const [bonusDate, setBonusDate] = useState(
     bonus?.bonusDate
@@ -73,9 +67,7 @@ export default function BonusForm({
       : new Date().toISOString().slice(0, 10),
   );
 
-  const [reason, setReason] = useState(
-    bonus?.reason ?? "",
-  );
+  const [reason, setReason] = useState(bonus?.reason ?? "");
 
   const [selectedEmployeeId, setSelectedEmployeeId] =
     useState(initialEmployeeId);
@@ -83,19 +75,15 @@ export default function BonusForm({
   const [searchEmpId, setSearchEmpId] = useState("");
 
   const [selectedEmployee, setSelectedEmployee] =
-    useState<EmployeeLookupResult | null>(
-      editingEmployee,
-    );
+    useState<EmployeeLookupResult | null>(editingEmployee);
 
-  const [lookupLoading, setLookupLoading] =
-    useState(false);
+  const [lookupLoading, setLookupLoading] = useState(false);
 
   const [lookupError, setLookupError] = useState("");
   const [formError, setFormError] = useState("");
 
   const isPending =
-    createBonusMutation.isPending ||
-    updateBonusMutation.isPending;
+    createBonusMutation.isPending || updateBonusMutation.isPending;
 
   const apiError =
     createBonusMutation.error?.message ||
@@ -109,10 +97,13 @@ export default function BonusForm({
   const handleLookup = async () => {
     const trimmed = searchEmpId.trim();
 
+    if (!selectedAreaId) {
+      setLookupError("No area is selected.");
+      return;
+    }
+
     if (!trimmed) {
-      setLookupError(
-        "Please enter an Employee ID (e.g. BSS-0001).",
-      );
+      setLookupError("Please enter an Employee ID (e.g. BSS-0001).");
       return;
     }
 
@@ -121,7 +112,7 @@ export default function BonusForm({
     setFormError("");
 
     try {
-      const employee = await lookupEmployee(trimmed);
+      const employee = await lookupEmployee(trimmed, selectedAreaId);
 
       setSelectedEmployee(employee);
       setSelectedEmployeeId(employee._id);
@@ -136,9 +127,7 @@ export default function BonusForm({
       setSelectedEmployeeId("");
 
       setLookupError(
-        error instanceof Error
-          ? error.message
-          : "Employee not found.",
+        error instanceof Error ? error.message : "Employee not found.",
       );
     } finally {
       setLookupLoading(false);
@@ -157,9 +146,7 @@ export default function BonusForm({
   // Submit
   // ======================================
 
-  const handleSubmit = (
-    event: React.FormEvent<HTMLFormElement>,
-  ) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setFormError("");
@@ -172,9 +159,7 @@ export default function BonusForm({
       !Number.isInteger(parsedAmount) ||
       parsedAmount <= 0
     ) {
-      setFormError(
-        "Enter a valid whole amount greater than zero.",
-      );
+      setFormError("Enter a valid whole amount greater than zero.");
       return;
     }
 
@@ -189,9 +174,7 @@ export default function BonusForm({
     }
 
     if (!isEditing && !selectedEmployeeId) {
-      setFormError(
-        "Please search and select an employee.",
-      );
+      setFormError("Please search and select an employee.");
       return;
     }
 
@@ -200,9 +183,7 @@ export default function BonusForm({
       selectedEmployee &&
       selectedEmployee.status !== "active"
     ) {
-      setFormError(
-        "Bonus can only be created for an active employee.",
-      );
+      setFormError("Bonus can only be created for an active employee.");
       return;
     }
 
@@ -222,9 +203,7 @@ export default function BonusForm({
         },
         {
           onSuccess: () => {
-            toast.success(
-              "Bonus corrected successfully.",
-            );
+            toast.success("Bonus corrected successfully.");
             onSuccess();
           },
         },
@@ -253,10 +232,7 @@ export default function BonusForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5"
-    >
+    <form onSubmit={handleSubmit} className="space-y-5">
       {/* Errors */}
       {(formError || apiError) && (
         <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -283,11 +259,8 @@ export default function BonusForm({
                   </p>
 
                   <p className="mt-0.5 text-xs text-gray-500">
-                    {editingEmployee.empId} ·{" "}
-                    {editingEmployee.fatherName} ·{" "}
-                    {formatText(
-                      editingEmployee.designation,
-                    )}
+                    {editingEmployee.empId} · {editingEmployee.fatherName} ·{" "}
+                    {formatText(editingEmployee.designation)}
                   </p>
                 </div>
 
@@ -347,9 +320,7 @@ export default function BonusForm({
                       </span>{" "}
                       · Designation:{" "}
                       <span className="font-medium text-gray-700">
-                        {formatText(
-                          selectedEmployee.designation,
-                        )}
+                        {formatText(selectedEmployee.designation)}
                       </span>
                     </p>
                   </div>
@@ -370,8 +341,7 @@ export default function BonusForm({
                   <div className="mt-2.5 flex items-center gap-1.5 text-xs text-red-600">
                     <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                     <span>
-                      Bonus cannot be created for an inactive
-                      employee.
+                      Bonus cannot be created for an inactive employee.
                     </span>
                   </div>
                 )}
@@ -387,9 +357,7 @@ export default function BonusForm({
                       type="text"
                       value={searchEmpId}
                       onChange={(event) => {
-                        setSearchEmpId(
-                          event.target.value,
-                        );
+                        setSearchEmpId(event.target.value);
                         setLookupError("");
                         setFormError("");
                       }}
@@ -399,9 +367,7 @@ export default function BonusForm({
                           handleLookup();
                         }
                       }}
-                      disabled={
-                        isPending || lookupLoading
-                      }
+                      disabled={isPending || lookupLoading}
                       placeholder="Employee ID (e.g. BSS-0001)"
                       className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
                     />
@@ -410,19 +376,13 @@ export default function BonusForm({
                   <button
                     type="button"
                     onClick={handleLookup}
-                    disabled={
-                      isPending ||
-                      lookupLoading ||
-                      !searchEmpId.trim()
-                    }
+                    disabled={isPending || lookupLoading || !searchEmpId.trim()}
                     className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {lookupLoading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="hidden sm:inline">
-                          Searching...
-                        </span>
+                        <span className="hidden sm:inline">Searching...</span>
                       </>
                     ) : (
                       <>
@@ -434,9 +394,7 @@ export default function BonusForm({
                 </div>
 
                 {lookupError && (
-                  <p className="mt-1.5 text-xs text-red-600">
-                    {lookupError}
-                  </p>
+                  <p className="mt-1.5 text-xs text-red-600">{lookupError}</p>
                 )}
 
                 <p className="mt-1.5 text-xs leading-5 text-gray-500">
@@ -522,9 +480,7 @@ export default function BonusForm({
             Reason
           </label>
 
-          <span className="text-xs text-gray-400">
-            {reason.length}/500
-          </span>
+          <span className="text-xs text-gray-400">{reason.length}/500</span>
         </div>
 
         <textarea
@@ -557,9 +513,7 @@ export default function BonusForm({
         <button
           type="submit"
           disabled={
-            isPending ||
-            (!isEditing &&
-              selectedEmployee?.status === "inactive")
+            isPending || (!isEditing && selectedEmployee?.status === "inactive")
           }
           className="w-full rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >

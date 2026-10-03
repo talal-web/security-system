@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { useMe } from "@/hooks/auth/useMe";
 import { ApiError } from "@/lib/apiError";
@@ -17,6 +17,7 @@ export default function ProtectedRoute({
   allowedRoles,
 }: ProtectedRouteProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { data, isLoading, isError, error } = useMe();
 
@@ -24,23 +25,42 @@ export default function ProtectedRoute({
   const role = user?.role as UserRole | undefined;
   const isInactive = error instanceof ApiError && error.status === 403;
 
+  const query = searchParams.toString();
+  const areaQuery = searchParams.get("area");
+  const querySuffix = query ? `?${query}` : "";
+
+  const unauthorizedUrl = `/dashboard/unauthorized${querySuffix}`;
+  const loginUrl = `/?login=true${
+    areaQuery ? `&area=${encodeURIComponent(areaQuery)}` : ""
+  }`;
+
   useEffect(() => {
     if (isLoading) return;
 
     if (isInactive) {
-      router.replace("/dashboard/unauthorized");
+      router.replace(unauthorizedUrl);
       return;
     }
 
     if (isError || !user) {
-      router.replace("/?login=true");
+      router.replace(loginUrl);
       return;
     }
 
     if (!allowedRoles.includes(role!)) {
-      router.replace("/dashboard/unauthorized");
+      router.replace(unauthorizedUrl);
     }
-  }, [isLoading, isInactive, isError, user, role, allowedRoles, router]);
+  }, [
+    isLoading,
+    isInactive,
+    isError,
+    user,
+    role,
+    allowedRoles,
+    router,
+    unauthorizedUrl,
+    loginUrl,
+  ]);
 
   if (isLoading) {
     return (

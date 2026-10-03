@@ -10,9 +10,13 @@ import {
   reorderSectorsService,
 } from "../services/sector/sector.service.js";
 
+// ======================================
+// CREATE
+// ======================================
+
 export const createSector = async (req, res, next) => {
   try {
-    const sector = await createSectorService(req.body);
+    const sector = await createSectorService(req.body, req.areaScope);
 
     return res.status(201).json({
       success: true,
@@ -23,13 +27,18 @@ export const createSector = async (req, res, next) => {
     if (error.code === 11000) {
       return next(new ApiError(409, "Sector already exists"));
     }
+
     return next(error);
   }
 };
 
+// ======================================
+// GET ALL
+// ======================================
+
 export const getSectors = async (req, res, next) => {
   try {
-    const sectors = await getSectorsService(req.query);
+    const sectors = await getSectorsService(req.query, req.areaScope);
 
     return res.status(200).json({
       success: true,
@@ -41,6 +50,10 @@ export const getSectors = async (req, res, next) => {
   }
 };
 
+// ======================================
+// GET ONE
+// ======================================
+
 export const getSectorById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -49,7 +62,7 @@ export const getSectorById = async (req, res, next) => {
       throw new ApiError(400, "Invalid sector ID");
     }
 
-    const sector = await getSectorByIdService(id);
+    const sector = await getSectorByIdService(id, req.areaScope);
 
     return res.status(200).json({
       success: true,
@@ -60,6 +73,10 @@ export const getSectorById = async (req, res, next) => {
   }
 };
 
+// ======================================
+// UPDATE
+// ======================================
+
 export const updateSector = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -68,7 +85,7 @@ export const updateSector = async (req, res, next) => {
       throw new ApiError(400, "Invalid sector ID");
     }
 
-    const sector = await updateSectorService(id, req.body);
+    const sector = await updateSectorService(id, req.body, req.areaScope);
 
     return res.status(200).json({
       success: true,
@@ -79,9 +96,14 @@ export const updateSector = async (req, res, next) => {
     if (error.code === 11000) {
       return next(new ApiError(409, "Sector name or code already exists"));
     }
+
     return next(error);
   }
 };
+
+// ======================================
+// DELETE
+// ======================================
 
 export const deleteSector = async (req, res, next) => {
   try {
@@ -91,7 +113,7 @@ export const deleteSector = async (req, res, next) => {
       throw new ApiError(400, "Invalid sector ID");
     }
 
-    await deleteSectorService(id);
+    await deleteSectorService(id, req.areaScope);
 
     return res.status(200).json({
       success: true,
@@ -102,9 +124,13 @@ export const deleteSector = async (req, res, next) => {
   }
 };
 
+// ======================================
+// REORDER
+// ======================================
+
 export const reorderSectors = async (req, res, next) => {
   try {
-    await reorderSectorsService(req.body.sectors);
+    await reorderSectorsService(req.body.sectors, req.areaScope);
 
     return res.status(200).json({
       success: true,

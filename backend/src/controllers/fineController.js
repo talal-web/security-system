@@ -6,6 +6,10 @@ import {
   cancelFineService,
 } from "../services/fine/fine.service.js";
 
+// ======================================
+// CREATE FINE
+// ======================================
+
 export const createFine = async (req, res, next) => {
   try {
     const fine = await createFineService(req.body, req.user, req.areaScope);
@@ -17,9 +21,13 @@ export const createFine = async (req, res, next) => {
     });
   } catch (error) {
     error.operationMessage = "Failed to create fine";
-    next(error);
+    return next(error);
   }
 };
+
+// ======================================
+// GET ALL FINES
+// ======================================
 
 export const getFines = async (req, res, next) => {
   try {
@@ -32,9 +40,13 @@ export const getFines = async (req, res, next) => {
     });
   } catch (error) {
     error.operationMessage = "Failed to get fines";
-    next(error);
+    return next(error);
   }
 };
+
+// ======================================
+// GET EMPLOYEE FINES
+// ======================================
 
 export const getEmployeeFines = async (req, res, next) => {
   try {
@@ -50,9 +62,13 @@ export const getEmployeeFines = async (req, res, next) => {
     });
   } catch (error) {
     error.operationMessage = "Failed to get employee fines";
-    next(error);
+    return next(error);
   }
 };
+
+// ======================================
+// UPDATE FINE
+// ======================================
 
 export const updateFine = async (req, res, next) => {
   try {
@@ -70,9 +86,13 @@ export const updateFine = async (req, res, next) => {
     });
   } catch (error) {
     error.operationMessage = "Failed to update fine";
-    next(error);
+    return next(error);
   }
 };
+
+// ======================================
+// CANCEL FINE
+// ======================================
 
 export const cancelFine = async (req, res, next) => {
   try {
@@ -89,6 +109,6 @@ export const cancelFine = async (req, res, next) => {
     });
   } catch (error) {
     error.operationMessage = "Failed to cancel fine";
-    next(error);
+    return next(error);
   }
 };

@@ -18,9 +18,13 @@ function toSalaryApiError(error: unknown): ApiError {
 
 export async function createEmployeeSalary(
   salaryData: CreateEmployeeSalaryPayload,
+  areaId: string,
 ): Promise<EmployeeSalaryResponse> {
   try {
-    const res = await api.post("/employee-salaries", salaryData);
+    const res = await api.post("/employee-salaries", {
+      ...salaryData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -30,9 +34,12 @@ export async function createEmployeeSalary(
 
 export async function getCurrentEmployeeSalary(
   employeeId: string,
+  areaId: string,
 ): Promise<CurrentEmployeeSalaryResponse> {
   try {
-    const res = await api.get(`/employee-salaries/${employeeId}/current`);
+    const res = await api.get(`/employee-salaries/${employeeId}/current`, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {
@@ -42,9 +49,12 @@ export async function getCurrentEmployeeSalary(
 
 export async function getEmployeeSalaryHistory(
   employeeId: string,
+  areaId: string,
 ): Promise<EmployeeSalaryHistoryResponse> {
   try {
-    const res = await api.get(`/employee-salaries/${employeeId}/history`);
+    const res = await api.get(`/employee-salaries/${employeeId}/history`, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {
@@ -55,9 +65,13 @@ export async function getEmployeeSalaryHistory(
 export async function updateEmployeeSalary(
   salaryId: string,
   salaryData: UpdateEmployeeSalaryPayload,
+  areaId: string,
 ): Promise<EmployeeSalaryResponse> {
   try {
-    const res = await api.patch(`/employee-salaries/${salaryId}`, salaryData);
+    const res = await api.patch(`/employee-salaries/${salaryId}`, {
+      ...salaryData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {

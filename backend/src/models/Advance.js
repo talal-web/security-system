@@ -54,6 +54,12 @@ const advanceSchema = new mongoose.Schema(
       index: true,
     },
 
+    area: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Area",
+      index: true,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -81,6 +87,11 @@ advanceSchema.index({
 advanceSchema.index({
   employee: 1,
   status: 1,
+});
+
+advanceSchema.index({
+  area: 1,
+  advanceDate: -1,
 });
 
 const Advance =

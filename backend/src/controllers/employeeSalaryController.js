@@ -8,7 +8,11 @@ import {
 // CREATE
 export const createEmployeeSalary = async (req, res, next) => {
   try {
-    const salary = await createEmployeeSalaryService(req.body, req.user.id);
+    const salary = await createEmployeeSalaryService(
+      req.body,
+      req.user.id,
+      req.areaScope,
+    );
 
     return res.status(201).json({
       success: true,
@@ -32,7 +36,10 @@ export const createEmployeeSalary = async (req, res, next) => {
 // CURRENT SALARY
 export const getCurrentEmployeeSalary = async (req, res, next) => {
   try {
-    const result = await getCurrentEmployeeSalaryService(req.params.employeeId);
+    const result = await getCurrentEmployeeSalaryService(
+      req.params.employeeId,
+      req.areaScope,
+    );
 
     return res.status(200).json({
       success: true,
@@ -51,7 +58,10 @@ export const getCurrentEmployeeSalary = async (req, res, next) => {
 // SALARY HISTORY
 export const getEmployeeSalaryHistory = async (req, res, next) => {
   try {
-    const result = await getEmployeeSalaryHistoryService(req.params.employeeId);
+    const result = await getEmployeeSalaryHistoryService(
+      req.params.employeeId,
+      req.areaScope,
+    );
 
     return res.status(200).json({
       success: true,
@@ -75,6 +85,7 @@ export const updateEmployeeSalary = async (req, res, next) => {
       req.params.id,
       req.body,
       req.user.id,
+      req.areaScope,
     );
 
     return res.status(200).json({

@@ -1,5 +1,8 @@
+import mongoose from "mongoose";
+
 import Attendance from "../../models/Attendance.js";
 import Employee from "../../models/Employee.js";
+import ApiError from "../../utils/ApiError.js";
 
 import { normalizeDate } from "./attendance.helpers.js";
 
@@ -7,6 +10,40 @@ import {
   validateAttendanceStatus,
   validateAttendanceShift,
 } from "./attendance.validation.js";
+
+const EMPTY_REPORT = {
+  success: true,
+  message: "Attendance report fetched successfully",
+  data: {
+    globalStats: {
+      total: 0,
+      present: 0,
+      absent: 0,
+      leave: 0,
+      day: 0,
+      night: 0,
+    },
+    presentSectors: [],
+    absentEmployees: [],
+    leaveEmployees: [],
+  },
+};
+
+// enforceAreaScope has already validated exactly one area.
+// areaScope.areaId is the single source of truth. query.area is ignored.
+const getScopedAreaId = (areaScope = {}) => {
+  const areaId = areaScope?.areaId;
+
+  if (typeof areaId !== "string" || !areaId.trim()) {
+    throw new ApiError(400, "Area selection is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(areaId)) {
+    throw new ApiError(400, "Invalid area ID");
+  }
+
+  return areaId;
+};
 
 // ======================================
 // Get Attendance Report
@@ -17,7 +54,14 @@ export const getAttendanceReportService = async ({
   areaScope = {},
 }) => {
   const { status, shift, date } = query;
+
+  const areaId = getScopedAreaId(areaScope);
+
   const match = {};
+
+  // ======================================
+  // Validate Filters
+  // ======================================
 
   if (status) {
     validateAttendanceStatus(status);
@@ -29,44 +73,41 @@ export const getAttendanceReportService = async ({
     match.shift = shift;
   }
 
-  match.date = date ? normalizeDate(date) : normalizeDate(new Date());
-
-  const areaIds =
-    areaScope.requestedAreaIds ?? areaScope.permittedAreaIds ?? [];
-
-  if (areaIds.length && !areaScope.isAdmin) {
-    const employeesInScope = await Employee.find({
-      area: { $in: areaIds },
-    })
-      .select("_id")
-      .lean();
-
-    const employeeIds = employeesInScope.map((employee) => employee._id);
-
-    if (!employeeIds.length) {
-      return {
-        success: true,
-        data: {
-          globalStats: {
-            total: 0,
-            present: 0,
-            absent: 0,
-            leave: 0,
-            day: 0,
-            night: 0,
-          },
-          presentSectors: [],
-          absentEmployees: [],
-          leaveEmployees: [],
-        },
-      };
-    }
-
-    match.employee = { $in: employeeIds };
+  if (date !== undefined && date !== "" && typeof date !== "string") {
+    throw new ApiError(400, "Invalid date");
   }
+
+  const reportDate = date ? normalizeDate(date) : normalizeDate(new Date());
+
+  if (!reportDate || Number.isNaN(new Date(reportDate).getTime())) {
+    throw new ApiError(400, "Invalid date");
+  }
+
+  match.date = reportDate;
+
+  // ======================================
+  // Find Employees in Selected Area
+  // ======================================
+
+  const employeesInScope = await Employee.find({ area: areaId })
+    .select("_id")
+    .lean();
+
+  const employeeIds = employeesInScope.map((employee) => employee._id);
+
+  if (!employeeIds.length) {
+    return EMPTY_REPORT;
+  }
+
+  match.employee = { $in: employeeIds };
+
+  // ======================================
+  // Aggregate Attendance Report
+  // ======================================
 
   const data = await Attendance.aggregate([
     { $match: match },
+
     {
       $lookup: {
         from: "locations",
@@ -136,32 +177,52 @@ export const getAttendanceReportService = async ({
         },
       },
     },
+
+    // ======================================
+    // Report Sections
+    // ======================================
+
     {
       $facet: {
+        // ----------------------------------
+        // Global Stats
+        // ----------------------------------
+
         globalStats: [
           {
             $group: {
               _id: null,
+
               total: {
                 $sum: {
-                  $cond: [{ $in: ["$status", ["present", "leave"]] }, 1, 0],
+                  $cond: [
+                    {
+                      $in: ["$status", ["present", "leave"]],
+                    },
+                    1,
+                    0,
+                  ],
                 },
               },
+
               present: {
                 $sum: {
                   $cond: [{ $eq: ["$status", "present"] }, 1, 0],
                 },
               },
+
               absent: {
                 $sum: {
                   $cond: [{ $eq: ["$status", "absent"] }, 1, 0],
                 },
               },
+
               leave: {
                 $sum: {
                   $cond: [{ $eq: ["$status", "leave"] }, 1, 0],
                 },
               },
+
               day: {
                 $sum: {
                   $cond: [
@@ -176,6 +237,7 @@ export const getAttendanceReportService = async ({
                   ],
                 },
               },
+
               night: {
                 $sum: {
                   $cond: [
@@ -192,11 +254,23 @@ export const getAttendanceReportService = async ({
               },
             },
           },
-          { $project: { _id: 0 } },
+          {
+            $project: {
+              _id: 0,
+            },
+          },
         ],
 
+        // ----------------------------------
+        // Present Employees by Sector
+        // ----------------------------------
+
         presentSectors: [
-          { $match: { status: "present" } },
+          {
+            $match: {
+              status: "present",
+            },
+          },
           {
             $sort: {
               resolvedSectorName: 1,
@@ -210,20 +284,35 @@ export const getAttendanceReportService = async ({
                 sectorId: "$resolvedSectorId",
                 locationId: "$locationSnapshot.locationId",
               },
-              sectorId: { $first: "$resolvedSectorId" },
-              sector: { $first: "$resolvedSectorName" },
-              locationId: { $first: "$locationSnapshot.locationId" },
-              locationName: { $first: "$locationSnapshot.name" },
+
+              sectorId: {
+                $first: "$resolvedSectorId",
+              },
+
+              sector: {
+                $first: "$resolvedSectorName",
+              },
+
+              locationId: {
+                $first: "$locationSnapshot.locationId",
+              },
+
+              locationName: {
+                $first: "$locationSnapshot.name",
+              },
+
               sortOrder: {
                 $first: {
                   $ifNull: ["$location.sortOrder", 999999],
                 },
               },
+
               isActive: {
                 $first: {
                   $ifNull: ["$location.isActive", false],
                 },
               },
+
               records: {
                 $push: {
                   attendanceId: "$_id",
@@ -240,19 +329,33 @@ export const getAttendanceReportService = async ({
               },
             },
           },
-          { $sort: { sector: 1, sortOrder: 1 } },
+          {
+            $sort: {
+              sector: 1,
+              sortOrder: 1,
+            },
+          },
           {
             $group: {
               _id: "$sectorId",
-              sectorId: { $first: "$sectorId" },
-              sector: { $first: "$sector" },
+
+              sectorId: {
+                $first: "$sectorId",
+              },
+
+              sector: {
+                $first: "$sector",
+              },
+
               locations: {
                 $push: {
                   _id: "$locationId",
                   name: "$locationName",
                   sortOrder: "$sortOrder",
                   isActive: "$isActive",
-                  totalEmployees: { $size: "$records" },
+                  totalEmployees: {
+                    $size: "$records",
+                  },
                   records: "$records",
                 },
               },
@@ -266,11 +369,23 @@ export const getAttendanceReportService = async ({
               locations: 1,
             },
           },
-          { $sort: { sector: 1 } },
+          {
+            $sort: {
+              sector: 1,
+            },
+          },
         ],
 
+        // ----------------------------------
+        // Absent Employees
+        // ----------------------------------
+
         absentEmployees: [
-          { $match: { status: "absent" } },
+          {
+            $match: {
+              status: "absent",
+            },
+          },
           {
             $project: {
               _id: 0,
@@ -288,11 +403,23 @@ export const getAttendanceReportService = async ({
               remarks: "$remarks",
             },
           },
-          { $sort: { empId: 1 } },
+          {
+            $sort: {
+              empId: 1,
+            },
+          },
         ],
 
+        // ----------------------------------
+        // Leave Employees
+        // ----------------------------------
+
         leaveEmployees: [
-          { $match: { status: "leave" } },
+          {
+            $match: {
+              status: "leave",
+            },
+          },
           {
             $project: {
               _id: 0,
@@ -308,19 +435,27 @@ export const getAttendanceReportService = async ({
               remarks: "$remarks",
             },
           },
-          { $sort: { empId: 1 } },
+          {
+            $sort: {
+              empId: 1,
+            },
+          },
         ],
       },
     },
   ]);
 
-  const report = data[0];
+  // ======================================
+  // Format Response
+  // ======================================
+
+  const report = data[0] ?? {};
 
   return {
     success: true,
     message: "Attendance report fetched successfully",
     data: {
-      globalStats: report.globalStats[0] || {
+      globalStats: report.globalStats?.[0] ?? {
         total: 0,
         present: 0,
         absent: 0,
@@ -328,9 +463,12 @@ export const getAttendanceReportService = async ({
         day: 0,
         night: 0,
       },
-      presentSectors: report.presentSectors,
-      absentEmployees: report.absentEmployees,
-      leaveEmployees: report.leaveEmployees,
+
+      presentSectors: report.presentSectors ?? [],
+
+      absentEmployees: report.absentEmployees ?? [],
+
+      leaveEmployees: report.leaveEmployees ?? [],
     },
   };
 };

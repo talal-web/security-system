@@ -7,6 +7,7 @@ import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 import PayrollTable from "@/components/payroll/PayrollTable";
 import { useMe } from "@/hooks/auth/useMe";
 import { useEmployeePayrolls } from "@/hooks/payroll/usePayroll";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
 interface EmployeePayrollPageProps {
   params: Promise<{ id: string }>;
@@ -16,6 +17,7 @@ export default function EmployeePayrollPage({
   params,
 }: EmployeePayrollPageProps) {
   const { id } = use(params);
+  const { getAreaAwareHref } = useSelectedArea();
   const { data: me } = useMe();
   const { data, isLoading, isError, error } = useEmployeePayrolls(id);
   const payrolls = data?.data ?? [];
@@ -29,7 +31,7 @@ export default function EmployeePayrollPage({
     >
       <main className="space-y-5 p-4 sm:p-6">
         <Link
-          href={`/employees/${id}`}
+          href={getAreaAwareHref(`/employees/${id}`)}
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="h-4 w-4" />

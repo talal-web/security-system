@@ -1,34 +1,72 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useMe } from "@/hooks/auth/useMe";
 import { useSelectedArea } from "@/components/area/AreaContext";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data } = useMe();
-  const { selectedAreaId } = useSelectedArea();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const { data, isLoading } = useMe();
+  const { selectedAreaId, isAreaLoading } = useSelectedArea();
+
+  const role = data?.user?.role;
+  const search = searchParams.toString();
+  const routeAreaId = searchParams.get("area");
 
   useEffect(() => {
-    const role = data?.user?.role;
+    if (isLoading || isAreaLoading || !role) return;
 
-    if (!role) return;
-
-    const routeMap = {
+    const routeMap: Record<string, string> = {
       admin: "/dashboard/admin",
       developer: "/dashboard/admin",
       clerk: "/dashboard/clerk",
       supervisor: "/dashboard/supervisor",
     };
 
-    const target =
-      routeMap[role as keyof typeof routeMap] ?? "/dashboard/unauthorized";
-    const suffix = selectedAreaId ? `?area=${selectedAreaId}` : "";
+    const target = routeMap[role] ?? "/dashboard/unauthorized";
 
-    router.replace(`${target}${suffix}`);
-  }, [data?.user?.role, router, selectedAreaId]);
+    // Keep the URL's area; only fall back to context if absent.
+    const areaId = routeAreaId ?? selectedAreaId;
+
+    const params = new URLSearchParams(search);
+
+    if (areaId) {
+      params.set("area", areaId);
+    } else {
+      params.delete("area");
+    }
+
+    const query = params.toString();
+    const destination = query ? `${target}?${query}` : target;
+    const currentUrl = `${pathname}${search ? `?${search}` : ""}`;
+
+    console.log("[Dashboard redirect check]", {
+      currentUrl,
+      destination,
+      routeAreaId,
+      selectedAreaId,
+      areaId,
+      role,
+    });
+
+    if (currentUrl === destination) return;
+
+    router.replace(destination, { scroll: false });
+  }, [
+    isLoading,
+    isAreaLoading,
+    role,
+    routeAreaId,
+    selectedAreaId,
+    search,
+    pathname,
+    router,
+  ]);
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center px-4">

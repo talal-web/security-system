@@ -1,5 +1,74 @@
+import mongoose from "mongoose";
 import Location from "../../models/Location.js";
 import Sector from "../../models/Sector.js";
+import ApiError from "../../utils/ApiError.js";
+
+// ======================================
+// AREA SCOPE
+// ======================================
+
+const getAreaId = (areaScope = {}) => {
+  const areaId = areaScope.areaId;
+
+  if (!areaId || !mongoose.Types.ObjectId.isValid(areaId)) {
+    throw new ApiError(403, "Valid area scope is required");
+  }
+
+  return new mongoose.Types.ObjectId(areaId);
+};
+
+const getScopedSector = async (sectorId, areaId, { active = false } = {}) => {
+  if (!mongoose.Types.ObjectId.isValid(sectorId)) {
+    throw new ApiError(400, "Invalid sector ID");
+  }
+
+  const filter = {
+    _id: sectorId,
+    area: areaId,
+  };
+
+  if (active) filter.isActive = true;
+
+  const sector = await Sector.findOne(filter).lean();
+
+  if (!sector) {
+    throw new ApiError(404, "Sector not found in selected area");
+  }
+
+  return sector;
+};
+
+const getScopedLocation = async (id, areaId) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid location ID");
+  }
+
+  const sectorIds = await Sector.find({ area: areaId }).distinct("_id");
+
+  const location = await Location.findOne({
+    _id: id,
+    sector: { $in: sectorIds },
+  });
+
+  if (!location) {
+    throw new ApiError(404, "Location not found in selected area");
+  }
+
+  return location;
+};
+
+const locationPopulate = {
+  path: "sector",
+  select: "name code sortOrder isActive area",
+  populate: {
+    path: "area",
+    select: "_id name",
+  },
+};
+
+// ======================================
+// SECTOR COMPATIBILITY
+// ======================================
 
 export const validateLocationSectorCompatibility = ({
   area,
@@ -11,58 +80,52 @@ export const validateLocationSectorCompatibility = ({
   const selectedArea = area ?? sectorDoc.area ?? null;
 
   if (selectedArea && sectorDoc.area?.toString() !== selectedArea.toString()) {
-    throw new Error("Area and sector must belong to the same area.");
+    throw new ApiError(400, "Area and sector must belong to the same area.");
   }
 };
 
+// ======================================
 // CREATE
-export const createLocationService = async (data) => {
-  const { name, address, sector, area } = data;
+// ======================================
+
+export const createLocationService = async (data, areaScope) => {
+  const areaId = getAreaId(areaScope);
+  const { name, address, sector } = data;
 
   const trimmedName = name?.trim();
   const trimmedAddress = address?.trim() || "";
 
   if (!trimmedName) {
-    return {
-      error: { status: 400, message: "Location name is required" },
-    };
+    throw new ApiError(400, "Location name is required");
   }
 
   if (!sector) {
-    return {
-      error: { status: 400, message: "Sector is required" },
-    };
+    throw new ApiError(400, "Sector is required");
   }
 
-  const sectorExists = await Sector.findById(sector).lean();
-
-  if (!sectorExists || !sectorExists.isActive) {
-    return {
-      error: { status: 404, message: "Sector not found" },
-    };
-  }
+  const sectorDoc = await getScopedSector(sector, areaId, {
+    active: true,
+  });
 
   validateLocationSectorCompatibility({
-    area,
+    area: areaId,
     sector,
-    sectorDoc: sectorExists,
+    sectorDoc,
   });
 
   const existing = await Location.findOne({
     name: trimmedName,
-    sector,
+    sector: sectorDoc._id,
   });
 
   if (existing) {
-    return {
-      error: {
-        status: 400,
-        message: "Location already exists in this sector",
-      },
-    };
+    throw new ApiError(400, "Location already exists in this sector");
   }
 
-  const lastLocation = await Location.findOne()
+  // Sort order is scoped to this sector.
+  const lastLocation = await Location.findOne({
+    sector: sectorDoc._id,
+  })
     .sort({ sortOrder: -1 })
     .select("sortOrder")
     .lean();
@@ -72,54 +135,58 @@ export const createLocationService = async (data) => {
   const location = await Location.create({
     name: trimmedName,
     address: trimmedAddress,
-    sector,
+    sector: sectorDoc._id,
     sortOrder,
   });
 
   return location.populate("sector", "name code");
 };
 
+// ======================================
 // GET ALL
-export const getLocationsService = async (queryParams) => {
-  const { search, sector, area, isActive } = queryParams;
-  const query = {};
+// ======================================
+
+export const getLocationsService = async (queryParams = {}, areaScope) => {
+  const areaId = getAreaId(areaScope);
+  const { search, sector, isActive } = queryParams;
+
+  const sectorFilter = { area: areaId };
+
+  if (sector) {
+    sectorFilter._id = sector;
+  }
+
+  const sectors = await Sector.find(sectorFilter).select("_id").lean();
+
+  const sectorIds = sectors.map((item) => item._id);
+
+  if (sector && !sectorIds.length) {
+    throw new ApiError(404, "Sector not found in selected area");
+  }
+
+  if (!sectorIds.length) return [];
+
+  const filter = {
+    sector: { $in: sectorIds },
+  };
 
   if (search?.trim()) {
-    query.name = {
+    filter.name = {
       $regex: search.trim(),
       $options: "i",
     };
   }
 
-  if (sector) {
-    query.sector = sector;
-  }
-
-  if (area) {
-    const sectorsInArea = await Sector.find({ area }).select("_id").lean();
-
-    const sectorIds = sectorsInArea.map((item) => item._id);
-
-    if (sectorIds.length === 0) {
-      return [];
+  if (isActive !== undefined) {
+    if (isActive !== "true" && isActive !== "false") {
+      throw new ApiError(400, "Invalid isActive value");
     }
 
-    query.sector = { $in: sectorIds };
+    filter.isActive = isActive === "true";
   }
 
-  if (isActive !== undefined) {
-    query.isActive = isActive === "true";
-  }
-
-  return Location.find(query)
-    .populate({
-      path: "sector",
-      select: "name code sortOrder isActive area",
-      populate: {
-        path: "area",
-        select: "_id name",
-      },
-    })
+  return Location.find(filter)
+    .populate(locationPopulate)
     .sort({
       sortOrder: 1,
       name: 1,
@@ -127,174 +194,168 @@ export const getLocationsService = async (queryParams) => {
     .lean();
 };
 
+// ======================================
 // GET ONE
-export const getLocationByIdService = async (id) => {
-  return Location.findById(id)
-    .populate({
-      path: "sector",
-      select: "name code sortOrder isActive area",
-      populate: {
-        path: "area",
-        select: "_id name",
-      },
-    })
-    .lean();
+// ======================================
+
+export const getLocationByIdService = async (id, areaScope) => {
+  const areaId = getAreaId(areaScope);
+
+  const location = await getScopedLocation(id, areaId);
+
+  return Location.findById(location._id).populate(locationPopulate).lean();
 };
 
+// ======================================
 // UPDATE
-export const updateLocationService = async (id, data) => {
-  const { name, address, sector, area, isActive } = data;
+// ======================================
+
+export const updateLocationService = async (id, data, areaScope) => {
+  const areaId = getAreaId(areaScope);
+  const { name, address, sector, isActive } = data;
+
+  // Only locations in the selected area can be updated.
+  const currentLocation = await getScopedLocation(id, areaId);
+
   const updateData = {};
 
   if (name !== undefined) {
+    if (typeof name !== "string" || !name.trim()) {
+      throw new ApiError(400, "Location name is required");
+    }
+
     updateData.name = name.trim();
   }
 
   if (address !== undefined) {
+    if (typeof address !== "string") {
+      throw new ApiError(400, "Invalid location address");
+    }
+
     updateData.address = address.trim();
   }
 
   if (isActive !== undefined) {
+    if (typeof isActive !== "boolean") {
+      throw new ApiError(400, "Invalid isActive value");
+    }
+
     updateData.isActive = isActive;
   }
 
+  let finalSector = currentLocation.sector;
+
   if (sector !== undefined) {
-    const sectorExists = await Sector.findById(sector).lean();
-
-    if (!sectorExists || !sectorExists.isActive) {
-      return {
-        error: { status: 404, message: "Sector not found" },
-      };
-    }
-
-    validateLocationSectorCompatibility({
-      area,
-      sector,
-      sectorDoc: sectorExists,
+    const sectorDoc = await getScopedSector(sector, areaId, {
+      active: true,
     });
 
-    updateData.sector = sector;
-  }
-
-  if (area !== undefined && !sector) {
-    const currentLocation = await Location.findById(id)
-      .populate({
-        path: "sector",
-        select: "area",
-      })
-      .lean();
-
-    const sectorDoc = await Sector.findById(
-      currentLocation?.sector?._id,
-    ).lean();
-
     validateLocationSectorCompatibility({
-      area,
-      sector: currentLocation?.sector?._id,
+      area: areaId,
+      sector,
       sectorDoc,
     });
-  }
 
-  const currentLocation = await Location.findById(id);
-
-  if (!currentLocation) {
-    return {
-      error: { status: 404, message: "Location not found" },
-    };
+    finalSector = sectorDoc._id;
+    updateData.sector = finalSector;
   }
 
   const finalName = updateData.name ?? currentLocation.name;
-  const finalSector = updateData.sector ?? currentLocation.sector;
 
   const existing = await Location.findOne({
-    _id: { $ne: id },
+    _id: { $ne: currentLocation._id },
     name: finalName,
     sector: finalSector,
   });
 
   if (existing) {
-    return {
-      error: {
-        status: 400,
-        message: "Location already exists in this sector",
-      },
-    };
+    throw new ApiError(400, "Location already exists in this sector");
   }
 
-  return Location.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
-  }).populate({
-    path: "sector",
-    select: "name code sortOrder isActive area",
-    populate: {
-      path: "area",
-      select: "_id name",
+  return Location.findOneAndUpdate(
+    {
+      _id: currentLocation._id,
+      sector: {
+        $in: await Sector.find({ area: areaId }).distinct("_id"),
+      },
     },
-  });
+    updateData,
+    {
+      new: true,
+      runValidators: true,
+    },
+  ).populate(locationPopulate);
 };
 
+// ======================================
 // DELETE
-export const deleteLocationService = async (id) => {
-  const location = await Location.findById(id);
+// ======================================
 
-  if (!location) {
-    return false;
-  }
+export const deleteLocationService = async (id, areaScope) => {
+  const areaId = getAreaId(areaScope);
+
+  const location = await getScopedLocation(id, areaId);
 
   await location.deleteOne();
+
   return true;
 };
 
+// ======================================
 // REORDER
-export const reorderLocationsService = async (data) => {
+// ======================================
+
+export const reorderLocationsService = async (data, areaScope) => {
+  const areaId = getAreaId(areaScope);
   const { sector, locations } = data;
 
   if (!sector) {
-    return {
-      error: { status: 400, message: "Sector is required." },
-    };
+    throw new ApiError(400, "Sector is required.");
   }
 
   if (!Array.isArray(locations) || locations.length === 0) {
-    return {
-      error: {
-        status: 400,
-        message: "Locations array is required.",
-      },
-    };
+    throw new ApiError(400, "Locations array is required.");
   }
 
-  const sectorExists = await Sector.exists({
-    _id: sector,
-    isActive: true,
+  const sectorDoc = await getScopedSector(sector, areaId, {
+    active: true,
   });
 
-  if (!sectorExists) {
-    return {
-      error: { status: 404, message: "Sector not found." },
-    };
+  const ids = locations.map(({ _id }) => _id);
+
+  if (
+    ids.some((id) => !mongoose.Types.ObjectId.isValid(id)) ||
+    new Set(ids.map(String)).size !== ids.length
+  ) {
+    throw new ApiError(400, "Invalid or duplicate location IDs.");
   }
 
   const existingLocations = await Location.find({
-    _id: { $in: locations.map(({ _id }) => _id) },
-    sector,
+    _id: { $in: ids },
+    sector: sectorDoc._id,
   }).select("_id");
 
   if (existingLocations.length !== locations.length) {
-    return {
-      error: {
-        status: 400,
-        message: "One or more locations do not belong to the selected sector.",
-      },
-    };
+    throw new ApiError(
+      400,
+      "One or more locations do not belong to the selected sector.",
+    );
+  }
+
+  const sortOrders = locations.map(({ sortOrder }) => sortOrder);
+
+  if (
+    sortOrders.some((value) => !Number.isInteger(value) || value < 0) ||
+    new Set(sortOrders).size !== sortOrders.length
+  ) {
+    throw new ApiError(400, "Invalid or duplicate sort orders.");
   }
 
   const bulkOperations = locations.map(({ _id, sortOrder }) => ({
     updateOne: {
       filter: {
         _id,
-        sector,
+        sector: sectorDoc._id,
       },
       update: {
         $set: { sortOrder },

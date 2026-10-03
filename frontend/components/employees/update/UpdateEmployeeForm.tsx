@@ -13,6 +13,7 @@ import { shiftOptions } from "@/constants/shiftOptions";
 
 import { useEmployeeLocations } from "@/hooks/employee/create/useEmployeeLocations";
 import { useUpdateEmployee } from "@/hooks/employee/useUpdateEmployee";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
 import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
@@ -138,6 +139,7 @@ const getEmployeeFormValues = (employee: Employee): FormValues => ({
 
 export default function UpdateEmployeeForm({ employee }: Props) {
   const router = useRouter();
+  const { getAreaAwareHref } = useSelectedArea();
   const { handleUpdateEmployee, loading } = useUpdateEmployee();
 
   const {
@@ -360,7 +362,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
         employeeData: data,
       });
 
-      router.push("/employees");
+      router.push(getAreaAwareHref("/employees"));
     } catch (error) {
       console.error("Failed to update employee:", error);
     }

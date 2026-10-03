@@ -17,9 +17,13 @@ import { getApiErrorMessage } from "@/lib/apiError";
 
 export async function createDeduction(
   deductionData: CreateDeductionPayload,
+  areaId: string,
 ): Promise<DeductionResponse> {
   try {
-    const res = await api.post("/deductions", deductionData);
+    const res = await api.post("/deductions", {
+      ...deductionData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -58,9 +62,12 @@ export async function getDeductions(
 
 export async function getEmployeeDeductions(
   employeeId: string,
+  areaId: string,
 ): Promise<EmployeeDeductionsResponse> {
   try {
-    const res = await api.get(`/deductions/employee/${employeeId}`);
+    const res = await api.get(`/deductions/employee/${employeeId}`, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {
@@ -75,9 +82,13 @@ export async function getEmployeeDeductions(
 export async function updateDeduction(
   deductionId: string,
   deductionData: UpdateDeductionPayload,
+  areaId: string,
 ): Promise<DeductionResponse> {
   try {
-    const res = await api.patch(`/deductions/${deductionId}`, deductionData);
+    const res = await api.patch(`/deductions/${deductionId}`, {
+      ...deductionData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -91,9 +102,12 @@ export async function updateDeduction(
 
 export async function cancelDeduction(
   deductionId: string,
+  areaId: string,
 ): Promise<DeductionResponse> {
   try {
-    const res = await api.patch(`/deductions/${deductionId}/cancel`);
+    const res = await api.patch(`/deductions/${deductionId}/cancel`, null, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {

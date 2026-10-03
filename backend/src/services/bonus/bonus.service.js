@@ -4,19 +4,48 @@ import Employee from "../../models/Employee.js";
 import Bonus from "../../models/Bonus.js";
 import ApiError from "../../utils/ApiError.js";
 
-function hasAreaAccess(employeeArea, areaScope = {}) {
-  if (!employeeArea) return false;
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+const normalizeId = (id) => (id ? String(id) : null);
 
-  if (areaScope.isAdmin) return true;
+// ======================================
+// Area scope helpers
+// ======================================
 
-  return (areaScope.permittedAreaIds || []).some(
-    (id) => String(id) === String(employeeArea),
-  );
-}
+// enforceAreaScope has already validated exactly one area.
+// areaScope.areaId is the single source of truth for every query below.
+const getScopedAreaId = (areaScope = {}) => {
+  const areaId = areaScope.areaId;
 
-function isValidObjectId(id) {
-  return mongoose.Types.ObjectId.isValid(id);
-}
+  if (typeof areaId !== "string" || !areaId.trim()) {
+    throw new ApiError(400, "Area selection is required");
+  }
+
+  if (!isValidObjectId(areaId)) {
+    throw new ApiError(400, "Invalid area ID");
+  }
+
+  return areaId;
+};
+
+const getAreaFilter = (areaScope = {}) => ({
+  area: getScopedAreaId(areaScope),
+});
+
+const validateAmount = (amount) => {
+  const value = Number(amount);
+
+  if (
+    amount === undefined ||
+    amount === null ||
+    !Number.isFinite(value) ||
+    !Number.isInteger(value) ||
+    value <= 0
+  ) {
+    throw new ApiError(400, "Bonus amount must be a positive integer");
+  }
+
+  return value;
+};
 
 function getDateRange(date, endOfDay = false) {
   const value = new Date(date);
@@ -30,30 +59,39 @@ function getDateRange(date, endOfDay = false) {
   return value;
 }
 
+const populateBonus = (query) =>
+  query
+    .populate("employee", "empId name fatherName designation status")
+    .populate("area", "name")
+    .populate("createdBy", "name")
+    .populate("updatedBy", "name");
+
 // CREATE BONUS
 export async function createBonusService(data, userId, areaScope = {}) {
-  const { employeeId, amount, reason, bonusDate } = data;
+  const { employeeId, amount, reason, bonusDate, area } = data;
+
+  const scopedAreaId = getScopedAreaId(areaScope);
 
   if (!isValidObjectId(employeeId)) {
     throw new ApiError(400, "Invalid employee ID");
   }
 
-  if (!Number.isFinite(amount) || !Number.isInteger(amount) || amount <= 0) {
-    throw new ApiError(400, "Bonus amount must be a positive integer");
-  }
+  const bonusAmount = validateAmount(amount);
 
   if (!reason || typeof reason !== "string" || !reason.trim()) {
     throw new ApiError(400, "Bonus reason is required");
   }
 
-  let parsedBonusDate = new Date();
+  const parsedBonusDate =
+    bonusDate === undefined ? new Date() : new Date(bonusDate);
 
-  if (bonusDate !== undefined) {
-    parsedBonusDate = new Date(bonusDate);
+  if (Number.isNaN(parsedBonusDate.getTime())) {
+    throw new ApiError(400, "Invalid bonus date");
+  }
 
-    if (Number.isNaN(parsedBonusDate.getTime())) {
-      throw new ApiError(400, "Invalid bonus date");
-    }
+  // Body area (if sent) must match the selected area.
+  if (area !== undefined && normalizeId(area) !== scopedAreaId) {
+    throw new ApiError(400, "Conflicting area selections");
   }
 
   const employee = await Employee.findById(employeeId).select(
@@ -64,8 +102,14 @@ export async function createBonusService(data, userId, areaScope = {}) {
     throw new ApiError(404, "Employee not found");
   }
 
-  if (!hasAreaAccess(employee.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
+  if (!employee.area) {
+    throw new ApiError(400, "Employee does not have an assigned area");
+  }
+
+  // The employee must belong to the selected area.
+  // Returns 404 to avoid revealing employees in other areas.
+  if (normalizeId(employee.area) !== scopedAreaId) {
+    throw new ApiError(404, "Employee not found in the selected area");
   }
 
   if (employee.status !== "active") {
@@ -74,59 +118,29 @@ export async function createBonusService(data, userId, areaScope = {}) {
 
   const bonus = await Bonus.create({
     employee: employee._id,
-    amount,
+    area: employee.area,
+    amount: bonusAmount,
     reason: reason.trim(),
     bonusDate: parsedBonusDate,
     status: "pending",
     createdBy: userId,
   });
 
-  return Bonus.findById(bonus._id)
-    .populate("employee", "empId name fatherName designation")
-    .populate("createdBy", "name")
-    .populate("updatedBy", "name");
+  return populateBonus(Bonus.findById(bonus._id));
 }
 
 // GET BONUSES
-export async function getBonusesService(query, areaScope = {}) {
+export async function getBonusesService(query = {}, areaScope = {}) {
   const { employee, status, search, fromDate, toDate } = query;
 
-  const filter = {};
+  // Always limited to the single selected area.
+  const filter = {
+    ...getAreaFilter(areaScope),
+  };
 
-  // Apply area restriction first.
-  if (!areaScope.isAdmin) {
-    const permittedAreaIds = areaScope.permittedAreaIds || [];
-
-    if (permittedAreaIds.length === 0) {
-      throw new ApiError(403, "Unauthorized area access");
-    }
-
-    const employeesInAreas = await Employee.find({
-      area: { $in: permittedAreaIds },
-    }).distinct("_id");
-
-    if (employeesInAreas.length === 0) {
-      throw new ApiError(403, "Unauthorized area access");
-    }
-
-    filter.employee = { $in: employeesInAreas };
-  }
-
-  // Intersect a requested employee with the area restriction.
   if (employee) {
     if (!isValidObjectId(employee)) {
       throw new ApiError(400, "Invalid employee ID");
-    }
-
-    if (filter.employee) {
-      const allowedIds = filter.employee.$in;
-      const isAllowed = allowedIds.some(
-        (id) => String(id) === String(employee),
-      );
-
-      if (!isAllowed) {
-        return [];
-      }
     }
 
     filter.employee = employee;
@@ -168,41 +182,43 @@ export async function getBonusesService(query, areaScope = {}) {
     };
   }
 
-  if (fromDate && toDate) {
-    if (new Date(fromDate) > new Date(toDate)) {
-      throw new ApiError(400, "From date cannot be after to date");
-    }
+  if (
+    fromDate &&
+    toDate &&
+    getDateRange(fromDate) > getDateRange(toDate, true)
+  ) {
+    throw new ApiError(400, "From date cannot be after to date");
   }
 
-  // Search employees by employee ID or name.
-  if (search && search.trim()) {
+  if (typeof search === "string" && search.trim()) {
+    // Escape regex special characters so user input is treated as text.
+    const searchTerm = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    // Search only employees in the selected area.
     const matchingEmployees = await Employee.find({
+      area: filter.area,
       $or: [
-        { empId: { $regex: search.trim(), $options: "i" } },
-        { name: { $regex: search.trim(), $options: "i" } },
+        { empId: { $regex: searchTerm, $options: "i" } },
+        { name: { $regex: searchTerm, $options: "i" } },
       ],
     }).distinct("_id");
 
-    if (filter.employee) {
-      const currentIds = filter.employee.$in
-        ? filter.employee.$in
-        : [filter.employee];
+    if (!matchingEmployees.length) return [];
 
-      const matchingIds = matchingEmployees.filter((id) =>
-        currentIds.some((currentId) => String(currentId) === String(id)),
+    if (filter.employee) {
+      const matches = matchingEmployees.some(
+        (id) => normalizeId(id) === normalizeId(filter.employee),
       );
 
-      filter.employee = { $in: matchingIds };
+      if (!matches) return [];
     } else {
       filter.employee = { $in: matchingEmployees };
     }
   }
 
-  return Bonus.find(filter)
-    .sort({ bonusDate: -1, createdAt: -1 })
-    .populate("employee", "empId name fatherName designation")
-    .populate("createdBy", "name")
-    .populate("updatedBy", "name");
+  return populateBonus(
+    Bonus.find(filter).sort({ bonusDate: -1, createdAt: -1 }),
+  );
 }
 
 // GET ONE EMPLOYEE'S BONUSES
@@ -210,6 +226,8 @@ export async function getEmployeeBonusesService(employeeId, areaScope = {}) {
   if (!isValidObjectId(employeeId)) {
     throw new ApiError(400, "Invalid employee ID");
   }
+
+  const scopedAreaId = getScopedAreaId(areaScope);
 
   const employee = await Employee.findById(employeeId).select(
     "_id empId name fatherName designation status area",
@@ -219,17 +237,36 @@ export async function getEmployeeBonusesService(employeeId, areaScope = {}) {
     throw new ApiError(404, "Employee not found");
   }
 
-  if (!hasAreaAccess(employee.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
-  }
+  // Bonus records are filtered by their stored area.
+  const bonuses = await populateBonus(
+    Bonus.find({
+      employee: employeeId,
+      area: scopedAreaId,
+    }).sort({ bonusDate: -1, createdAt: -1 }),
+  );
 
-  const bonuses = await Bonus.find({ employee: employeeId })
-    .sort({ bonusDate: -1, createdAt: -1 })
-    .populate("createdBy", "name")
-    .populate("updatedBy", "name");
+  // Don't reveal an employee from another area unless they have
+  // bonus history stored under the selected area (e.g. they moved).
+  if (normalizeId(employee.area) !== scopedAreaId && !bonuses.length) {
+    throw new ApiError(404, "Employee not found in the selected area");
+  }
 
   return { employee, bonuses };
 }
+
+// Find a bonus using its stored area.
+const findBonusForAccess = async (bonusId, areaScope = {}) => {
+  const bonus = await Bonus.findOne({
+    _id: bonusId,
+    ...getAreaFilter(areaScope),
+  });
+
+  if (!bonus) {
+    throw new ApiError(404, "Bonus not found");
+  }
+
+  return bonus;
+};
 
 // UPDATE BONUS
 export async function updateBonusService(
@@ -242,30 +279,14 @@ export async function updateBonusService(
     throw new ApiError(400, "Invalid bonus ID");
   }
 
-  const bonus = await Bonus.findById(bonusId).populate("employee", "area");
-
-  if (!bonus) {
-    throw new ApiError(404, "Bonus not found");
-  }
-
-  if (!hasAreaAccess(bonus.employee?.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
-  }
+  const bonus = await findBonusForAccess(bonusId, areaScope);
 
   if (bonus.status !== "pending") {
     throw new ApiError(400, "Only pending bonuses can be updated");
   }
 
   if (data.amount !== undefined) {
-    if (
-      !Number.isFinite(data.amount) ||
-      !Number.isInteger(data.amount) ||
-      data.amount <= 0
-    ) {
-      throw new ApiError(400, "Bonus amount must be a positive integer");
-    }
-
-    bonus.amount = data.amount;
+    bonus.amount = validateAmount(data.amount);
   }
 
   if (data.reason !== undefined) {
@@ -289,10 +310,7 @@ export async function updateBonusService(
   bonus.updatedBy = userId;
   await bonus.save();
 
-  return Bonus.findById(bonus._id)
-    .populate("employee", "empId name fatherName designation")
-    .populate("createdBy", "name")
-    .populate("updatedBy", "name");
+  return populateBonus(Bonus.findById(bonus._id));
 }
 
 // CANCEL BONUS
@@ -301,15 +319,7 @@ export async function cancelBonusService(bonusId, userId, areaScope = {}) {
     throw new ApiError(400, "Invalid bonus ID");
   }
 
-  const bonus = await Bonus.findById(bonusId).populate("employee", "area");
-
-  if (!bonus) {
-    throw new ApiError(404, "Bonus not found");
-  }
-
-  if (!hasAreaAccess(bonus.employee?.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
-  }
+  const bonus = await findBonusForAccess(bonusId, areaScope);
 
   if (bonus.status !== "pending") {
     throw new ApiError(400, "Only pending bonuses can be cancelled");
@@ -320,8 +330,5 @@ export async function cancelBonusService(bonusId, userId, areaScope = {}) {
 
   await bonus.save();
 
-  return Bonus.findById(bonus._id)
-    .populate("employee", "empId name fatherName designation")
-    .populate("createdBy", "name")
-    .populate("updatedBy", "name");
+  return populateBonus(Bonus.findById(bonus._id));
 }

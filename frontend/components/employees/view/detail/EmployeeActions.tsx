@@ -14,6 +14,7 @@ import {
 import { useEffect, useId, useRef, useState } from "react";
 
 import { useMe } from "@/hooks/auth/useMe";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
 import DeleteEmployeeButton from "./DeleteEmployeeButton";
 
@@ -26,6 +27,7 @@ interface EmployeeActionsProps {
 
 export default function EmployeeActions({ employee }: EmployeeActionsProps) {
   const { data: me } = useMe();
+  const { getAreaAwareHref } = useSelectedArea();
   const role = me?.user?.role;
 
   const canEditEmployee = ["developer", "admin", "clerk"].includes(role ?? "");
@@ -94,7 +96,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
             >
               {/* Salary */}
               <Link
-                href={`/employees/${employee._id}/salary`}
+                href={getAreaAwareHref(`/employees/${employee._id}/salary`)}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
                 className={menuItemClass}
@@ -105,7 +107,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
 
               {/* Advances */}
               <Link
-                href={`/employees/${employee._id}/advances`}
+                href={getAreaAwareHref(`/employees/${employee._id}/advances`)}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
                 className={menuItemClass}
@@ -116,7 +118,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
 
               {/* Bonuses */}
               <Link
-                href={`/employees/${employee._id}/bonuses`}
+                href={getAreaAwareHref(`/employees/${employee._id}/bonuses`)}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
                 className={menuItemClass}
@@ -127,7 +129,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
 
               {/* Deductions */}
               <Link
-                href={`/employees/${employee._id}/deductions`}
+                href={getAreaAwareHref(`/employees/${employee._id}/deductions`)}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
                 className={menuItemClass}
@@ -138,7 +140,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
 
               {/* Fines */}
               <Link
-                href={`/employees/${employee._id}/fines`}
+                href={getAreaAwareHref(`/employees/${employee._id}/fines`)}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
                 className={menuItemClass}
@@ -148,7 +150,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
               </Link>
 
               <Link
-                href={`/employees/${employee._id}/payroll`}
+                href={getAreaAwareHref(`/employees/${employee._id}/payroll`)}
                 onClick={() => setFinanceOpen(false)}
                 role="menuitem"
                 className={menuItemClass}
@@ -163,7 +165,7 @@ export default function EmployeeActions({ employee }: EmployeeActionsProps) {
         {/* Edit */}
         {canEditEmployee && (
           <Link
-            href={`/employees/${employee._id}/edit`}
+            href={getAreaAwareHref(`/employees/${employee._id}/edit`)}
             className={buttonClass}
           >
             <Pencil className="h-4 w-4 shrink-0" />

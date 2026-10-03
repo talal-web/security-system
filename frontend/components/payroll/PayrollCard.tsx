@@ -5,6 +5,7 @@ import { ChevronRight, Eye } from "lucide-react";
 import PayrollActions from "./PayrollActions";
 import PayrollStatusBadge from "./PayrollStatusBadge";
 import type { Payroll } from "@/types/payroll";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
 const employeeName = (payroll: Payroll) =>
   typeof payroll.employee === "string" ? "Employee" : payroll.employee.name;
@@ -17,6 +18,8 @@ export default function PayrollCard({
   payroll: Payroll;
   canManage?: boolean;
 }) {
+  const { getAreaAwareHref } = useSelectedArea();
+
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
@@ -42,7 +45,7 @@ export default function PayrollCard({
           </p>
         </div>
         <Link
-          href={`/payroll/${payroll._id}`}
+          href={getAreaAwareHref(`/payroll/${payroll._id}`)}
           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
         >
           <Eye className="h-3.5 w-3.5" />

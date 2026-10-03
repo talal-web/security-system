@@ -23,13 +23,15 @@ import type {
 export const advanceKeys = {
   all: ["advances"] as const,
 
-  lists: () => [...advanceKeys.all, "list"] as const,
+  area: (areaId: string) => [...advanceKeys.all, areaId] as const,
 
-  list: (filters?: AdvanceFilters) =>
-    [...advanceKeys.lists(), filters ?? {}] as const,
+  lists: (areaId: string) => [...advanceKeys.area(areaId), "list"] as const,
 
-  employee: (employeeId: string) =>
-    [...advanceKeys.all, "employee", employeeId] as const,
+  list: (areaId: string, filters?: AdvanceFilters) =>
+    [...advanceKeys.lists(areaId), filters ?? {}] as const,
+
+  employee: (areaId: string, employeeId: string) =>
+    [...advanceKeys.area(areaId), "employee", employeeId] as const,
 };
 
 // ======================================
@@ -40,12 +42,15 @@ export function useAdvances(filters?: AdvanceFilters) {
   const { selectedAreaId } = useSelectedArea();
   const effectiveFilters = {
     ...filters,
-    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+    area: selectedAreaId ?? undefined,
   };
 
   return useQuery({
-    queryKey: advanceKeys.list(effectiveFilters),
+    queryKey: selectedAreaId
+      ? advanceKeys.list(selectedAreaId, effectiveFilters)
+      : [...advanceKeys.all, "disabled", "list"],
     queryFn: () => getAdvances(effectiveFilters),
+    enabled: !!selectedAreaId,
   });
 }
 
@@ -54,14 +59,17 @@ export function useAdvances(filters?: AdvanceFilters) {
 // ======================================
 
 export function useEmployeeAdvances(employeeId?: string) {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: employeeId
-      ? advanceKeys.employee(employeeId)
-      : [...advanceKeys.all, "employee", "disabled"],
+    queryKey:
+      employeeId && selectedAreaId
+        ? advanceKeys.employee(selectedAreaId, employeeId)
+        : [...advanceKeys.all, "employee", "disabled"],
 
-    queryFn: () => getEmployeeAdvances(employeeId!),
+    queryFn: () => getEmployeeAdvances(employeeId!, selectedAreaId!),
 
-    enabled: !!employeeId,
+    enabled: !!employeeId && !!selectedAreaId,
   });
 }
 
@@ -71,17 +79,21 @@ export function useEmployeeAdvances(employeeId?: string) {
 
 export function useCreateAdvance() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payload: CreateAdvancePayload) => createAdvance(payload),
+    mutationFn: (payload: CreateAdvancePayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return createAdvance(payload, selectedAreaId);
+    },
 
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: advanceKeys.lists(),
+        queryKey: advanceKeys.lists(selectedAreaId!),
       });
 
       queryClient.invalidateQueries({
-        queryKey: advanceKeys.employee(variables.employee),
+        queryKey: advanceKeys.employee(selectedAreaId!, variables.employee),
       });
     },
   });
@@ -93,6 +105,7 @@ export function useCreateAdvance() {
 
 export function useUpdateAdvance(employeeId?: string) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
     mutationFn: ({
@@ -101,16 +114,19 @@ export function useUpdateAdvance(employeeId?: string) {
     }: {
       advanceId: string;
       data: UpdateAdvancePayload;
-    }) => updateAdvance(advanceId, data),
+    }) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateAdvance(advanceId, data, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: advanceKeys.lists(),
+        queryKey: advanceKeys.lists(selectedAreaId!),
       });
 
       if (employeeId) {
         queryClient.invalidateQueries({
-          queryKey: advanceKeys.employee(employeeId),
+          queryKey: advanceKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },
@@ -123,18 +139,22 @@ export function useUpdateAdvance(employeeId?: string) {
 
 export function useCancelAdvance(employeeId?: string) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (advanceId: string) => cancelAdvance(advanceId),
+    mutationFn: (advanceId: string) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return cancelAdvance(advanceId, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: advanceKeys.lists(),
+        queryKey: advanceKeys.lists(selectedAreaId!),
       });
 
       if (employeeId) {
         queryClient.invalidateQueries({
-          queryKey: advanceKeys.employee(employeeId),
+          queryKey: advanceKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },

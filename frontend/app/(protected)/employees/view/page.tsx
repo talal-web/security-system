@@ -9,10 +9,12 @@ import EmployeeFilters from "@/components/employees/EmployeeFilters";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 
 import { useEmployeeDirectory } from "@/hooks/employee/useEmployeeDirectory";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { exportEmployeesDirectory } from "@/utils/export/employee/allEmployeeExport/EmployeesDirectory";
 
 export default function EmployeesPage() {
   const [exporting, setExporting] = useState(false);
+  const { getAreaAwareHref } = useSelectedArea();
 
   const {
     filters,
@@ -161,7 +163,7 @@ export default function EmployeesPage() {
 
               {/* ADD EMPLOYEE */}
               <Link
-                href="/employees/create"
+                href={getAreaAwareHref("/employees/create")}
                 title="Add Employee"
                 aria-label="Add Employee"
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white transition hover:bg-orange-700 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-3"

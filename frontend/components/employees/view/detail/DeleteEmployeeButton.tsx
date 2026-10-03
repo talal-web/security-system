@@ -7,6 +7,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { useDeleteEmployee } from "@/hooks/employee/useDeleteEmployee";
 
 type Props = {
@@ -15,12 +16,13 @@ type Props = {
 
 export default function DeleteEmployeeButton({ employeeId }: Props) {
   const router = useRouter();
+  const { selectedAreaId, getAreaAwareHref } = useSelectedArea();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { removeEmployee, isLoading } = useDeleteEmployee({
     onSuccess: () => {
       toast.success("Employee deleted successfully.");
-      router.push("/employees");
+      router.push(getAreaAwareHref("/employees"));
     },
 
     onError: (message) => {
@@ -39,7 +41,7 @@ export default function DeleteEmployeeButton({ employeeId }: Props) {
       <button
         type="button"
         onClick={() => setConfirmOpen(true)}
-        disabled={isLoading}
+        disabled={isLoading || !selectedAreaId}
         className="
           inline-flex h-9 w-full items-center justify-center gap-1.5
           rounded-lg border border-red-200 bg-red-50 px-3

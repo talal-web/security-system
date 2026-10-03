@@ -2,13 +2,13 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
-  useState,
   type ReactNode,
 } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useAreas } from "@/hooks/area/useArea";
 import { useMe } from "@/hooks/auth/useMe";
@@ -20,104 +20,205 @@ interface AreaContextValue {
   availableAreas: Area[];
   selectedAreaId: string | null;
   selectedArea: Area | null;
+  isAreaLoading: boolean;
   setSelectedAreaId: (areaId: string | null) => void;
   getAreaAwareHref: (path: string) => string;
 }
 
 const AreaContext = createContext<AreaContextValue | null>(null);
 
+// ======================================
+// Safe localStorage helpers
+// ======================================
+
+// localStorage doesn't exist during server rendering, and can be
+// blocked in the browser (private mode, settings), so every access
+// is guarded.
+const getStoredAreaId = (): string | null => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const setStoredAreaId = (areaId: string | null) => {
+  if (typeof window === "undefined") return;
+
+  try {
+    if (areaId) {
+      localStorage.setItem(STORAGE_KEY, areaId);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  } catch {
+    // Ignore: the selection still works through the URL.
+  }
+};
+
 function buildAreaAwareUrl(path: string, areaId: string | null) {
   if (!path) return path;
 
-  if (!areaId) {
-    return path;
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const [pathAndQuery, hash = ""] = cleanPath.split("#");
+  const [pathname, search = ""] = pathAndQuery.split("?");
+
+  const params = new URLSearchParams(search);
+
+  if (areaId) {
+    params.set("area", areaId);
+  } else {
+    params.delete("area");
   }
 
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  const [pathname, search = ""] = cleanPath.split("?");
-  const params = new URLSearchParams(search);
-  params.set("area", areaId);
+  const query = params.toString();
 
-  const queryString = params.toString();
-  return queryString ? `${pathname}?${queryString}` : pathname;
+  return `${pathname}${query ? `?${query}` : ""}${hash ? `#${hash}` : ""}`;
 }
 
 export function AreaProvider({ children }: { children: ReactNode }) {
-  const { data: meData } = useMe();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data: allAreas = [] } = useAreas({ isActive: true });
 
-  const userRole = meData?.user?.role;
-  const userAreaIds = meData?.user?.areas ?? [];
+  const { data: meData, isPending: isMePending, isError: isMeError } = useMe();
+
+  const {
+    data: allAreas = [],
+    isPending: isAreasPending,
+    isError: isAreasError,
+  } = useAreas({ isActive: true });
+
+  const user = meData?.user;
+  const userRole = user?.role;
+  const userAreaIds = user?.areas ?? [];
+
+  const userAreaKey = userAreaIds.map(String).sort().join(",");
 
   const availableAreas = useMemo(() => {
-    if (!allAreas.length) return [];
+    if (!user) return [];
 
     if (userRole === "admin" || userRole === "developer") {
       return allAreas;
     }
 
-    return allAreas.filter((area) => userAreaIds.includes(area._id));
-  }, [allAreas, userAreaIds, userRole]);
+    const assignedIds = new Set(userAreaKey.split(",").filter(Boolean));
 
-  const [selectedAreaId, setSelectedAreaIdState] = useState<string | null>(
-    null,
+    return allAreas.filter((area) => assignedIds.has(String(area._id)));
+  }, [allAreas, user, userRole, userAreaKey]);
+
+  const routeAreaId = searchParams.get("area");
+
+  const isAllowed = useCallback(
+    (id: string | null) =>
+      !!id && availableAreas.some((area) => String(area._id) === id),
+    [availableAreas],
   );
 
+  // Only read storage once areas are loaded, so it's always checked
+  // against a real list (and never during server rendering).
+  const storedAreaId = availableAreas.length ? getStoredAreaId() : null;
+
+  // Selection order:
+  // 1. URL ?area=, if the user may use it
+  // 2. Last-used area from localStorage, if still allowed
+  // 3. First available area
+  const selectedAreaId = isAllowed(routeAreaId)
+    ? routeAreaId
+    : isAllowed(storedAreaId)
+      ? storedAreaId
+      : availableAreas.length
+        ? String(availableAreas[0]._id)
+        : null;
+
+  const selectedArea =
+    availableAreas.find((area) => String(area._id) === selectedAreaId) ?? null;
+
+  const isAreaLoading = isMePending || (!isMeError && isAreasPending);
+
+  // Keep the browser's stored selection synchronized.
   useEffect(() => {
-    if (!availableAreas.length) {
-      setSelectedAreaIdState(null);
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
+    if (isAreaLoading || isAreasError || isMeError) return;
+
+    if (!user || !selectedAreaId) {
+      setStoredAreaId(null);
       return;
     }
 
-    const routeAreaId = searchParams.get("area");
-    const storedAreaId =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem(STORAGE_KEY)
-        : null;
+    setStoredAreaId(selectedAreaId);
+  }, [isAreaLoading, isAreasError, isMeError, user, selectedAreaId]);
 
-    const preferredAreaId =
-      routeAreaId && availableAreas.some((area) => area._id === routeAreaId)
-        ? routeAreaId
-        : storedAreaId &&
-            availableAreas.some((area) => area._id === storedAreaId)
-          ? storedAreaId
-          : availableAreas[0]._id;
-
-    setSelectedAreaIdState(preferredAreaId);
-
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, preferredAreaId);
+  // Correct missing or invalid URL selections.
+  useEffect(() => {
+    if (isAreaLoading || isAreasError || isMeError || !user) {
+      return;
     }
-  }, [availableAreas, searchParams]);
 
-  const setSelectedAreaId = (areaId: string | null) => {
-    setSelectedAreaIdState(areaId);
+    if (routeAreaId === selectedAreaId) return;
 
-    if (typeof window !== "undefined") {
-      if (areaId) {
-        window.localStorage.setItem(STORAGE_KEY, areaId);
-      } else {
-        window.localStorage.removeItem(STORAGE_KEY);
+    const currentQuery = searchParams.toString();
+    const currentPath = currentQuery ? `${pathname}?${currentQuery}` : pathname;
+
+    router.replace(buildAreaAwareUrl(currentPath, selectedAreaId), {
+      scroll: false,
+    });
+  }, [
+    isAreaLoading,
+    isAreasError,
+    isMeError,
+    user,
+    routeAreaId,
+    selectedAreaId,
+    pathname,
+    router,
+    searchParams,
+  ]);
+
+  const setSelectedAreaId = useCallback(
+    (areaId: string | null) => {
+      if (areaId !== null && !isAllowed(areaId)) {
+        console.warn("Selected area is not available to this user.");
+        return;
       }
-    }
-  };
 
-  const selectedArea =
-    availableAreas.find((area) => area._id === selectedAreaId) ?? null;
+      // Update storage right away so passing null ("reset") doesn't
+      // snap back to the previously stored area.
+      setStoredAreaId(areaId);
+
+      const currentQuery = searchParams.toString();
+      const currentPath = currentQuery
+        ? `${pathname}?${currentQuery}`
+        : pathname;
+
+      router.replace(buildAreaAwareUrl(currentPath, areaId), { scroll: false });
+    },
+    [isAllowed, pathname, router, searchParams],
+  );
+
+  const getAreaAwareHref = useCallback(
+    (path: string) => buildAreaAwareUrl(path, selectedAreaId),
+    [selectedAreaId],
+  );
 
   const value = useMemo<AreaContextValue>(
     () => ({
       availableAreas,
       selectedAreaId,
       selectedArea,
+      isAreaLoading,
       setSelectedAreaId,
-      getAreaAwareHref: (path) => buildAreaAwareUrl(path, selectedAreaId),
+      getAreaAwareHref,
     }),
-    [availableAreas, selectedArea, selectedAreaId],
+    [
+      availableAreas,
+      selectedAreaId,
+      selectedArea,
+      isAreaLoading,
+      setSelectedAreaId,
+      getAreaAwareHref,
+    ],
   );
 
   return <AreaContext.Provider value={value}>{children}</AreaContext.Provider>;

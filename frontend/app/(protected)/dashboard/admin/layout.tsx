@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { useMe } from "@/hooks/auth/useMe";
 
 export default function AdminLayout({
@@ -10,15 +11,21 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { data, isLoading } = useMe();
+  const searchParams = useSearchParams();
 
+  const { data, isLoading } = useMe();
   const role = data?.user?.role;
+
+  const query = searchParams.toString();
+  const unauthorizedUrl = query
+    ? `/dashboard/unauthorized?${query}`
+    : "/dashboard/unauthorized";
 
   useEffect(() => {
     if (!isLoading && role !== "admin" && role !== "developer") {
-      router.replace("/dashboard/unauthorized");
+      router.replace(unauthorizedUrl);
     }
-  }, [isLoading, role, router]);
+  }, [isLoading, role, router, unauthorizedUrl]);
 
   if (isLoading) {
     return (

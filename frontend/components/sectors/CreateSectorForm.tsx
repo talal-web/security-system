@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -46,7 +46,7 @@ export default function CreateSectorForm() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<SectorFormInput, unknown, SectorFormData>({
@@ -58,6 +58,7 @@ export default function CreateSectorForm() {
       description: "",
     },
   });
+  const area = useWatch({ control, name: "area" });
 
   const onSubmit = (data: SectorFormData) => {
     const payload: CreateSectorPayload = {
@@ -87,7 +88,7 @@ export default function CreateSectorForm() {
           showLabel={true}
           label="Area"
           placeholder="Select an area"
-          value={watch("area") ?? ""}
+          value={area ?? ""}
           onChange={(event) => setValue("area", event.target.value)}
           className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"
         />

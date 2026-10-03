@@ -5,29 +5,33 @@ import ApiError from "../../utils/ApiError.js";
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const hasAreaAccess = (employeeArea, areaScope = {}) => {
-  if (!employeeArea) return false;
-  if (areaScope.isAdmin) return true;
+/**
+ * Get the single area selected and validated by enforceAreaScope.
+ */
+const getAreaId = (areaScope = {}) => {
+  const areaId = areaScope.areaId;
 
-  return (areaScope.permittedAreaIds || []).some(
-    (id) => String(id) === String(employeeArea),
-  );
-};
-
-const getScopedEmployeeIds = async (areaScope = {}) => {
-  if (areaScope.isAdmin) return null;
-
-  const permitted = areaScope.permittedAreaIds || [];
-
-  if (!permitted.length) {
-    throw new ApiError(403, "Unauthorized area access");
+  if (!areaId || !isValidObjectId(areaId)) {
+    throw new ApiError(403, "Valid area scope is required");
   }
 
-  const employees = await Employee.find({
-    area: { $in: permitted },
-  }).select("_id");
+  return String(areaId);
+};
 
-  return employees.map((employee) => employee._id);
+/**
+ * Always scope Fine queries to the selected area.
+ *
+ * IMPORTANT:
+ * Admin/developer status does NOT remove the area filter.
+ * They can select any area through middleware, but once selected,
+ * every operation remains restricted to that area.
+ */
+const getFineAreaFilter = (areaScope = {}) => {
+  const areaId = getAreaId(areaScope);
+
+  return {
+    area: new mongoose.Types.ObjectId(areaId),
+  };
 };
 
 const validateFineAmount = (amount) => {
@@ -61,17 +65,41 @@ const validateFineDate = (value) => {
 
 const populateFine = (query) =>
   query
-    .populate("employee", "empId name fatherName designation status")
+    .populate("employee", "empId name fatherName designation status area")
+    .populate("area", "name")
     .populate("createdBy", "name userId")
     .populate("updatedBy", "name userId");
 
+/**
+ * Ensure employee belongs to the currently selected area.
+ */
+const findEmployeeInArea = async (employeeId, areaScope) => {
+  if (!isValidObjectId(employeeId)) {
+    throw new ApiError(400, "Valid employee ID is required");
+  }
+
+  const areaId = getAreaId(areaScope);
+
+  const employee = await Employee.findOne({
+    _id: employeeId,
+    area: areaId,
+  }).select("_id empId name fatherName designation status area");
+
+  if (!employee) {
+    throw new ApiError(404, "Employee not found in selected area");
+  }
+
+  return employee;
+};
+
+// ======================================
 // CREATE
+// ======================================
+
 export const createFineService = async (data, user, areaScope) => {
   const { employee, amount, fineDate, reason } = data;
 
-  if (!employee || !isValidObjectId(employee)) {
-    throw new ApiError(400, "Valid employee ID is required");
-  }
+  const areaId = getAreaId(areaScope);
 
   const fineAmount = validateFineAmount(amount);
 
@@ -82,16 +110,15 @@ export const createFineService = async (data, user, areaScope) => {
   const parsedDate =
     fineDate === undefined ? new Date() : validateFineDate(fineDate);
 
-  const existingEmployee = await Employee.findById(employee).select(
-    "_id empId name fatherName designation status area",
-  );
+  // Employee MUST belong to the selected area.
+  const existingEmployee = await findEmployeeInArea(employee, areaScope);
 
-  if (!existingEmployee) {
-    throw new ApiError(404, "Employee not found");
+  if (!existingEmployee.area) {
+    throw new ApiError(400, "Employee has no assigned area");
   }
 
-  if (!hasAreaAccess(existingEmployee.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
+  if (String(existingEmployee.area) !== areaId) {
+    throw new ApiError(403, "Employee does not belong to the selected area");
   }
 
   if (existingEmployee.status !== "active") {
@@ -99,7 +126,8 @@ export const createFineService = async (data, user, areaScope) => {
   }
 
   const fine = await Fine.create({
-    employee,
+    employee: existingEmployee._id,
+    area: areaId,
     amount: fineAmount,
     remainingAmount: fineAmount,
     fineDate: parsedDate,
@@ -111,35 +139,27 @@ export const createFineService = async (data, user, areaScope) => {
   return populateFine(Fine.findById(fine._id));
 };
 
+// ======================================
 // GET ALL
-export const getFinesService = async (query, areaScope) => {
+// ======================================
+
+export const getFinesService = async (query = {}, areaScope) => {
   const { employee, status, fromDate, toDate, search } = query;
-  const filter = {};
 
-  const scopedIds = await getScopedEmployeeIds(areaScope);
+  // Area ALWAYS comes from middleware.
+  const filter = {
+    ...getFineAreaFilter(areaScope),
+  };
 
-  if (scopedIds !== null) {
-    filter.employee = { $in: scopedIds };
-  }
-
-  if (employee !== undefined) {
+  if (employee !== undefined && employee !== "") {
     if (!isValidObjectId(employee)) {
       throw new ApiError(400, "Invalid employee ID");
-    }
-
-    const requestedId = String(employee);
-
-    if (
-      scopedIds !== null &&
-      !scopedIds.some((id) => String(id) === requestedId)
-    ) {
-      return [];
     }
 
     filter.employee = employee;
   }
 
-  if (status !== undefined) {
+  if (status !== undefined && status !== "") {
     const allowedStatuses = [
       "pending",
       "partially_deducted",
@@ -153,6 +173,10 @@ export const getFinesService = async (query, areaScope) => {
 
     filter.status = status;
   }
+
+  // ======================================
+  // Date filter
+  // ======================================
 
   if (fromDate || toDate) {
     filter.fineDate = {};
@@ -176,8 +200,17 @@ export const getFinesService = async (query, areaScope) => {
 
       filter.fineDate.$lte = end;
     }
+
+    if (
+      filter.fineDate.$gte &&
+      filter.fineDate.$lte &&
+      filter.fineDate.$gte > filter.fineDate.$lte
+    ) {
+      throw new ApiError(400, "fromDate cannot be after toDate");
+    }
   } else {
     const today = new Date();
+
     const fromMonth =
       today.getDate() >= 10 ? today.getMonth() : today.getMonth() - 1;
 
@@ -187,87 +220,115 @@ export const getFinesService = async (query, areaScope) => {
     };
   }
 
+  // ======================================
+  // Employee search
+  // ======================================
+
   if (search?.trim()) {
     const term = search.trim();
 
-    const matchingEmployees = await Employee.find({
+    const employeeFilter = {
+      area: getAreaId(areaScope),
       $or: [
         { empId: { $regex: term, $options: "i" } },
         { name: { $regex: term, $options: "i" } },
       ],
-      ...(scopedIds !== null ? { _id: { $in: scopedIds } } : {}),
-      ...(employee !== undefined ? { _id: employee } : {}),
-    }).select("_id");
+    };
+
+    if (employee !== undefined && employee !== "") {
+      employeeFilter._id = employee;
+    }
+
+    // Search employees ONLY inside selected area.
+    const matchingEmployees = await Employee.find(employeeFilter).select("_id");
 
     const matchingIds = matchingEmployees.map((entry) => entry._id);
 
-    if (filter.employee && !Array.isArray(filter.employee.$in)) {
+    if (!matchingIds.length) {
+      return [];
+    }
+
+    if (filter.employee) {
       if (!matchingIds.some((id) => String(id) === String(filter.employee))) {
         return [];
       }
-      filter.employee = { $in: matchingIds };
     } else {
-      const existingIds = filter.employee?.$in;
-
-      filter.employee = {
-        $in: existingIds
-          ? matchingIds.filter((id) =>
-              existingIds.some((existing) => String(existing) === String(id)),
-            )
-          : matchingIds,
-      };
+      filter.employee = { $in: matchingIds };
     }
   }
 
-  return populateFine(Fine.find(filter).sort({ fineDate: -1, createdAt: -1 }));
+  return populateFine(
+    Fine.find(filter).sort({
+      fineDate: -1,
+      createdAt: -1,
+    }),
+  );
 };
 
+// ======================================
 // EMPLOYEE HISTORY
-export const getEmployeeFinesService = async (employeeId, areaScope) => {
+// ======================================
+
+export const getEmployeeFinesService = async (
+  employeeId,
+  areaScope,
+  query = {},
+) => {
   if (!isValidObjectId(employeeId)) {
     throw new ApiError(400, "Invalid employee ID");
   }
 
-  const employee = await Employee.findById(employeeId).select(
-    "_id empId name fatherName designation status area",
-  );
+  // Employee MUST belong to selected area.
+  const employee = await findEmployeeInArea(employeeId, areaScope);
 
-  if (!employee) {
-    throw new ApiError(404, "Employee not found");
-  }
+  const areaFilter = getFineAreaFilter(areaScope);
 
-  if (!hasAreaAccess(employee.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
-  }
-
-  const fines = await Fine.find({ employee: employeeId })
-    .sort({ fineDate: -1, createdAt: -1 })
+  const fines = await Fine.find({
+    employee: employeeId,
+    ...areaFilter,
+  })
+    .sort({
+      fineDate: -1,
+      createdAt: -1,
+    })
+    .populate("area", "name")
     .populate("createdBy", "name userId")
     .populate("updatedBy", "name userId");
 
-  return { employee, fines };
+  return {
+    employee,
+    fines,
+  };
 };
 
+// ======================================
 // SHARED LOOKUP
+// ======================================
+
 const findFineForAccess = async (id, areaScope) => {
   if (!isValidObjectId(id)) {
     throw new ApiError(400, "Invalid fine ID");
   }
 
-  const fine = await Fine.findById(id).populate("employee", "area");
+  const areaFilter = getFineAreaFilter(areaScope);
+
+  // Fine MUST belong to selected area.
+  const fine = await Fine.findOne({
+    _id: id,
+    ...areaFilter,
+  }).populate("employee", "empId name area");
 
   if (!fine) {
-    throw new ApiError(404, "Fine not found");
-  }
-
-  if (!hasAreaAccess(fine.employee?.area, areaScope)) {
-    throw new ApiError(403, "Unauthorized area access");
+    throw new ApiError(404, "Fine not found in selected area");
   }
 
   return fine;
 };
 
+// ======================================
 // UPDATE
+// ======================================
+
 export const updateFineService = async (id, data, user, areaScope) => {
   const fine = await findFineForAccess(id, areaScope);
 
@@ -297,13 +358,18 @@ export const updateFineService = async (id, data, user, areaScope) => {
     fine.reason = reason.trim();
   }
 
+  // Area is intentionally NOT taken from request data.
   fine.updatedBy = user.id;
+
   await fine.save();
 
   return populateFine(Fine.findById(fine._id));
 };
 
+// ======================================
 // CANCEL
+// ======================================
+
 export const cancelFineService = async (id, user, areaScope) => {
   const fine = await findFineForAccess(id, areaScope);
 
@@ -313,6 +379,7 @@ export const cancelFineService = async (id, user, areaScope) => {
 
   fine.status = "cancelled";
   fine.updatedBy = user.id;
+
   await fine.save();
 
   return populateFine(Fine.findById(fine._id));

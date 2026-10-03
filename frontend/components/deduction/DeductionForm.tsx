@@ -18,6 +18,7 @@ import {
   useUpdateDeduction,
 } from "@/hooks/deduction/useDeduction";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { lookupEmployee } from "@/services/employee.service";
 import { formatText } from "@/utils/employee/employeeFormat";
 
@@ -38,6 +39,7 @@ export default function DeductionForm({
   onSuccess,
   onCancel,
 }: DeductionFormProps) {
+  const { selectedAreaId } = useSelectedArea();
   const isEditing = Boolean(deduction);
 
   const createDeductionMutation = useCreateDeduction();
@@ -99,6 +101,11 @@ export default function DeductionForm({
   const handleLookup = async () => {
     const trimmed = searchEmpId.trim();
 
+    if (!selectedAreaId) {
+      setLookupError("No area is selected.");
+      return;
+    }
+
     if (!trimmed) {
       setLookupError("Please enter an Employee ID (e.g. BSS-0001).");
       return;
@@ -109,7 +116,7 @@ export default function DeductionForm({
     setFormError("");
 
     try {
-      const employee = await lookupEmployee(trimmed);
+      const employee = await lookupEmployee(trimmed, selectedAreaId);
 
       setSelectedEmployee(employee);
       setSelectedEmployeeId(employee._id);

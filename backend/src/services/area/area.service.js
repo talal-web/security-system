@@ -2,7 +2,7 @@ import Area from "../../models/Area.js";
 import Employee from "../../models/Employee.js";
 import Sector from "../../models/Sector.js";
 import ApiError from "../../utils/ApiError.js";
-
+import { getPermittedAreaIds } from "../../utils/areaScope.js";
 // ======================================
 // Create Area
 // ======================================
@@ -43,7 +43,11 @@ export const createAreaService = async ({ name, description }) => {
 // Get All Areas
 // ======================================
 
-export const getAreasService = async ({ search, isActive } = {}) => {
+// ======================================
+// Get All Areas
+// ======================================
+
+export const getAreasService = async ({ search, isActive } = {}, user) => {
   const query = {};
 
   if (search?.trim()) {
@@ -57,9 +61,15 @@ export const getAreasService = async ({ search, isActive } = {}) => {
     query.isActive = isActive === "true";
   }
 
-  const areas = await Area.find(query).sort({ sortOrder: 1, name: 1 }).lean();
+  // Admins/developers can view all areas matching the filters.
+  // Other roles are restricted to their permitted areas.
+  if (user?.role !== "admin" && user?.role !== "developer") {
+    const permittedIds = getPermittedAreaIds(user);
 
-  return areas;
+    query._id = { $in: permittedIds };
+  }
+
+  return Area.find(query).sort({ sortOrder: 1, name: 1 }).lean();
 };
 
 // ======================================

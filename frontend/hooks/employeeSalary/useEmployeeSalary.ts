@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import {
   createEmployeeSalary,
   getCurrentEmployeeSalary,
@@ -19,11 +20,13 @@ import type {
 export const employeeSalaryKeys = {
   all: ["employee-salary"] as const,
 
-  current: (employeeId: string) =>
-    [...employeeSalaryKeys.all, "current", employeeId] as const,
+  area: (areaId: string) => [...employeeSalaryKeys.all, areaId] as const,
 
-  history: (employeeId: string) =>
-    [...employeeSalaryKeys.all, "history", employeeId] as const,
+  current: (areaId: string, employeeId: string) =>
+    [...employeeSalaryKeys.area(areaId), "current", employeeId] as const,
+
+  history: (areaId: string, employeeId: string) =>
+    [...employeeSalaryKeys.area(areaId), "history", employeeId] as const,
 };
 
 // ======================================
@@ -31,14 +34,17 @@ export const employeeSalaryKeys = {
 // ======================================
 
 export function useCurrentEmployeeSalary(employeeId?: string) {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: employeeId
-      ? employeeSalaryKeys.current(employeeId)
-      : [...employeeSalaryKeys.all, "current", "disabled"],
+    queryKey:
+      employeeId && selectedAreaId
+        ? employeeSalaryKeys.current(selectedAreaId, employeeId)
+        : [...employeeSalaryKeys.all, "current", "disabled"],
 
-    queryFn: () => getCurrentEmployeeSalary(employeeId!),
+    queryFn: () => getCurrentEmployeeSalary(employeeId!, selectedAreaId!),
 
-    enabled: !!employeeId,
+    enabled: !!employeeId && !!selectedAreaId,
   });
 }
 
@@ -47,14 +53,17 @@ export function useCurrentEmployeeSalary(employeeId?: string) {
 // ======================================
 
 export function useEmployeeSalaryHistory(employeeId?: string) {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: employeeId
-      ? employeeSalaryKeys.history(employeeId)
-      : [...employeeSalaryKeys.all, "history", "disabled"],
+    queryKey:
+      employeeId && selectedAreaId
+        ? employeeSalaryKeys.history(selectedAreaId, employeeId)
+        : [...employeeSalaryKeys.all, "history", "disabled"],
 
-    queryFn: () => getEmployeeSalaryHistory(employeeId!),
+    queryFn: () => getEmployeeSalaryHistory(employeeId!, selectedAreaId!),
 
-    enabled: !!employeeId,
+    enabled: !!employeeId && !!selectedAreaId,
   });
 }
 
@@ -64,18 +73,27 @@ export function useEmployeeSalaryHistory(employeeId?: string) {
 
 export function useCreateEmployeeSalary() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payload: CreateEmployeeSalaryPayload) =>
-      createEmployeeSalary(payload),
+    mutationFn: (payload: CreateEmployeeSalaryPayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return createEmployeeSalary(payload, selectedAreaId);
+    },
 
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: employeeSalaryKeys.current(variables.employee),
+        queryKey: employeeSalaryKeys.current(
+          selectedAreaId!,
+          variables.employee,
+        ),
       });
 
       queryClient.invalidateQueries({
-        queryKey: employeeSalaryKeys.history(variables.employee),
+        queryKey: employeeSalaryKeys.history(
+          selectedAreaId!,
+          variables.employee,
+        ),
       });
     },
   });
@@ -87,6 +105,7 @@ export function useCreateEmployeeSalary() {
 
 export function useUpdateEmployeeSalary(employeeId?: string) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
     mutationFn: ({
@@ -95,17 +114,20 @@ export function useUpdateEmployeeSalary(employeeId?: string) {
     }: {
       salaryId: string;
       data: UpdateEmployeeSalaryPayload;
-    }) => updateEmployeeSalary(salaryId, data),
+    }) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateEmployeeSalary(salaryId, data, selectedAreaId);
+    },
 
     onSuccess: () => {
       if (!employeeId) return;
 
       queryClient.invalidateQueries({
-        queryKey: employeeSalaryKeys.current(employeeId),
+        queryKey: employeeSalaryKeys.current(selectedAreaId!, employeeId),
       });
 
       queryClient.invalidateQueries({
-        queryKey: employeeSalaryKeys.history(employeeId),
+        queryKey: employeeSalaryKeys.history(selectedAreaId!, employeeId),
       });
     },
   });

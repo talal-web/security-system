@@ -14,10 +14,47 @@ const allowedReasons = [
   "other",
 ];
 
+// ======================================
+// Area scope helpers
+// ======================================
+
+// enforceAreaScope has already validated exactly one area.
+// areaScope.areaId is the single source of truth for every query below.
+const getScopedAreaId = (areaScope = {}) => {
+  const areaId = areaScope?.areaId;
+
+  if (typeof areaId !== "string" || !areaId.trim()) {
+    throw new ApiError(400, "Area selection is required");
+  }
+
+  if (!isValidObjectId(areaId)) {
+    throw new ApiError(400, "Invalid area ID");
+  }
+
+  return areaId;
+};
+
+// Salary records have no area of their own, so access follows the
+// employee's current area. Returns 404 to avoid revealing employees
+// in other areas.
+const findEmployeeInScope = async (employeeId, areaScope, select) => {
+  const employee = await Employee.findOne({
+    _id: employeeId,
+    area: getScopedAreaId(areaScope),
+  }).select(select);
+
+  if (!employee) {
+    throw new ApiError(404, "Employee not found");
+  }
+
+  return employee;
+};
+
 const validateSalary = (value) => {
   if (
     value === undefined ||
     value === null ||
+    value === "" ||
     !Number.isFinite(Number(value)) ||
     Number(value) < 0
   ) {
@@ -61,24 +98,39 @@ const populateSalary = (query) =>
     .populate("updatedBy", "name userId");
 
 // CREATE
-export const createEmployeeSalaryService = async (data, userId) => {
-  const { employee, monthlySalary, effectiveFrom, reason, notes } = data;
+export const createEmployeeSalaryService = async (
+  data,
+  userId,
+  areaScope = {},
+) => {
+  const { employee, monthlySalary, effectiveFrom, reason, notes, area } = data;
+
+  const scopedAreaId = getScopedAreaId(areaScope);
 
   if (!employee || !isValidObjectId(employee)) {
     throw new ApiError(400, "Valid employee ID is required");
   }
 
+  // Body area (if sent) must match the selected area.
+  if (area !== undefined && String(area) !== scopedAreaId) {
+    throw new ApiError(400, "Conflicting area selections");
+  }
+
   const salaryAmount = validateSalary(monthlySalary);
   const salaryEffectiveDate = validateEffectiveDate(effectiveFrom, true);
 
-  const existingEmployee = await Employee.findById(employee);
-
-  if (!existingEmployee) {
-    throw new ApiError(404, "Employee not found");
+  if (reason && !allowedReasons.includes(reason)) {
+    throw new ApiError(400, "Invalid salary change reason");
   }
 
-  const existingSalary = await EmployeeSalary.findOne({
+  const existingEmployee = await findEmployeeInScope(
     employee,
+    areaScope,
+    "_id",
+  );
+
+  const existingSalary = await EmployeeSalary.findOne({
+    employee: existingEmployee._id,
     effectiveFrom: salaryEffectiveDate,
   });
 
@@ -90,7 +142,7 @@ export const createEmployeeSalaryService = async (data, userId) => {
   }
 
   const salaryCount = await EmployeeSalary.countDocuments({
-    employee,
+    employee: existingEmployee._id,
   });
 
   if (salaryCount === 0 && reason && reason !== "initial_salary") {
@@ -107,42 +159,37 @@ export const createEmployeeSalaryService = async (data, userId) => {
     );
   }
 
-  if (reason && !allowedReasons.includes(reason)) {
-    throw new ApiError(400, "Invalid salary change reason");
-  }
-
   const salary = await EmployeeSalary.create({
-    employee,
+    employee: existingEmployee._id,
     monthlySalary: salaryAmount,
     effectiveFrom: salaryEffectiveDate,
     reason: reason || (salaryCount === 0 ? "initial_salary" : "other"),
-    notes: notes?.trim() || undefined,
+    notes: typeof notes === "string" ? notes.trim() || undefined : undefined,
     createdBy: userId,
   });
 
-  return EmployeeSalary.findById(salary._id)
-    .populate("employee", "empId name fatherName designation")
-    .populate("createdBy", "name userId");
+  return populateSalary(EmployeeSalary.findById(salary._id));
 };
 
 // CURRENT SALARY
-export const getCurrentEmployeeSalaryService = async (employeeId) => {
+export const getCurrentEmployeeSalaryService = async (
+  employeeId,
+  areaScope = {},
+) => {
   if (!isValidObjectId(employeeId)) {
     throw new ApiError(400, "Invalid employee ID");
   }
 
-  const employee = await Employee.findById(employeeId).select(
+  const employee = await findEmployeeInScope(
+    employeeId,
+    areaScope,
     "_id empId name fatherName designation status",
   );
-
-  if (!employee) {
-    throw new ApiError(404, "Employee not found");
-  }
 
   const currentDate = new Date();
 
   const salary = await getSalaryForPayrollMonth(
-    employeeId,
+    employee._id,
     currentDate.getUTCFullYear(),
     currentDate.getUTCMonth() + 1,
   );
@@ -159,21 +206,22 @@ export const getCurrentEmployeeSalaryService = async (employeeId) => {
 };
 
 // SALARY HISTORY
-export const getEmployeeSalaryHistoryService = async (employeeId) => {
+export const getEmployeeSalaryHistoryService = async (
+  employeeId,
+  areaScope = {},
+) => {
   if (!isValidObjectId(employeeId)) {
     throw new ApiError(400, "Invalid employee ID");
   }
 
-  const employee = await Employee.findById(employeeId).select(
+  const employee = await findEmployeeInScope(
+    employeeId,
+    areaScope,
     "_id empId name fatherName designation status",
   );
 
-  if (!employee) {
-    throw new ApiError(404, "Employee not found");
-  }
-
   const salaryHistory = await EmployeeSalary.find({
-    employee: employeeId,
+    employee: employee._id,
   })
     .sort({ effectiveFrom: -1 })
     .populate("createdBy", "name userId")
@@ -183,14 +231,31 @@ export const getEmployeeSalaryHistoryService = async (employeeId) => {
 };
 
 // UPDATE
-export const updateEmployeeSalaryService = async (id, data, userId) => {
+export const updateEmployeeSalaryService = async (
+  id,
+  data,
+  userId,
+  areaScope = {},
+) => {
   if (!isValidObjectId(id)) {
     throw new ApiError(400, "Invalid salary record ID");
   }
 
+  const scopedAreaId = getScopedAreaId(areaScope);
+
   const salary = await EmployeeSalary.findById(id);
 
   if (!salary) {
+    throw new ApiError(404, "Salary record not found");
+  }
+
+  // The salary's employee must currently belong to the selected area.
+  const employeeInScope = await Employee.exists({
+    _id: salary.employee,
+    area: scopedAreaId,
+  });
+
+  if (!employeeInScope) {
     throw new ApiError(404, "Salary record not found");
   }
 
@@ -201,7 +266,22 @@ export const updateEmployeeSalaryService = async (id, data, userId) => {
   }
 
   if (effectiveFrom !== undefined) {
-    salary.effectiveFrom = validateEffectiveDate(effectiveFrom);
+    const newDate = validateEffectiveDate(effectiveFrom);
+
+    const duplicate = await EmployeeSalary.exists({
+      employee: salary.employee,
+      effectiveFrom: newDate,
+      _id: { $ne: salary._id },
+    });
+
+    if (duplicate) {
+      throw new ApiError(
+        409,
+        "A salary record already exists for this effective month",
+      );
+    }
+
+    salary.effectiveFrom = newDate;
   }
 
   if (reason !== undefined) {
@@ -227,8 +307,9 @@ export const updateEmployeeSalaryService = async (id, data, userId) => {
 };
 
 // HELPER USED BY PAYROLL
+// Internal helper: not area-scoped. Callers must already have verified
+// the employee's area access.
 export const getSalaryForPayrollMonth = async (employeeId, year, month) => {
-  const monthStart = new Date(Date.UTC(year, month - 1, 1));
   const nextMonthStart = new Date(Date.UTC(year, month, 1));
 
   return EmployeeSalary.findOne({

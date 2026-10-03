@@ -23,13 +23,15 @@ import type {
 export const deductionKeys = {
   all: ["deductions"] as const,
 
-  lists: () => [...deductionKeys.all, "list"] as const,
+  area: (areaId: string) => [...deductionKeys.all, areaId] as const,
 
-  list: (filters: DeductionFilters = {}) =>
-    [...deductionKeys.lists(), filters] as const,
+  lists: (areaId: string) => [...deductionKeys.area(areaId), "list"] as const,
 
-  employee: (employeeId: string) =>
-    [...deductionKeys.all, "employee", employeeId] as const,
+  list: (areaId: string, filters: DeductionFilters = {}) =>
+    [...deductionKeys.lists(areaId), filters] as const,
+
+  employee: (areaId: string, employeeId: string) =>
+    [...deductionKeys.area(areaId), "employee", employeeId] as const,
 };
 
 // ======================================
@@ -40,12 +42,15 @@ export function useDeductions(filters: DeductionFilters = {}) {
   const { selectedAreaId } = useSelectedArea();
   const effectiveFilters = {
     ...filters,
-    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+    area: selectedAreaId ?? undefined,
   };
 
   return useQuery({
-    queryKey: deductionKeys.list(effectiveFilters),
+    queryKey: selectedAreaId
+      ? deductionKeys.list(selectedAreaId, effectiveFilters)
+      : [...deductionKeys.all, "disabled", "list"],
     queryFn: () => getDeductions(effectiveFilters),
+    enabled: !!selectedAreaId,
   });
 }
 
@@ -54,14 +59,17 @@ export function useDeductions(filters: DeductionFilters = {}) {
 // ======================================
 
 export function useEmployeeDeductions(employeeId?: string) {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: employeeId
-      ? deductionKeys.employee(employeeId)
-      : [...deductionKeys.all, "employee", "disabled"],
+    queryKey:
+      employeeId && selectedAreaId
+        ? deductionKeys.employee(selectedAreaId, employeeId)
+        : [...deductionKeys.all, "employee", "disabled"],
 
-    queryFn: () => getEmployeeDeductions(employeeId!),
+    queryFn: () => getEmployeeDeductions(employeeId!, selectedAreaId!),
 
-    enabled: Boolean(employeeId),
+    enabled: Boolean(employeeId) && !!selectedAreaId,
   });
 }
 
@@ -71,17 +79,21 @@ export function useEmployeeDeductions(employeeId?: string) {
 
 export function useCreateDeduction() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payload: CreateDeductionPayload) => createDeduction(payload),
+    mutationFn: (payload: CreateDeductionPayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return createDeduction(payload, selectedAreaId);
+    },
 
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: deductionKeys.lists(),
+        queryKey: deductionKeys.lists(selectedAreaId!),
       });
 
       queryClient.invalidateQueries({
-        queryKey: deductionKeys.employee(variables.employee),
+        queryKey: deductionKeys.employee(selectedAreaId!, variables.employee),
       });
     },
   });
@@ -93,6 +105,7 @@ export function useCreateDeduction() {
 
 export function useUpdateDeduction(employeeId?: string) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
     mutationFn: ({
@@ -101,16 +114,19 @@ export function useUpdateDeduction(employeeId?: string) {
     }: {
       deductionId: string;
       data: UpdateDeductionPayload;
-    }) => updateDeduction(deductionId, data),
+    }) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateDeduction(deductionId, data, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: deductionKeys.lists(),
+        queryKey: deductionKeys.lists(selectedAreaId!),
       });
 
       if (employeeId) {
         queryClient.invalidateQueries({
-          queryKey: deductionKeys.employee(employeeId),
+          queryKey: deductionKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },
@@ -123,18 +139,22 @@ export function useUpdateDeduction(employeeId?: string) {
 
 export function useCancelDeduction(employeeId?: string) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (deductionId: string) => cancelDeduction(deductionId),
+    mutationFn: (deductionId: string) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return cancelDeduction(deductionId, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: deductionKeys.lists(),
+        queryKey: deductionKeys.lists(selectedAreaId!),
       });
 
       if (employeeId) {
         queryClient.invalidateQueries({
-          queryKey: deductionKeys.employee(employeeId),
+          queryKey: deductionKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },

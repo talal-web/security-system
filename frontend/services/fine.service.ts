@@ -11,9 +11,10 @@ import { getApiErrorMessage } from "@/lib/apiError";
 
 export async function createFine(
   fineData: CreateFinePayload,
+  areaId: string,
 ): Promise<FineResponse> {
   try {
-    const res = await api.post("/fines", fineData);
+    const res = await api.post("/fines", { ...fineData, area: areaId });
 
     return res.data;
   } catch (error) {
@@ -46,9 +47,12 @@ export async function getFines(filters?: FineFilters): Promise<FinesResponse> {
 
 export async function getEmployeeFines(
   employeeId: string,
+  areaId: string,
 ): Promise<EmployeeFinesResponse> {
   try {
-    const res = await api.get(`/fines/employee/${employeeId}`);
+    const res = await api.get(`/fines/employee/${employeeId}`, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {
@@ -61,9 +65,13 @@ export async function getEmployeeFines(
 export async function updateFine(
   fineId: string,
   fineData: UpdateFinePayload,
+  areaId: string,
 ): Promise<FineResponse> {
   try {
-    const res = await api.patch(`/fines/${fineId}`, fineData);
+    const res = await api.patch(`/fines/${fineId}`, {
+      ...fineData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -73,9 +81,14 @@ export async function updateFine(
   }
 }
 
-export async function cancelFine(fineId: string): Promise<FineResponse> {
+export async function cancelFine(
+  fineId: string,
+  areaId: string,
+): Promise<FineResponse> {
   try {
-    const res = await api.patch(`/fines/${fineId}/cancel`);
+    const res = await api.patch(`/fines/${fineId}/cancel`, null, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {

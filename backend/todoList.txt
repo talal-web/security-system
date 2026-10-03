@@ -1,0 +1,7 @@
+I have changed:
+DB models changed
+deduction.employee.area to deduction.area
+fine.employee.area to fine.area
+bonus.employee.area to bonus.area
+advance.employee.area to advance.area
+

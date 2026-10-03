@@ -64,6 +64,12 @@ const deductionSchema = new mongoose.Schema(
       index: true,
     },
 
+    area: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Area",
+      index: true,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

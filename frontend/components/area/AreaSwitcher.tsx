@@ -1,56 +1,58 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ChevronDown, MapPin, Building2 } from "lucide-react";
-
+import { ChevronDown, MapPin } from "lucide-react";
 import { useSelectedArea } from "@/components/area/AreaContext";
 
 export default function AreaSwitcher() {
-  const router = useRouter();
-  const { availableAreas, selectedAreaId, getAreaAwareHref } =
+  const { availableAreas, selectedAreaId, setSelectedAreaId, isAreaLoading } =
     useSelectedArea();
 
+  if (isAreaLoading) {
+    return (
+      <div className="flex h-10 min-w-36 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3">
+        <div className="h-4 w-4 animate-pulse rounded-full bg-slate-200" />
+        <span className="text-sm text-slate-400">Loading areas...</span>
+      </div>
+    );
+  }
+
   if (!availableAreas.length) {
-    return null;
+    return (
+      <div
+        className="flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 text-sm text-amber-700"
+        title="No active areas are available to this user"
+      >
+        <MapPin className="h-4 w-4 shrink-0" />
+        <span className="whitespace-nowrap">No areas available</span>
+      </div>
+    );
   }
 
   return (
-    <div className="relative flex items-center">
-      <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm">
-        <MapPin className="h-4 w-4 text-blue-600" />
-        <span className="hidden md:inline">Area</span>
+    <div className="flex h-10 min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm shadow-sm">
+      <MapPin className="h-4 w-4 shrink-0 text-blue-600" />
 
+      <span className="hidden text-slate-500 sm:inline">Area:</span>
+
+      <div className="relative flex min-w-0 flex-1 items-center">
         <select
           value={selectedAreaId ?? ""}
           onChange={(event) => {
-            const nextId = event.target.value || null;
-            if (!nextId) return;
-
-            const url = new URL(window.location.href);
-            url.pathname = "/dashboard";
-            url.searchParams.set("area", nextId);
-
-            router.push(`${url.pathname}${url.search}`);
+            const nextId = event.target.value;
+            if (nextId) setSelectedAreaId(nextId);
           }}
-          className="bg-transparent pr-1 text-sm font-semibold text-slate-900 outline-none"
+          aria-label="Select active area"
+          className="w-full min-w-0 max-w-40 cursor-pointer appearance-none truncate bg-transparent py-2 pr-6 font-semibold text-slate-900 outline-none"
         >
           {availableAreas.map((area) => (
-            <option key={area._id} value={area._id}>
+            <option key={area._id} value={String(area._id)}>
               {area.name}
             </option>
           ))}
         </select>
-        <ChevronDown className="h-4 w-4 text-slate-500" />
-      </div>
 
-      <Link
-        href={getAreaAwareHref("/dashboard")}
-        className="ml-3 hidden items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 md:inline-flex"
-      >
-        <Building2 className="h-4 w-4" />
-        Dashboard
-      </Link>
+        <ChevronDown className="pointer-events-none absolute right-0 h-4 w-4 text-slate-500" />
+      </div>
     </div>
   );
 }

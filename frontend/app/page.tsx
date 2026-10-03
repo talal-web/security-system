@@ -31,7 +31,6 @@ function HomePageContent() {
   const { selectedAreaId } = useSelectedArea();
 
   const userRole = userData?.user?.role;
-  const userAreaIds = userData?.user?.areas ?? [];
 
   const accessibleAreas = useMemo(() => {
     if (!allAreas.length) return [];
@@ -40,8 +39,9 @@ function HomePageContent() {
       return allAreas;
     }
 
+    const userAreaIds = userData?.user?.areas ?? [];
     return allAreas.filter((area) => userAreaIds.includes(area._id));
-  }, [allAreas, userAreaIds, userRole]);
+  }, [allAreas, userData?.user?.areas, userRole]);
 
   const handleCloseLogin = () => {
     setLoginOpen(false);

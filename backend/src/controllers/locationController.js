@@ -7,33 +7,32 @@ import {
   reorderLocationsService,
 } from "../services/location/location.service.js";
 
-export const createLocation = async (req, res) => {
-  try {
-    const result = await createLocationService(req.body);
+// ======================================
+// CREATE
+// ======================================
 
-    if (result?.error) {
-      return res.status(result.error.status).json({
-        success: false,
-        message: result.error.message,
-      });
-    }
+export const createLocation = async (req, res, next) => {
+  try {
+    const location = await createLocationService(req.body, req.areaScope);
 
     return res.status(201).json({
       success: true,
       message: "Location created successfully",
-      data: result,
+      data: location,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    error.operationMessage = "Failed to create location";
+    return next(error);
   }
 };
 
-export const getLocations = async (req, res) => {
+// ======================================
+// GET ALL
+// ======================================
+
+export const getLocations = async (req, res, next) => {
   try {
-    const locations = await getLocationsService(req.query);
+    const locations = await getLocationsService(req.query, req.areaScope);
 
     return res.status(200).json({
       success: true,
@@ -41,102 +40,84 @@ export const getLocations = async (req, res) => {
       data: locations,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    error.operationMessage = "Failed to get locations";
+    return next(error);
   }
 };
 
-export const getLocationById = async (req, res) => {
-  try {
-    const location = await getLocationByIdService(req.params.id);
+// ======================================
+// GET ONE
+// ======================================
 
-    if (!location) {
-      return res.status(404).json({
-        success: false,
-        message: "Location not found",
-      });
-    }
+export const getLocationById = async (req, res, next) => {
+  try {
+    const location = await getLocationByIdService(req.params.id, req.areaScope);
 
     return res.status(200).json({
       success: true,
       data: location,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    error.operationMessage = "Failed to get location";
+    return next(error);
   }
 };
 
-export const updateLocation = async (req, res) => {
-  try {
-    const result = await updateLocationService(req.params.id, req.body);
+// ======================================
+// UPDATE
+// ======================================
 
-    if (result?.error) {
-      return res.status(result.error.status).json({
-        success: false,
-        message: result.error.message,
-      });
-    }
+export const updateLocation = async (req, res, next) => {
+  try {
+    const location = await updateLocationService(
+      req.params.id,
+      req.body,
+      req.areaScope,
+    );
 
     return res.status(200).json({
       success: true,
       message: "Location updated successfully",
-      data: result,
+      data: location,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    error.operationMessage = "Failed to update location";
+    return next(error);
   }
 };
 
-export const deleteLocation = async (req, res) => {
-  try {
-    const deleted = await deleteLocationService(req.params.id);
+// ======================================
+// DELETE
+// ======================================
 
-    if (!deleted) {
-      return res.status(404).json({
-        success: false,
-        message: "Location not found",
-      });
-    }
+export const deleteLocation = async (req, res, next) => {
+  try {
+    await deleteLocationService(req.params.id, req.areaScope);
 
     return res.status(200).json({
       success: true,
       message: "Location deleted successfully",
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    error.operationMessage = "Failed to delete location";
+    return next(error);
   }
 };
 
-export const reorderLocations = async (req, res) => {
-  try {
-    const result = await reorderLocationsService(req.body);
+// ======================================
+// REORDER
+// ======================================
 
-    if (result?.error) {
-      return res.status(result.error.status).json({
-        success: false,
-        message: result.error.message,
-      });
-    }
+export const reorderLocations = async (req, res, next) => {
+  try {
+    await reorderLocationsService(req.body, req.areaScope);
 
     return res.status(200).json({
       success: true,
       message: "Locations reordered successfully.",
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    error.operationMessage = "Failed to reorder locations";
+    return next(error);
   }
 };

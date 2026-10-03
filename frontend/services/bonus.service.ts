@@ -16,9 +16,10 @@ import type {
 
 export async function createBonus(
   bonusData: CreateBonusPayload,
+  areaId: string,
 ): Promise<BonusResponse> {
   try {
-    const res = await api.post("/bonuses", bonusData);
+    const res = await api.post("/bonuses", { ...bonusData, area: areaId });
 
     return res.data;
   } catch (error) {
@@ -61,9 +62,12 @@ export async function getBonuses(
 
 export async function getEmployeeBonuses(
   employeeId: string,
+  areaId: string,
 ): Promise<EmployeeBonusesResponse> {
   try {
-    const res = await api.get(`/bonuses/employee/${employeeId}`);
+    const res = await api.get(`/bonuses/employee/${employeeId}`, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {
@@ -80,9 +84,13 @@ export async function getEmployeeBonuses(
 export async function updateBonus(
   bonusId: string,
   bonusData: UpdateBonusPayload,
+  areaId: string,
 ): Promise<BonusResponse> {
   try {
-    const res = await api.patch(`/bonuses/${bonusId}`, bonusData);
+    const res = await api.patch(`/bonuses/${bonusId}`, {
+      ...bonusData,
+      area: areaId,
+    });
 
     return res.data;
   } catch (error) {
@@ -96,9 +104,14 @@ export async function updateBonus(
 // Cancel Bonus
 // ============================================================
 
-export async function cancelBonus(bonusId: string): Promise<BonusResponse> {
+export async function cancelBonus(
+  bonusId: string,
+  areaId: string,
+): Promise<BonusResponse> {
   try {
-    const res = await api.patch(`/bonuses/${bonusId}/cancel`);
+    const res = await api.patch(`/bonuses/${bonusId}/cancel`, null, {
+      params: { area: areaId },
+    });
 
     return res.data;
   } catch (error) {

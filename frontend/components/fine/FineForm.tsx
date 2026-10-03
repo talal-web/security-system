@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { useCreateFine, useUpdateFine } from "@/hooks/fine/useFine";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { lookupEmployee } from "@/services/employee.service";
 import { formatText } from "@/utils/employee/employeeFormat";
 
@@ -33,6 +34,7 @@ export default function FineForm({
   onSuccess,
   onCancel,
 }: FineFormProps) {
+  const { selectedAreaId } = useSelectedArea();
   const isEditing = Boolean(fine);
 
   const createFineMutation = useCreateFine();
@@ -96,6 +98,11 @@ export default function FineForm({
   const handleLookup = async () => {
     const trimmed = searchEmpId.trim();
 
+    if (!selectedAreaId) {
+      setLookupError("No area is selected.");
+      return;
+    }
+
     if (!trimmed) {
       setLookupError("Please enter an Employee ID (e.g. BSS-0001).");
       return;
@@ -106,7 +113,7 @@ export default function FineForm({
     setFormError("");
 
     try {
-      const employee = await lookupEmployee(trimmed);
+      const employee = await lookupEmployee(trimmed, selectedAreaId);
 
       setSelectedEmployee(employee);
       setSelectedEmployeeId(employee._id);

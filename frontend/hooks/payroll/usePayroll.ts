@@ -28,17 +28,20 @@ import type {
 export const payrollKeys = {
   all: ["payroll"] as const,
 
-  lists: () => [...payrollKeys.all, "list"] as const,
+  area: (areaId: string) => [...payrollKeys.all, areaId] as const,
 
-  list: (filters?: PayrollFilters) =>
-    [...payrollKeys.lists(), filters] as const,
+  lists: (areaId: string) => [...payrollKeys.area(areaId), "list"] as const,
 
-  details: () => [...payrollKeys.all, "detail"] as const,
+  list: (areaId: string, filters?: PayrollFilters) =>
+    [...payrollKeys.lists(areaId), filters] as const,
 
-  detail: (payrollId: string) => [...payrollKeys.details(), payrollId] as const,
+  details: (areaId: string) => [...payrollKeys.area(areaId), "detail"] as const,
 
-  employee: (employeeId: string) =>
-    [...payrollKeys.all, "employee", employeeId] as const,
+  detail: (areaId: string, payrollId: string) =>
+    [...payrollKeys.details(areaId), payrollId] as const,
+
+  employee: (areaId: string, employeeId: string) =>
+    [...payrollKeys.area(areaId), "employee", employeeId] as const,
 };
 
 // ============================================================================
@@ -49,12 +52,15 @@ export function usePayrolls(filters?: PayrollFilters) {
   const { selectedAreaId } = useSelectedArea();
   const effectiveFilters = {
     ...filters,
-    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+    area: selectedAreaId ?? undefined,
   };
 
   return useQuery({
-    queryKey: payrollKeys.list(effectiveFilters),
+    queryKey: selectedAreaId
+      ? payrollKeys.list(selectedAreaId, effectiveFilters)
+      : [...payrollKeys.all, "disabled", "list"],
     queryFn: () => getPayrolls(effectiveFilters),
+    enabled: !!selectedAreaId,
   });
 }
 
@@ -63,10 +69,14 @@ export function usePayrolls(filters?: PayrollFilters) {
 // ============================================================================
 
 export function usePayroll(payrollId: string) {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: payrollKeys.detail(payrollId),
-    queryFn: () => getPayrollById(payrollId),
-    enabled: Boolean(payrollId),
+    queryKey: selectedAreaId
+      ? payrollKeys.detail(selectedAreaId, payrollId)
+      : [...payrollKeys.all, "disabled", "detail", payrollId],
+    queryFn: () => getPayrollById(payrollId, selectedAreaId!),
+    enabled: Boolean(payrollId) && !!selectedAreaId,
   });
 }
 
@@ -75,10 +85,14 @@ export function usePayroll(payrollId: string) {
 // ============================================================================
 
 export function useEmployeePayrolls(employeeId: string) {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: payrollKeys.employee(employeeId),
-    queryFn: () => getEmployeePayrolls(employeeId),
-    enabled: Boolean(employeeId),
+    queryKey: selectedAreaId
+      ? payrollKeys.employee(selectedAreaId, employeeId)
+      : [...payrollKeys.all, "disabled", "employee", employeeId],
+    queryFn: () => getEmployeePayrolls(employeeId, selectedAreaId!),
+    enabled: Boolean(employeeId) && !!selectedAreaId,
   });
 }
 
@@ -88,14 +102,17 @@ export function useEmployeePayrolls(employeeId: string) {
 
 export function useGeneratePayroll() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payrollData: GeneratePayrollPayload) =>
-      generatePayroll(payrollData),
+    mutationFn: (payrollData: GeneratePayrollPayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return generatePayroll(payrollData, selectedAreaId);
+    },
 
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: payrollKeys.all,
+        queryKey: payrollKeys.area(selectedAreaId!),
       });
 
       const employee = response.data.employee;
@@ -105,7 +122,7 @@ export function useGeneratePayroll() {
           typeof employee === "string" ? employee : employee._id;
 
         queryClient.invalidateQueries({
-          queryKey: payrollKeys.employee(employeeId),
+          queryKey: payrollKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },
@@ -118,14 +135,17 @@ export function useGeneratePayroll() {
 
 export function useGenerateMonthlyPayroll() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payrollData: GenerateMonthlyPayrollPayload) =>
-      generateMonthlyPayroll(payrollData),
+    mutationFn: (payrollData: GenerateMonthlyPayrollPayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return generateMonthlyPayroll(payrollData, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: payrollKeys.all,
+        queryKey: payrollKeys.area(selectedAreaId!),
       });
     },
   });
@@ -137,17 +157,21 @@ export function useGenerateMonthlyPayroll() {
 
 export function useRecalculatePayroll() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payrollId: string) => recalculatePayroll(payrollId),
+    mutationFn: (payrollId: string) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return recalculatePayroll(payrollId, selectedAreaId);
+    },
 
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: payrollKeys.all,
+        queryKey: payrollKeys.area(selectedAreaId!),
       });
 
       queryClient.invalidateQueries({
-        queryKey: payrollKeys.detail(response.data._id),
+        queryKey: payrollKeys.detail(selectedAreaId!, response.data._id),
       });
 
       const employee = response.data.employee;
@@ -157,7 +181,7 @@ export function useRecalculatePayroll() {
           typeof employee === "string" ? employee : employee._id;
 
         queryClient.invalidateQueries({
-          queryKey: payrollKeys.employee(employeeId),
+          queryKey: payrollKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },
@@ -170,14 +194,17 @@ export function useRecalculatePayroll() {
 
 export function useRecalculateMonthlyPayroll() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payrollData: RecalculateMonthlyPayrollPayload) =>
-      recalculateMonthlyPayroll(payrollData),
+    mutationFn: (payrollData: RecalculateMonthlyPayrollPayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return recalculateMonthlyPayroll(payrollData, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: payrollKeys.all,
+        queryKey: payrollKeys.area(selectedAreaId!),
       });
     },
   });
@@ -189,17 +216,21 @@ export function useRecalculateMonthlyPayroll() {
 
 export function useFinalizePayroll() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payrollId: string) => finalizePayroll(payrollId),
+    mutationFn: (payrollId: string) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return finalizePayroll(payrollId, selectedAreaId);
+    },
 
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: payrollKeys.all,
+        queryKey: payrollKeys.area(selectedAreaId!),
       });
 
       queryClient.invalidateQueries({
-        queryKey: payrollKeys.detail(response.data._id),
+        queryKey: payrollKeys.detail(selectedAreaId!, response.data._id),
       });
 
       const employee = response.data.employee;
@@ -209,7 +240,7 @@ export function useFinalizePayroll() {
           typeof employee === "string" ? employee : employee._id;
 
         queryClient.invalidateQueries({
-          queryKey: payrollKeys.employee(employeeId),
+          queryKey: payrollKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },
@@ -222,6 +253,7 @@ export function useFinalizePayroll() {
 
 export function useMarkPayrollAsPaid() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
     mutationFn: ({
@@ -230,15 +262,18 @@ export function useMarkPayrollAsPaid() {
     }: {
       payrollId: string;
       paymentData: Omit<MarkPayrollPaidPayload, "payrollId">;
-    }) => markPayrollAsPaid(payrollId, paymentData),
+    }) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return markPayrollAsPaid(payrollId, paymentData, selectedAreaId);
+    },
 
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: payrollKeys.all,
+        queryKey: payrollKeys.area(selectedAreaId!),
       });
 
       queryClient.invalidateQueries({
-        queryKey: payrollKeys.detail(response.data._id),
+        queryKey: payrollKeys.detail(selectedAreaId!, response.data._id),
       });
 
       const employee = response.data.employee;
@@ -248,7 +283,7 @@ export function useMarkPayrollAsPaid() {
           typeof employee === "string" ? employee : employee._id;
 
         queryClient.invalidateQueries({
-          queryKey: payrollKeys.employee(employeeId),
+          queryKey: payrollKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },

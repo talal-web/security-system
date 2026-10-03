@@ -241,6 +241,8 @@ const payrollSchema = new Schema(
       default: "",
     },
 
+    area: { type: mongoose.Schema.Types.ObjectId, ref: "Area", index: true },
+
     notes: {
       type: String,
       trim: true,

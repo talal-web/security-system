@@ -8,10 +8,11 @@ import { getApiErrorMessage } from "@/lib/apiError";
 
 export async function lookupEmployee(
   empId: string,
+  areaId: string,
 ): Promise<EmployeeLookupResult> {
   try {
     const res = await api.get("/employees/lookup", {
-      params: { empId },
+      params: { empId, area: areaId },
     });
 
     return res.data.data;
@@ -38,9 +39,14 @@ export async function getEmployees(
   }
 }
 
-export async function getEmployeeById(id: string): Promise<Employee> {
+export async function getEmployeeById(
+  id: string,
+  areaId: string,
+): Promise<Employee> {
   try {
-    const res = await api.get(`/employees/${id}`);
+    const res = await api.get(`/employees/${id}`, {
+      params: { area: areaId },
+    });
 
     return res.data.data;
   } catch (error) {
@@ -52,8 +58,10 @@ export async function getEmployeeById(id: string): Promise<Employee> {
 
 export async function createEmployee(
   employeeData: FormData,
+  areaId: string,
 ): Promise<Employee> {
   try {
+    employeeData.set("area", areaId);
     const res = await api.post("/employees", employeeData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -71,8 +79,10 @@ export async function createEmployee(
 export async function updateEmployee(
   id: string,
   employeeData: FormData,
+  areaId: string,
 ): Promise<Employee> {
   try {
+    employeeData.set("area", areaId);
     const res = await api.put(`/employees/${id}`, employeeData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -87,9 +97,12 @@ export async function updateEmployee(
   }
 }
 
-export async function deleteEmployee(id: string): Promise<void> {
+export async function deleteEmployee(
+  id: string,
+  areaId: string,
+): Promise<void> {
   try {
-    await api.delete(`/employees/${id}`);
+    await api.delete(`/employees/${id}`, { params: { area: areaId } });
   } catch (error) {
     const message = getApiErrorMessage(error);
 

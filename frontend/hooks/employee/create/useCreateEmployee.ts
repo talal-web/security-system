@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { createEmployee } from "@/services/employee.service";
 
 type Props = {
@@ -11,13 +12,17 @@ type Props = {
 
 export function useCreateEmployee({ onSuccess, onError }: Props = {}) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   const mutation = useMutation({
-    mutationFn: createEmployee,
+    mutationFn: (employeeData: FormData) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return createEmployee(employeeData, selectedAreaId);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["employees"],
+        queryKey: ["employees", selectedAreaId],
       });
 
       onSuccess?.();

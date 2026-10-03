@@ -1,8 +1,10 @@
-import Link from "next/link";
+"use client";
 
+import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 
 import { dashboardHeaderActions } from "@/components/admin/dashboard.config";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
 type DashboardHeaderProps = {
   userName: string;
@@ -15,6 +17,8 @@ export default function DashboardHeader({
   isLoading,
   isError,
 }: DashboardHeaderProps) {
+  const { getAreaAwareHref } = useSelectedArea();
+
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
@@ -47,7 +51,7 @@ export default function DashboardHeader({
             ({ href, label, icon: Icon, variant }) => (
               <Link
                 key={label}
-                href={href}
+                href={getAreaAwareHref(href)}
                 className={
                   variant === "primary"
                     ? "inline-flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"

@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Phone, ShieldCheck, BadgeCheck, User } from "lucide-react";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { Employee } from "@/types/employee";
 import { formatText } from "@/utils/employee/employeeFormat";
 
@@ -13,6 +14,8 @@ type EmployeeCardProps = {
 };
 
 export default function EmployeeCard({ employee }: EmployeeCardProps) {
+  const { getAreaAwareHref } = useSelectedArea();
+
   return (
     <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-lg">
       {/* ================= DESKTOP CARD ================= */}
@@ -76,14 +79,14 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
           {/* ACTIONS */}
           <div className="mt-5 flex gap-2">
             <Link
-              href={`/employees/${employee._id}`}
+              href={getAreaAwareHref(`/employees/${employee._id}`)}
               className="flex-1 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
             >
               View
             </Link>
 
             <Link
-              href={`/employees/${employee._id}/edit`}
+              href={getAreaAwareHref(`/employees/${employee._id}/edit`)}
               className="flex-1 rounded-xl border px-3 py-2 text-sm font-semibold"
             >
               Edit
@@ -130,7 +133,7 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
         <div className="flex shrink-0 items-center gap-1">
           {/* VIEW */}
           <Link
-            href={`/employees/${employee._id}`}
+            href={getAreaAwareHref(`/employees/${employee._id}`)}
             title="View Employee"
             aria-label="View Employee"
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
@@ -150,7 +153,7 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
 
           {/* EDIT */}
           <Link
-            href={`/employees/${employee._id}/edit`}
+            href={getAreaAwareHref(`/employees/${employee._id}/edit`)}
             title="Edit Employee"
             aria-label="Edit Employee"
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800"

@@ -31,7 +31,7 @@ export const createArea = async (req, res, next) => {
 
 export const getAreas = async (req, res, next) => {
   try {
-    const areas = await getAreasService(req.query);
+    const areas = await getAreasService(req.query, req.user);
 
     return res.status(200).json({
       success: true,

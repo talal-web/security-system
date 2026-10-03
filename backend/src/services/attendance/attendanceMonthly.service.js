@@ -1,13 +1,39 @@
+import mongoose from "mongoose";
+
 import Attendance from "../../models/Attendance.js";
 import Employee from "../../models/Employee.js";
+import ApiError from "../../utils/ApiError.js";
+
 import { getMonthDays, mapAttendanceStatus } from "./attendance.helpers.js";
+
 import { validateMonth } from "./attendance.validation.js";
 
+// enforceAreaScope has already validated exactly one area.
+// areaScope.areaId is the single source of truth. query.area is ignored.
+const getScopedAreaId = (areaScope = {}) => {
+  const areaId = areaScope?.areaId;
+
+  if (typeof areaId !== "string" || !areaId.trim()) {
+    throw new ApiError(400, "Area selection is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(areaId)) {
+    throw new ApiError(400, "Invalid area ID");
+  }
+
+  return areaId;
+};
+
+// ======================================
 // Get Monthly Attendance Report
+// ======================================
+
 export const getMonthlyAttendanceReportService = async ({
   query = {},
   areaScope = {},
 }) => {
+  const areaId = getScopedAreaId(areaScope);
+
   const month = validateMonth(query.month);
   const [year, monthNumber] = month.split("-").map(Number);
 
@@ -21,10 +47,19 @@ export const getMonthlyAttendanceReportService = async ({
 
   const days = getMonthDays(year, monthNumber);
 
-  const areaIds =
-    areaScope.requestedAreaIds ?? areaScope.permittedAreaIds ?? [];
+  const monthInfo = {
+    value: month,
+    year,
+    month: monthNumber,
+    days: totalDays,
+  };
 
-  const employeeQuery = {
+  // ======================================
+  // Find Employees in Selected Area
+  // ======================================
+
+  const employees = await Employee.find({
+    area: areaId,
     $or: [
       { status: "active" },
       {
@@ -34,32 +69,50 @@ export const getMonthlyAttendanceReportService = async ({
         },
       },
     ],
-  };
-
-  if (areaIds.length && !areaScope.isAdmin) {
-    employeeQuery.area = { $in: areaIds };
-  }
-
-  const employees = await Employee.find(employeeQuery)
+  })
     .select("_id empId name fatherName designation status exitDate area")
     .sort({ empId: 1 })
     .lean();
 
-  const attendanceQuery = {
+  // ======================================
+  // Find Attendance for Selected Employees
+  // ======================================
+
+  const employeeIds = employees.map((employee) => employee._id);
+
+  if (!employeeIds.length) {
+    return {
+      success: true,
+      message: "Monthly attendance report fetched successfully",
+      data: {
+        month: monthInfo,
+        overall: {
+          employees: 0,
+          present: 0,
+          leave: 0,
+          absent: 0,
+          total: 0,
+        },
+        employees: [],
+      },
+    };
+  }
+
+  const attendance = await Attendance.find({
     date: {
       $gte: monthStart,
       $lte: monthEnd,
     },
-  };
-
-  if (areaIds.length && !areaScope.isAdmin) {
-    const employeeIds = employees.map((employee) => employee._id);
-    attendanceQuery.employee = { $in: employeeIds };
-  }
-
-  const attendance = await Attendance.find(attendanceQuery)
+    employee: {
+      $in: employeeIds,
+    },
+  })
     .select("employee date status")
     .lean();
+
+  // ======================================
+  // Initialize Report
+  // ======================================
 
   const overall = {
     employees: employees.length,
@@ -93,6 +146,10 @@ export const getMonthlyAttendanceReportService = async ({
       attendance: attendanceDays,
     });
   }
+
+  // ======================================
+  // Map Attendance Records
+  // ======================================
 
   for (const record of attendance) {
     if (!record.date || !record.employee) continue;
@@ -143,6 +200,10 @@ export const getMonthlyAttendanceReportService = async ({
     }
   }
 
+  // ======================================
+  // Sort Employees
+  // ======================================
+
   const report = Array.from(employeeMap.values());
 
   const getEmployeeNumber = (empId) => {
@@ -155,16 +216,15 @@ export const getMonthlyAttendanceReportService = async ({
     (a, b) => getEmployeeNumber(a.empId) - getEmployeeNumber(b.empId),
   );
 
+  // ======================================
+  // Response
+  // ======================================
+
   return {
     success: true,
     message: "Monthly attendance report fetched successfully",
     data: {
-      month: {
-        value: month,
-        year,
-        month: monthNumber,
-        days: totalDays,
-      },
+      month: monthInfo,
       overall,
       employees: report,
     },

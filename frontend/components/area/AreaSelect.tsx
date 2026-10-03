@@ -1,6 +1,6 @@
 "use client";
 
-import type { SelectHTMLAttributes, ReactNode } from "react";
+import { useId, type SelectHTMLAttributes, type ReactNode } from "react";
 
 import { useSelectedArea } from "@/components/area/AreaContext";
 
@@ -15,6 +15,7 @@ type AreaSelectProps = Omit<
   placeholder?: string;
   includeInactive?: boolean;
   wrapperClassName?: string;
+  useGlobalSelection?: boolean;
 };
 
 export default function AreaSelect({
@@ -27,23 +28,43 @@ export default function AreaSelect({
   wrapperClassName,
   className,
   disabled,
+  useGlobalSelection = false,
+  id,
+  value,
+  onChange,
   ...props
 }: AreaSelectProps) {
-  const { availableAreas, selectedAreaId } = useSelectedArea();
+  const { availableAreas, selectedAreaId, setSelectedAreaId, isAreaLoading } =
+    useSelectedArea();
 
-  const areas = (
-    includeInactive
-      ? availableAreas
-      : availableAreas.filter((area) => area.isActive !== false)
-  ).filter(Boolean);
+  const generatedId = useId();
+  const selectId = id ?? generatedId;
 
-  const isLoading = false;
-  const currentValue = props.value ?? selectedAreaId ?? "";
+  const areas = includeInactive
+    ? availableAreas
+    : availableAreas.filter((area) => area.isActive !== false);
+
+  const currentValue = useGlobalSelection
+    ? (selectedAreaId ?? "")
+    : (value ?? "");
+
+  const handleChange: SelectHTMLAttributes<HTMLSelectElement>["onChange"] = (
+    event,
+  ) => {
+    if (useGlobalSelection) {
+      setSelectedAreaId(event.target.value || null);
+    }
+
+    onChange?.(event);
+  };
 
   return (
     <div className={showLabel ? "space-y-2" : undefined}>
       {showLabel && (
-        <label className="block text-sm font-medium text-slate-700">
+        <label
+          htmlFor={selectId}
+          className="block text-sm font-medium text-slate-700"
+        >
           {label}
         </label>
       )}
@@ -62,14 +83,18 @@ export default function AreaSelect({
 
         <select
           {...props}
+          id={selectId}
           value={currentValue}
-          disabled={disabled || isLoading}
+          onChange={handleChange}
+          disabled={disabled || (useGlobalSelection && isAreaLoading)}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${selectId}-error` : undefined}
           className={`h-full w-full bg-transparent text-sm text-slate-900 outline-none disabled:cursor-not-allowed disabled:text-slate-400 ${
             className ?? ""
           }`}
         >
           <option value="">
-            {isLoading
+            {isAreaLoading && useGlobalSelection
               ? "Loading areas..."
               : areas.length === 0
                 ? "No areas available"
@@ -85,7 +110,12 @@ export default function AreaSelect({
       </div>
 
       {error && (
-        <p className="mt-1 text-xs font-medium text-red-500">{error}</p>
+        <p
+          id={`${selectId}-error`}
+          className="mt-1 text-xs font-medium text-red-500"
+        >
+          {error}
+        </p>
       )}
     </div>
   );

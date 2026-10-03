@@ -4,6 +4,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { deleteEmployee } from "@/services/employee.service";
 
 type Props = {
@@ -13,16 +14,18 @@ type Props = {
 
 export function useDeleteEmployee({ onSuccess, onError }: Props = {}) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   const mutation = useMutation({
     mutationFn: async (employeeId: string) => {
-      return await deleteEmployee(employeeId);
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return await deleteEmployee(employeeId, selectedAreaId);
     },
 
     onSuccess: () => {
       // Refresh employee list
       queryClient.invalidateQueries({
-        queryKey: ["employees"],
+        queryKey: ["employees", selectedAreaId],
       });
 
       onSuccess?.();

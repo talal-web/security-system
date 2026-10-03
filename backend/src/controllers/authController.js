@@ -10,7 +10,12 @@ import {
 
 export const login = async (req, res, next) => {
   try {
-    const { token, user } = await loginService(req.body);
+    const { userId, password } = req.body;
+
+    const { token, user } = await loginService({
+      rawUserId: userId,
+      password,
+    });
 
     const isProduction = process.env.NODE_ENV === "production";
 

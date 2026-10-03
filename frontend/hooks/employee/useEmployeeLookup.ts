@@ -2,11 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { lookupEmployee } from "@/services/employee.service";
 
 import type { EmployeeLookupResult } from "@/types/employee";
 
 export function useEmployeeLookup(empId: string, enabled = true) {
+  const { selectedAreaId } = useSelectedArea();
   const trimmedEmpId = empId.trim();
 
   const {
@@ -16,9 +18,9 @@ export function useEmployeeLookup(empId: string, enabled = true) {
     error,
     refetch,
   } = useQuery<EmployeeLookupResult>({
-    queryKey: ["employee", "lookup", trimmedEmpId],
-    queryFn: () => lookupEmployee(trimmedEmpId),
-    enabled: enabled && Boolean(trimmedEmpId),
+    queryKey: ["employee", "lookup", selectedAreaId, trimmedEmpId],
+    queryFn: () => lookupEmployee(trimmedEmpId, selectedAreaId!),
+    enabled: enabled && Boolean(trimmedEmpId) && !!selectedAreaId,
     retry: false,
     staleTime: 1000 * 60 * 2,
   });

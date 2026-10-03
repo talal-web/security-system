@@ -9,6 +9,7 @@ import Advance from "../../models/Advance.js";
 import Fine from "../../models/Fine.js";
 import Deduction from "../../models/Deduction.js";
 import Bonus from "../../models/Bonus.js";
+import ApiError from "../../utils/ApiError.js";
 
 import { getSalaryForPayrollMonth } from "./employeeSalary.service.js";
 
@@ -25,6 +26,51 @@ const DEDUCTION_OPEN_STATUSES = ["pending", "partially_deducted"];
 const MONTHLY_PAYROLL_CONCURRENCY = 8;
 
 const ROUND_MONEY = (value) => Math.round(Number(value) || 0);
+
+// ============================================================================
+// AREA SCOPE HELPERS
+// ============================================================================
+
+// enforceAreaScope has already validated exactly one area.
+// areaScope.areaId is the single source of truth for every query below.
+function getScopedAreaId(areaScope = {}) {
+  const areaId = areaScope?.areaId;
+
+  if (typeof areaId !== "string" || !areaId.trim()) {
+    throw new ApiError(400, "Area selection is required");
+  }
+
+  if (!mongoose.isValidObjectId(areaId)) {
+    throw new ApiError(400, "Invalid area ID");
+  }
+
+  return areaId;
+}
+
+// Finds a payroll by its stored area.
+// Returns 404 so payrolls in other areas are not revealed.
+async function findPayrollInScope(payrollId, areaScope, session = null) {
+  if (!mongoose.isValidObjectId(payrollId)) {
+    throw new ApiError(400, "Invalid payroll ID");
+  }
+
+  const query = Payroll.findOne({
+    _id: payrollId,
+    area: getScopedAreaId(areaScope),
+  });
+
+  if (session) {
+    query.session(session);
+  }
+
+  const payroll = await query;
+
+  if (!payroll) {
+    throw new ApiError(404, "Payroll not found");
+  }
+
+  return payroll;
+}
 
 // ============================================================================
 // DATE HELPERS
@@ -66,11 +112,11 @@ function getInclusiveDayCount(startDate, endDate) {
 
 function validatePayrollPeriod(year, month) {
   if (!Number.isInteger(year) || year < 2000 || year > 2100) {
-    throw new Error("Invalid payroll year");
+    throw new ApiError(400, "Invalid payroll year");
   }
 
   if (!Number.isInteger(month) || month < 1 || month > 12) {
-    throw new Error("Invalid payroll month");
+    throw new ApiError(400, "Invalid payroll month");
   }
 }
 
@@ -275,6 +321,7 @@ function allocateDeductions(records, availableAmount) {
 // ============================================================================
 // FETCH OPEN DEDUCTIONS
 // ============================================================================
+// These take everything the employee owes, whatever area it was stored in.
 
 async function getOpenAdvances(employeeId) {
   return Advance.find({
@@ -360,7 +407,8 @@ async function calculatePayroll({ employee, year, month }) {
     ]);
 
   if (!salary) {
-    throw new Error(
+    throw new ApiError(
+      400,
       `No salary record found for employee ${employee.empId || employee._id}`,
     );
   }
@@ -471,50 +519,61 @@ export async function generatePayrollForEmployee({
   year,
   month,
   userId,
+  areaScope = {},
   payrollId = null,
   recalculate = false,
   employee: providedEmployee = null,
 }) {
   validatePayrollPeriod(year, month);
 
+  const areaId = getScopedAreaId(areaScope);
+
   if (!mongoose.isValidObjectId(employeeId)) {
-    throw new Error("Invalid employee ID");
+    throw new ApiError(400, "Invalid employee ID");
   }
 
-  // Reuse already-loaded employee when monthly generation provides it.
+  // The employee must currently belong to the selected area.
+  // A provided employee (from monthly generation) was already loaded
+  // with the area filter.
   const employee =
     providedEmployee ||
-    (await Employee.findById(employeeId)
+    (await Employee.findOne({ _id: employeeId, area: areaId })
       .select("_id empId name fatherName designation status entryDate exitDate")
       .lean());
 
   if (!employee) {
-    throw new Error("Employee not found");
+    throw new ApiError(404, "Employee not found");
   }
 
-  const calculation = await calculatePayroll({
+  const result = await calculatePayroll({
     employee,
     year,
     month,
   });
 
-  if (!calculation) {
-    throw new Error("Employee was not eligible for payroll during this month");
+  if (!result) {
+    throw new ApiError(
+      400,
+      "Employee was not eligible for payroll during this month",
+    );
   }
+
+  // The payroll is stored under the selected area.
+  const calculation = { ...result, area: areaId };
 
   // ==========================================================================
   // RECALCULATE EXISTING DRAFT
   // ==========================================================================
 
   if (payrollId) {
-    const payroll = await Payroll.findById(payrollId);
+    const payroll = await findPayrollInScope(payrollId, areaScope);
 
-    if (!payroll) {
-      throw new Error("Payroll not found");
+    if (String(payroll.employee) !== String(employee._id)) {
+      throw new ApiError(400, "Payroll does not belong to this employee");
     }
 
     if (payroll.status !== "draft") {
-      throw new Error("Only draft payroll can be recalculated");
+      throw new ApiError(400, "Only draft payroll can be recalculated");
     }
 
     Object.assign(payroll, calculation);
@@ -538,12 +597,23 @@ export async function generatePayrollForEmployee({
   });
 
   if (existingPayroll) {
+    // One payroll per employee and month, even if the employee moved areas.
+    if (String(existingPayroll.area) !== areaId) {
+      throw new ApiError(
+        409,
+        "Payroll already exists for this employee and month in another area",
+      );
+    }
+
     if (!recalculate) {
-      throw new Error("Payroll already exists for this employee and month");
+      throw new ApiError(
+        409,
+        "Payroll already exists for this employee and month",
+      );
     }
 
     if (existingPayroll.status !== "draft") {
-      throw new Error("Only draft payroll can be recalculated");
+      throw new ApiError(400, "Only draft payroll can be recalculated");
     }
 
     Object.assign(existingPayroll, calculation);
@@ -560,13 +630,11 @@ export async function generatePayrollForEmployee({
   // CREATE NEW PAYROLL
   // ==========================================================================
 
-  const payroll = await Payroll.create({
+  return Payroll.create({
     ...calculation,
     status: "draft",
     generatedAt: new Date(),
   });
-
-  return payroll;
 }
 
 // ============================================================================
@@ -602,16 +670,24 @@ async function runWithConcurrency(items, worker, concurrency) {
 // GENERATE PAYROLL FOR ALL ELIGIBLE EMPLOYEES
 // ============================================================================
 
-export async function generatePayrollForMonth({ year, month, userId }) {
+export async function generatePayrollForMonth({
+  year,
+  month,
+  userId,
+  areaScope = {},
+}) {
   validatePayrollPeriod(year, month);
+
+  const areaId = getScopedAreaId(areaScope);
 
   const monthStart = getMonthStart(year, month);
 
   // ==========================================================================
-  // FETCH EMPLOYEES ONCE
+  // FETCH EMPLOYEES ONCE (selected area only)
   // ==========================================================================
 
   const employees = await Employee.find({
+    area: areaId,
     $or: [
       {
         status: ACTIVE_EMPLOYEE_STATUS,
@@ -677,9 +753,7 @@ export async function generatePayrollForMonth({ year, month, userId }) {
       continue;
     }
 
-    const existingPayroll = existingPayrollByEmployee.get(String(employee._id));
-
-    if (existingPayroll) {
+    if (existingPayrollByEmployee.get(String(employee._id))) {
       result.skipped += 1;
       continue;
     }
@@ -700,6 +774,7 @@ export async function generatePayrollForMonth({ year, month, userId }) {
           year,
           month,
           userId,
+          areaScope,
           employee,
         });
 
@@ -730,25 +805,21 @@ export async function generatePayrollForMonth({ year, month, userId }) {
 // FINALIZE PAYROLL
 // ============================================================================
 
-export async function finalizePayrollById({ payrollId, userId }) {
-  if (!mongoose.isValidObjectId(payrollId)) {
-    throw new Error("Invalid payroll ID");
-  }
-
+export async function finalizePayrollById({
+  payrollId,
+  userId,
+  areaScope = {},
+}) {
   const session = await mongoose.startSession();
 
   try {
     let finalizedPayroll;
 
     await session.withTransaction(async () => {
-      const payroll = await Payroll.findById(payrollId).session(session);
-
-      if (!payroll) {
-        throw new Error("Payroll not found");
-      }
+      const payroll = await findPayrollInScope(payrollId, areaScope, session);
 
       if (payroll.status !== "draft") {
-        throw new Error("Only draft payroll can be finalized");
+        throw new ApiError(400, "Only draft payroll can be finalized");
       }
 
       // ======================================================================
@@ -759,7 +830,7 @@ export async function finalizePayrollById({ payrollId, userId }) {
         const advance = await Advance.findById(item.source).session(session);
 
         if (!advance) {
-          throw new Error(`Advance ${item.source} no longer exists`);
+          throw new ApiError(409, `Advance ${item.source} no longer exists`);
         }
 
         const deductionAmount = ROUND_MONEY(item.amount);
@@ -769,7 +840,8 @@ export async function finalizePayrollById({ payrollId, userId }) {
         }
 
         if (deductionAmount > ROUND_MONEY(advance.remainingAmount)) {
-          throw new Error(
+          throw new ApiError(
+            409,
             `Advance ${item.source} has insufficient remaining balance`,
           );
         }
@@ -798,7 +870,7 @@ export async function finalizePayrollById({ payrollId, userId }) {
         const fine = await Fine.findById(item.source).session(session);
 
         if (!fine) {
-          throw new Error(`Fine ${item.source} no longer exists`);
+          throw new ApiError(409, `Fine ${item.source} no longer exists`);
         }
 
         const deductionAmount = ROUND_MONEY(item.amount);
@@ -808,7 +880,8 @@ export async function finalizePayrollById({ payrollId, userId }) {
         }
 
         if (deductionAmount > ROUND_MONEY(fine.remainingAmount)) {
-          throw new Error(
+          throw new ApiError(
+            409,
             `Fine ${item.source} has insufficient remaining balance`,
           );
         }
@@ -837,7 +910,7 @@ export async function finalizePayrollById({ payrollId, userId }) {
         );
 
         if (!deduction) {
-          throw new Error(`Deduction ${item.source} no longer exists`);
+          throw new ApiError(409, `Deduction ${item.source} no longer exists`);
         }
 
         const deductionAmount = ROUND_MONEY(item.amount);
@@ -847,7 +920,8 @@ export async function finalizePayrollById({ payrollId, userId }) {
         }
 
         if (deductionAmount > ROUND_MONEY(deduction.remainingAmount)) {
-          throw new Error(
+          throw new ApiError(
+            409,
             `Deduction ${item.source} has insufficient remaining balance`,
           );
         }
@@ -876,11 +950,11 @@ export async function finalizePayrollById({ payrollId, userId }) {
         const bonus = await Bonus.findById(item.source).session(session);
 
         if (!bonus) {
-          throw new Error(`Bonus ${item.source} no longer exists`);
+          throw new ApiError(409, `Bonus ${item.source} no longer exists`);
         }
 
         if (bonus.status !== "pending") {
-          throw new Error(`Bonus ${item.source} is no longer pending`);
+          throw new ApiError(409, `Bonus ${item.source} is no longer pending`);
         }
 
         bonus.status = "paid";
@@ -921,29 +995,22 @@ export async function markPayrollPaid({
   userId,
   paymentMethod,
   paymentReference,
+  areaScope = {},
 }) {
-  if (!mongoose.isValidObjectId(payrollId)) {
-    throw new Error("Invalid payroll ID");
-  }
-
-  const payroll = await Payroll.findById(payrollId);
-
-  if (!payroll) {
-    throw new Error("Payroll not found");
-  }
+  const payroll = await findPayrollInScope(payrollId, areaScope);
 
   if (payroll.status !== "finalized") {
-    throw new Error("Only finalized payroll can be marked as paid");
+    throw new ApiError(400, "Only finalized payroll can be marked as paid");
   }
 
   const allowedMethods = ["cash", "bank_transfer", "other"];
 
   if (!allowedMethods.includes(paymentMethod)) {
-    throw new Error("A valid payment method is required");
+    throw new ApiError(400, "A valid payment method is required");
   }
 
   if (typeof paymentReference !== "string" || !paymentReference.trim()) {
-    throw new Error("A payment reference is required");
+    throw new ApiError(400, "A payment reference is required");
   }
 
   payroll.paymentMethod = paymentMethod;

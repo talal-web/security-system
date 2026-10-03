@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { useSelectedArea } from "@/components/area/AreaContext";
 import { getEmployees } from "@/services/employee.service";
@@ -11,7 +11,7 @@ export function useEmployees(filters?: EmployeeFilters) {
   const { selectedAreaId } = useSelectedArea();
   const effectiveFilters = {
     ...filters,
-    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+    area: selectedAreaId ?? undefined,
   };
 
   const {
@@ -21,9 +21,11 @@ export function useEmployees(filters?: EmployeeFilters) {
     error,
     refetch,
   } = useQuery<Employee[]>({
-    queryKey: ["employees", effectiveFilters],
+    queryKey: ["employees", selectedAreaId, effectiveFilters],
     queryFn: () => getEmployees(effectiveFilters),
-    placeholderData: keepPreviousData,
+    enabled: !!selectedAreaId,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[1] === selectedAreaId ? previousData : undefined,
   });
 
   return {

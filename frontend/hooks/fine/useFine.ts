@@ -23,13 +23,15 @@ import type {
 export const fineKeys = {
   all: ["fines"] as const,
 
-  lists: () => [...fineKeys.all, "list"] as const,
+  area: (areaId: string) => [...fineKeys.all, areaId] as const,
 
-  list: (filters?: FineFilters) =>
-    [...fineKeys.lists(), filters ?? {}] as const,
+  lists: (areaId: string) => [...fineKeys.area(areaId), "list"] as const,
 
-  employee: (employeeId: string) =>
-    [...fineKeys.all, "employee", employeeId] as const,
+  list: (areaId: string, filters?: FineFilters) =>
+    [...fineKeys.lists(areaId), filters ?? {}] as const,
+
+  employee: (areaId: string, employeeId: string) =>
+    [...fineKeys.area(areaId), "employee", employeeId] as const,
 };
 
 // ======================================
@@ -40,12 +42,15 @@ export function useFines(filters?: FineFilters) {
   const { selectedAreaId } = useSelectedArea();
   const effectiveFilters = {
     ...filters,
-    ...(selectedAreaId && !filters?.area ? { area: selectedAreaId } : {}),
+    area: selectedAreaId ?? undefined,
   };
 
   return useQuery({
-    queryKey: fineKeys.list(effectiveFilters),
+    queryKey: selectedAreaId
+      ? fineKeys.list(selectedAreaId, effectiveFilters)
+      : [...fineKeys.all, "disabled", "list"],
     queryFn: () => getFines(effectiveFilters),
+    enabled: !!selectedAreaId,
   });
 }
 
@@ -54,14 +59,17 @@ export function useFines(filters?: FineFilters) {
 // ======================================
 
 export function useEmployeeFines(employeeId?: string) {
+  const { selectedAreaId } = useSelectedArea();
+
   return useQuery({
-    queryKey: employeeId
-      ? fineKeys.employee(employeeId)
-      : [...fineKeys.all, "employee", "disabled"],
+    queryKey:
+      employeeId && selectedAreaId
+        ? fineKeys.employee(selectedAreaId, employeeId)
+        : [...fineKeys.all, "employee", "disabled"],
 
-    queryFn: () => getEmployeeFines(employeeId!),
+    queryFn: () => getEmployeeFines(employeeId!, selectedAreaId!),
 
-    enabled: !!employeeId,
+    enabled: !!employeeId && !!selectedAreaId,
   });
 }
 
@@ -71,19 +79,23 @@ export function useEmployeeFines(employeeId?: string) {
 
 export function useCreateFine() {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (payload: CreateFinePayload) => createFine(payload),
+    mutationFn: (payload: CreateFinePayload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return createFine(payload, selectedAreaId);
+    },
 
     onSuccess: (_data, variables) => {
       // Invalidate all filtered fine lists
       queryClient.invalidateQueries({
-        queryKey: fineKeys.lists(),
+        queryKey: fineKeys.lists(selectedAreaId!),
       });
 
       // Invalidate employee-specific fine history
       queryClient.invalidateQueries({
-        queryKey: fineKeys.employee(variables.employee),
+        queryKey: fineKeys.employee(selectedAreaId!, variables.employee),
       });
     },
   });
@@ -95,6 +107,7 @@ export function useCreateFine() {
 
 export function useUpdateFine(employeeId?: string) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
     mutationFn: ({
@@ -103,18 +116,21 @@ export function useUpdateFine(employeeId?: string) {
     }: {
       fineId: string;
       data: UpdateFinePayload;
-    }) => updateFine(fineId, data),
+    }) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateFine(fineId, data, selectedAreaId);
+    },
 
     onSuccess: () => {
       // Invalidate all filtered fine lists
       queryClient.invalidateQueries({
-        queryKey: fineKeys.lists(),
+        queryKey: fineKeys.lists(selectedAreaId!),
       });
 
       // Invalidate employee-specific fine history
       if (employeeId) {
         queryClient.invalidateQueries({
-          queryKey: fineKeys.employee(employeeId),
+          queryKey: fineKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },
@@ -127,20 +143,24 @@ export function useUpdateFine(employeeId?: string) {
 
 export function useCancelFine(employeeId?: string) {
   const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
 
   return useMutation({
-    mutationFn: (fineId: string) => cancelFine(fineId),
+    mutationFn: (fineId: string) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return cancelFine(fineId, selectedAreaId);
+    },
 
     onSuccess: () => {
       // Invalidate all filtered fine lists
       queryClient.invalidateQueries({
-        queryKey: fineKeys.lists(),
+        queryKey: fineKeys.lists(selectedAreaId!),
       });
 
       // Invalidate employee-specific fine history
       if (employeeId) {
         queryClient.invalidateQueries({
-          queryKey: fineKeys.employee(employeeId),
+          queryKey: fineKeys.employee(selectedAreaId!, employeeId),
         });
       }
     },

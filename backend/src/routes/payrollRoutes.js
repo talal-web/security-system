@@ -19,83 +19,46 @@ import { requireAreaAccess } from "../middleware/areaScopeMiddleware.js";
 
 const router = express.Router();
 
+// Every payroll route is admin/developer only and scoped to one area.
+router.use(authorizeRoles("developer", "admin"), requireAreaAccess);
+
 // ============================================================================
 // VIEW PAYROLL
 // ============================================================================
 
 // Get all payroll records with filters
-router.get(
-  "/",
-  authorizeRoles("developer", "admin"),
-  requireAreaAccess,
-  getPayrolls,
-);
+router.get("/", getPayrolls);
 
 // Get payrolls for a specific employee
-router.get(
-  "/employee/:employeeId",
-  authorizeRoles("developer", "admin"),
-  requireAreaAccess,
-  getEmployeePayrolls,
-);
+router.get("/employee/:employeeId", getEmployeePayrolls);
 
 // Get a single payroll record
-router.get(
-  "/:id",
-  authorizeRoles("developer", "admin"),
-  requireAreaAccess,
-  getPayrollById,
-);
+router.get("/:id", getPayrollById);
 
 // ============================================================================
-// GENERATE PAYROLL
+// GENERATE / RECALCULATE PAYROLL
 // ============================================================================
 
 // Generate payroll for one employee
-router.post(
-  "/generate",
-  authorizeRoles("developer", "admin"),
-  requireAreaAccess,
-  generatePayroll,
-);
+router.post("/generate", generatePayroll);
 
 // Generate payroll for all eligible employees for a month
-router.post(
-  "/generate-month",
-  authorizeRoles("developer", "admin"),
-  requireAreaAccess,
-  generateMonthlyPayroll,
-);
+router.post("/generate-month", generateMonthlyPayroll);
 
+// Recalculate all draft payrolls for a month
 router.post("/recalculate-month", recalculateMonthlyPayroll);
 
 // Recalculate an existing draft payroll
-router.post(
-  "/:id/recalculate",
-  authorizeRoles("developer", "admin"),
-  recalculatePayroll,
-);
+router.post("/:id/recalculate", recalculatePayroll);
 
 // ============================================================================
-// FINALIZE PAYROLL
+// FINALIZE / PAY
 // ============================================================================
 
 // Finalize a draft payroll
-router.patch(
-  "/:id/finalize",
-  authorizeRoles("developer", "admin"),
-  finalizePayroll,
-);
-
-// ============================================================================
-// MARK PAYROLL AS PAID
-// ============================================================================
+router.patch("/:id/finalize", finalizePayroll);
 
 // Mark finalized payroll as paid
-router.patch(
-  "/:id/pay",
-  authorizeRoles("developer", "admin"),
-  markPayrollAsPaid,
-);
+router.patch("/:id/pay", markPayrollAsPaid);
 
 export default router;

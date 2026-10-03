@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import Modal from "@/components/ui/Modal";
+import { useSelectedArea } from "@/components/area/AreaContext";
 import { useGeneratePayroll } from "@/hooks/payroll/usePayroll";
 import { lookupEmployee } from "@/services/employee.service";
 import type { EmployeeLookupResult } from "@/types/employee";
@@ -19,11 +20,17 @@ export default function GeneratePayrollDialog({
   const [error, setError] = useState("");
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const { selectedAreaId } = useSelectedArea();
   const mutation = useGeneratePayroll();
   const lookup = async () => {
+    if (!selectedAreaId) {
+      setError("No area is selected.");
+      return;
+    }
+
     try {
       setError("");
-      setEmployee(await lookupEmployee(empId.trim()));
+      setEmployee(await lookupEmployee(empId.trim(), selectedAreaId));
     } catch (cause) {
       setEmployee(null);
       setError(cause instanceof Error ? cause.message : "Employee not found");
