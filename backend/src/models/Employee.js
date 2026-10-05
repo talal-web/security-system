@@ -1,6 +1,10 @@
-// models/Employee.js
-
 import mongoose from "mongoose";
+
+import {
+  emergencyContactSchema,
+  referenceSchema,
+  validatePhone,
+} from "./schemas/employeeContact.schema.js";
 
 const employeeSchema = new mongoose.Schema(
   {
@@ -13,6 +17,7 @@ const employeeSchema = new mongoose.Schema(
       unique: true,
       required: true,
       index: true,
+      trim: true,
     },
 
     name: {
@@ -67,12 +72,17 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      validate: validatePhone,
     },
 
-    phone2: {
-      type: String,
-      trim: true,
-      default: "",
+    emergencyContacts: {
+      type: [emergencyContactSchema],
+      default: [],
+    },
+
+    references: {
+      type: [referenceSchema],
+      default: [],
     },
 
     // =========================
@@ -81,9 +91,17 @@ const employeeSchema = new mongoose.Schema(
 
     education: {
       type: String,
-      enum: ["none", "middle", "matric", "fsc", "bs", "master"],
+      enum: [
+        "none",
+        "middle",
+        "matric",
+        "fsc",
+        "bs",
+        "master",
+      ],
       default: null,
     },
+
     designation: {
       type: String,
       enum: [
@@ -103,27 +121,17 @@ const employeeSchema = new mongoose.Schema(
       enum: ["active", "inactive"],
       default: "active",
     },
-    // Legacy field retained for migration safety only.
-    // Active salary logic must use EmployeeSalary instead.
-    // basicSalary: {
-    //   type: Number,
-    //   default: 0,
-    // },
 
     // =========================
-    // Reference
+    // Area / Location
     // =========================
 
-    reference: {
-      type: String,
-      trim: true,
-      default: "",
-    },
     area: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Area",
       default: null,
     },
+
     sector: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Sector",
@@ -134,6 +142,7 @@ const employeeSchema = new mongoose.Schema(
       ref: "Location",
       default: null,
     },
+
     defaultShift: {
       type: String,
       enum: ["day", "night"],
@@ -169,15 +178,22 @@ const employeeSchema = new mongoose.Schema(
       default: "",
     },
   },
+
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+
+    toJSON: {
+      virtuals: true,
+    },
+
+    toObject: {
+      virtuals: true,
+    },
   },
 );
 
 // ======================================
-// Virtual Field: Age (calculated)
+// Virtual: Age
 // ======================================
 
 employeeSchema.virtual("age").get(function () {
@@ -186,21 +202,54 @@ employeeSchema.virtual("age").get(function () {
   const today = new Date();
   const birth = new Date(this.birthDate);
 
-  let age = today.getFullYear() - birth.getFullYear();
+  let age =
+    today.getFullYear() -
+    birth.getFullYear();
 
-  const m = today.getMonth() - birth.getMonth();
+  const monthDifference =
+    today.getMonth() -
+    birth.getMonth();
 
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+  if (
+    monthDifference < 0 ||
+    (
+      monthDifference === 0 &&
+      today.getDate() < birth.getDate()
+    )
+  ) {
     age--;
   }
 
   return age;
 });
-employeeSchema.set("toJSON", {
-  virtuals: false,
+
+// ======================================
+// Employee Validation
+// ======================================
+
+employeeSchema.pre("validate", function () {
+  const primaryContacts =
+    this.emergencyContacts?.filter(
+      (contact) => contact.isPrimary === true,
+    ) ?? [];
+
+  if (primaryContacts.length > 1) {
+    this.invalidate(
+      "emergencyContacts",
+      "Employee can have at most one primary emergency contact.",
+    );
+  }
 });
 
+// ======================================
+// Model
+// ======================================
+
 const Employee =
-  mongoose.models.Employee || mongoose.model("Employee", employeeSchema);
+  mongoose.models.Employee ||
+  mongoose.model(
+    "Employee",
+    employeeSchema,
+  );
 
 export default Employee;

@@ -15,7 +15,6 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
-  User,
 } from "lucide-react";
 
 import { Employee } from "@/types/employee";
@@ -66,11 +65,6 @@ export default function EmployeeDetail({ employee }: Props) {
                   value={`${age} Years`}
                 />
 
-                <InfoCard
-                  icon={<User className="h-5 w-5" />}
-                  label="Reference"
-                  value={formatText(employee.reference)}
-                />
               </div>
             </EmployeeSection>
 
@@ -91,13 +85,47 @@ export default function EmployeeDetail({ employee }: Props) {
                   label="Primary Phone"
                   value={employee.phone1}
                 />
-
-                <InfoCard
-                  icon={<Phone className="h-5 w-5" />}
-                  label="Secondary Phone"
-                  value={employee.phone2}
-                />
+                {(employee.emergencyContacts ?? []).map((contact, index) => (
+                  <InfoCard
+                    key={`${contact.contact}-${index}`}
+                    icon={<Phone className="h-5 w-5" />}
+                    label={`Emergency Contact${contact.isPrimary ? " (Primary)" : ""}`}
+                    value={
+                      [contact.name, contact.relation, contact.contact, contact.address]
+                        .filter(Boolean)
+                        .join(" · ") || undefined
+                    }
+                    large
+                  />
+                ))}
+                {(employee.emergencyContacts ?? []).length === 0 && (
+                  <p className="text-sm text-slate-500">
+                    No emergency contacts recorded.
+                  </p>
+                )}
               </div>
+            </EmployeeSection>
+
+            <EmployeeSection title="References" color="bg-amber-500">
+              {(employee.references ?? []).length > 0 ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {employee.references?.map((reference, index) => (
+                    <InfoCard
+                      key={`${reference.name}-${index}`}
+                      icon={<BriefcaseBusiness className="h-5 w-5" />}
+                      label={`Reference ${index + 1}`}
+                      value={
+                        [reference.name, reference.relation, reference.contact, reference.address]
+                          .filter(Boolean)
+                          .join(" · ") || undefined
+                      }
+                      large
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">No references recorded.</p>
+              )}
             </EmployeeSection>
 
             {/* ================= EMPLOYMENT ================= */}

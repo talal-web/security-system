@@ -273,8 +273,8 @@ export async function exportEmployeesDirectory({
     "Default Shift",
     "Address",
     "Phone 1",
-    "Phone 2",
-    "Reference",
+    "Emergency Contacts",
+    "References",
     "Entry Date",
     "Exit Date",
     "Notes",
@@ -374,8 +374,28 @@ export async function exportEmployeesDirectory({
       employee.defaultShift ? formatText(employee.defaultShift) : "-",
       employee.address || "-",
       employee.phone1 || "-",
-      employee.phone2 || "-",
-      employee.reference || "-",
+      (employee.emergencyContacts ?? [])
+        .map((contact) =>
+          [
+            contact.name,
+            contact.relation,
+            contact.contact,
+            contact.address,
+            contact.isPrimary ? "Primary" : "",
+          ]
+            .filter(Boolean)
+            .join(" / "),
+        )
+        .filter(Boolean)
+        .join("; ") || "-",
+      (employee.references ?? [])
+        .map((reference) =>
+          [reference.name, reference.relation, reference.contact, reference.address]
+            .filter(Boolean)
+            .join(" / "),
+        )
+        .filter(Boolean)
+        .join("; ") || "-",
       formatDate(employee.entryDate),
       employee.exitDate ? formatDate(employee.exitDate) : "Currently Working",
       employee.notes || "-",
@@ -531,8 +551,8 @@ export async function exportEmployeesDirectory({
     { key: "defaultShift", width: 13 },
     { key: "address", width: 30 },
     { key: "phone1", width: 16 },
-    { key: "phone2", width: 16 },
-    { key: "reference", width: 18 },
+    { key: "emergencyContacts", width: 30 },
+    { key: "references", width: 30 },
     { key: "entryDate", width: 14 },
     { key: "exitDate", width: 18 },
     { key: "notes", width: 30 },

@@ -11,7 +11,19 @@ export type EmployeeFormValues = {
   cnic: string;
   address: string;
   phone1: string;
-  phone2: string;
+  emergencyContacts: {
+    name: string;
+    relation: string;
+    contact: string;
+    address: string;
+    isPrimary: boolean;
+  }[];
+  references: {
+    name: string;
+    relation: string;
+    contact: string;
+    address: string;
+  }[];
   education?: EducationLevel | "";
   designation: EmployeeDesignation;
   area?: string | "";
@@ -19,7 +31,6 @@ export type EmployeeFormValues = {
   currentLocation?: string;
   defaultShift?: EmployeeShift | "";
   monthlySalary: number;
-  reference: string;
   status: "active" | "inactive";
   entryDate: string;
   exitDate: string;
@@ -32,7 +43,8 @@ export const defaultEmployeeValues: EmployeeFormValues = {
   cnic: "",
   address: "",
   phone1: "",
-  phone2: "",
+  emergencyContacts: [],
+  references: [],
   education: "",
   designation: "guard",
   defaultShift: "",
@@ -40,7 +52,6 @@ export const defaultEmployeeValues: EmployeeFormValues = {
   sector: "",
   currentLocation: "",
   monthlySalary: 22000,
-  reference: "",
   status: "active",
   entryDate: "",
   exitDate: "",

@@ -19,6 +19,21 @@ export type EducationLevel =
 export type SectorOptions = Sector;
 export type AreaOptions = Area;
 
+export interface EmployeeEmergencyContact {
+  name: string;
+  relation: string;
+  contact: string;
+  address: string;
+  isPrimary: boolean;
+}
+
+export interface EmployeeReference {
+  name: string;
+  relation: string;
+  contact: string;
+  address: string;
+}
+
 export type EmployeeDesignation =
   | "guard"
   | "army_guard"
@@ -38,10 +53,10 @@ export interface Employee {
   cnic: string;
   address: string;
   phone1: string;
-  phone2?: string;
+  emergencyContacts?: EmployeeEmergencyContact[];
+  references?: EmployeeReference[];
   education?: EducationLevel | null;
   designation: EmployeeDesignation;
-  reference?: string;
 
   sector?: SectorOptions | null;
   area?: AreaOptions | null;

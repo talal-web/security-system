@@ -1,9 +1,13 @@
 import logger from "../config/logger.js";
 
 export const errorHandler = (err, req, res, next) => {
-  let statusCode = err.statusCode || res.statusCode;
+  let statusCode = err.statusCode || err.status || res.statusCode;
 
-  if (!statusCode || statusCode === 200) {
+  if (
+    !Number.isInteger(statusCode) ||
+    statusCode < 400 ||
+    statusCode > 599
+  ) {
     statusCode = 500;
   }
 
@@ -17,8 +21,8 @@ export const errorHandler = (err, req, res, next) => {
 
   // Duplicate key error
   if (err.code === 11000) {
-    statusCode = 400;
-    message = "Duplicate field value entered";
+    statusCode = 409;
+    message = "A record with this value already exists";
   }
 
   // Mongoose validation error
@@ -29,7 +33,16 @@ export const errorHandler = (err, req, res, next) => {
       .join(", ");
   }
 
+  // Invalid multipart upload
+  if (err.name === "MulterError") {
+    statusCode = 400;
+  }
+
   const isProduction = process.env.NODE_ENV === "production";
+  const responseMessage =
+    statusCode >= 500 && isProduction
+      ? "Internal Server Error"
+      : message;
 
   // Structured log
   logger.error({
@@ -46,9 +59,9 @@ export const errorHandler = (err, req, res, next) => {
   // API response
   res.status(statusCode).json({
     success: false,
-    message,
+    message: responseMessage,
 
-    ...(err.details !== undefined && {
+    ...(statusCode < 500 && err.details !== undefined && {
       details: err.details,
     }),
 

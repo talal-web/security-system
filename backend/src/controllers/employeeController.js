@@ -12,7 +12,7 @@ const asyncHandler = (fn) => (req, res, next) =>
 
 export const createEmployee = asyncHandler(async (req, res) => {
   const employee = await createEmployeeService({
-    data: req.body,
+    data: req.body ?? {},
     files: req.files,
     userId: req.user?.id,
     areaScope: req.areaScope,
@@ -57,7 +57,7 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
 export const updateEmployee = asyncHandler(async (req, res) => {
   const employee = await updateEmployeeService({
     id: req.params.id,
-    data: req.body,
+    data: req.body ?? {},
     files: req.files,
     areaScope: req.areaScope,
   });

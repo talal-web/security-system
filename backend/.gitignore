@@ -18,3 +18,10 @@ logs/
 
 # Generated reports / migration output
 scripts/
+!scripts/
+scripts/*
+scripts/migrations/
+scripts/migrations/*
+.scripts
+
+tests/

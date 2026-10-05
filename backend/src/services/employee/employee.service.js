@@ -11,16 +11,9 @@ import Location from "../../models/Location.js";
 import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
 import generateEmpId from "../../utils/generateEmpId.js";
 import { normalizeCnic, normalizePhone } from "../../utils/normalize.js";
-
-// ======================================
-// ERROR HELPER
-// ======================================
-
-const createError = (message, statusCode = 400) => {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-};
+import { normalizeEmployeeContactData } from "../../utils/employeeContacts.js";
+import { getMissingEmployeeImageFields } from "../../utils/employeeImages.js";
+import ApiError from "../../utils/ApiError.js";
 
 // ======================================
 // AREA SCOPE HELPERS
@@ -32,11 +25,11 @@ const getScopedAreaId = (areaScope = {}) => {
   const areaId = areaScope?.areaId;
 
   if (typeof areaId !== "string" || !areaId.trim()) {
-    throw createError("Area selection is required", 400);
+    throw new ApiError(400, "Area selection is required");
   }
 
   if (!mongoose.Types.ObjectId.isValid(areaId)) {
-    throw createError("Invalid area ID", 400);
+    throw new ApiError(400, "Invalid area ID");
   }
 
   return areaId;
@@ -68,11 +61,11 @@ const firstDayOfMonthUTC = (date) => {
 const validateEmployeeDates = ({ status, entryDate, exitDate }) => {
   if (status === "active") {
     if (!entryDate) {
-      throw createError("Entry date is required for active employees", 400);
+      throw new ApiError(400, "Entry date is required for active employees");
     }
 
     if (exitDate) {
-      throw createError("Active employees cannot have an exit date", 400);
+      throw new ApiError(400, "Active employees cannot have an exit date");
     }
   }
 
@@ -80,7 +73,7 @@ const validateEmployeeDates = ({ status, entryDate, exitDate }) => {
     const parsedEntryDate = new Date(entryDate);
 
     if (Number.isNaN(parsedEntryDate.getTime())) {
-      throw createError("Invalid entry date", 400);
+      throw new ApiError(400, "Invalid entry date");
     }
   }
 
@@ -88,11 +81,11 @@ const validateEmployeeDates = ({ status, entryDate, exitDate }) => {
     const parsedExitDate = new Date(exitDate);
 
     if (Number.isNaN(parsedExitDate.getTime())) {
-      throw createError("Invalid exit date", 400);
+      throw new ApiError(400, "Invalid exit date");
     }
 
     if (entryDate && parsedExitDate < new Date(entryDate)) {
-      throw createError("Exit date cannot be earlier than entry date", 400);
+      throw new ApiError(400, "Exit date cannot be earlier than entry date");
     }
   }
 };
@@ -102,7 +95,7 @@ const validateEmployeeDates = ({ status, entryDate, exitDate }) => {
 // ======================================
 
 const normalizeEmployeeData = (data) => {
-  const normalized = { ...data };
+  const normalized = normalizeEmployeeContactData(data, normalizePhone);
 
   if (normalized.cnic !== undefined) {
     normalized.cnic = normalizeCnic(normalized.cnic);
@@ -110,10 +103,6 @@ const normalizeEmployeeData = (data) => {
 
   if (normalized.phone1 !== undefined) {
     normalized.phone1 = normalizePhone(normalized.phone1);
-  }
-
-  if (normalized.phone2 !== undefined) {
-    normalized.phone2 = normalizePhone(normalized.phone2);
   }
 
   return normalized;
@@ -150,13 +139,13 @@ const validateArea = async (areaId) => {
   }
 
   if (!mongoose.Types.ObjectId.isValid(areaId)) {
-    throw createError("Invalid area ID");
+    throw new ApiError(400, "Invalid area ID");
   }
 
   const area = await Area.findById(areaId);
 
   if (!area) {
-    throw createError("Area not found");
+    throw new ApiError(404, "Area not found");
   }
 
   return area._id;
@@ -168,17 +157,18 @@ const validateSector = async (sectorId, areaId = null) => {
   }
 
   if (!mongoose.Types.ObjectId.isValid(sectorId)) {
-    throw createError("Invalid sector ID");
+    throw new ApiError(400, "Invalid sector ID");
   }
 
   const sector = await Sector.findById(sectorId).lean();
 
   if (!sector) {
-    throw createError("Sector not found");
+    throw new ApiError(404, "Sector not found");
   }
 
   if (areaId && sector.area?.toString() !== areaId.toString()) {
-    throw createError(
+    throw new ApiError(
+      400,
       "Area, sector, and current location must belong to the same area",
     );
   }
@@ -192,17 +182,18 @@ const validateLocation = async (locationId, sectorId = null) => {
   }
 
   if (!mongoose.Types.ObjectId.isValid(locationId)) {
-    throw createError("Invalid current location ID");
+    throw new ApiError(400, "Invalid current location ID");
   }
 
   const location = await Location.findById(locationId).lean();
 
   if (!location) {
-    throw createError("Current location not found");
+    throw new ApiError(404, "Current location not found");
   }
 
   if (sectorId && location.sector?.toString() !== sectorId.toString()) {
-    throw createError(
+    throw new ApiError(
+      400,
       "Area, sector, and current location must belong to the same area",
     );
   }
@@ -225,7 +216,8 @@ export const validateEmployeeAreaRelationship = (
     sectorDoc &&
     sectorDoc.area?.toString() !== selectedArea.toString()
   ) {
-    throw createError(
+    throw new ApiError(
+      400,
       "Area, sector, and current location must belong to the same area",
     );
   }
@@ -235,7 +227,8 @@ export const validateEmployeeAreaRelationship = (
     locationDoc &&
     locationDoc.sector?.toString() !== selectedSector.toString()
   ) {
-    throw createError(
+    throw new ApiError(
+      400,
       "Area, sector, and current location must belong to the same area",
     );
   }
@@ -251,7 +244,7 @@ const findEmployeeInScope = async (id, areaScope, query = null) => {
     : Employee.findOne({ _id: id, area: scopedAreaId }));
 
   if (!employee) {
-    throw createError("Employee not found", 404);
+    throw new ApiError(404, "Employee not found");
   }
 
   return employee;
@@ -267,6 +260,15 @@ export const createEmployeeService = async ({
   userId,
   areaScope = {},
 }) => {
+  const missingImageFields = getMissingEmployeeImageFields(files);
+  if (missingImageFields.length) {
+    throw new ApiError(
+      400,
+      `Required employee images are missing: ${missingImageFields.join(", ")}`,
+    );
+  }
+
+  const normalized = normalizeEmployeeData(data);
   const {
     name,
     fatherName,
@@ -274,11 +276,11 @@ export const createEmployeeService = async ({
     cnic,
     address,
     phone1,
-    phone2,
+    emergencyContacts,
+    references,
     education,
     designation,
     monthlySalary,
-    reference,
     area,
     sector,
     status,
@@ -287,7 +289,7 @@ export const createEmployeeService = async ({
     notes,
     currentLocation,
     defaultShift,
-  } = data;
+  } = normalized;
 
   const scopedAreaId = getScopedAreaId(areaScope);
 
@@ -298,13 +300,13 @@ export const createEmployeeService = async ({
     area !== "" &&
     String(area) !== scopedAreaId
   ) {
-    throw createError("Conflicting area selections", 400);
+    throw new ApiError(400, "Conflicting area selections");
   }
 
   const effectiveStatus = status || "active";
 
   if (!name || !fatherName || !birthDate || !cnic || !phone1 || !designation) {
-    throw createError("Required fields are missing");
+    throw new ApiError(400, "Required fields are missing");
   }
 
   validateEmployeeDates({
@@ -322,7 +324,8 @@ export const createEmployeeService = async ({
     !Number.isFinite(initialSalary) ||
     initialSalary < 0
   ) {
-    throw createError(
+    throw new ApiError(
+      400,
       "A valid monthlySalary is required to create an employee",
     );
   }
@@ -330,18 +333,12 @@ export const createEmployeeService = async ({
   // New employees always belong to the selected area.
   const validatedArea = await validateArea(scopedAreaId);
 
-  const normalized = normalizeEmployeeData({
-    cnic,
-    phone1,
-    phone2,
-  });
-
   const existing = await Employee.findOne({
     cnic: normalized.cnic,
   });
 
   if (existing) {
-    throw createError("Employee with this CNIC already exists", 400);
+    throw new ApiError(409, "Employee with this CNIC already exists");
   }
 
   const validatedSector = await validateSector(sector, validatedArea);
@@ -368,12 +365,12 @@ export const createEmployeeService = async ({
             cnic: normalized.cnic,
             address,
             phone1: normalized.phone1,
-            phone2: normalized.phone2,
+            emergencyContacts,
+            references,
 
             education,
             designation,
 
-            reference,
             area: validatedArea,
             sector: validatedSector?._id || null,
 
@@ -449,9 +446,9 @@ export const getEmployeesService = async (query = {}, areaScope = {}) => {
 
   // The area itself is the scope, so it can't be "unassigned" inside it.
   if (unassigned === "area") {
-    throw createError(
-      "Unassigned area filter is not available within a selected area.",
+    throw new ApiError(
       400,
+      "Unassigned area filter is not available within a selected area.",
     );
   }
 
@@ -471,7 +468,7 @@ export const getEmployeesService = async (query = {}, areaScope = {}) => {
   // SECTOR
   if (sector && unassigned !== "sector") {
     if (!mongoose.Types.ObjectId.isValid(sector)) {
-      throw createError("Invalid sector.");
+      throw new ApiError(400, "Invalid sector.");
     }
 
     filter.sector = sector;
@@ -485,7 +482,7 @@ export const getEmployeesService = async (query = {}, areaScope = {}) => {
   // CURRENT LOCATION
   if (currentLocation && unassigned !== "currentLocation") {
     if (!mongoose.Types.ObjectId.isValid(currentLocation)) {
-      throw createError("Invalid current location.");
+      throw new ApiError(400, "Invalid current location.");
     }
 
     filter.currentLocation = currentLocation;
@@ -557,7 +554,7 @@ export const getEmployeesService = async (query = {}, areaScope = {}) => {
       const from = new Date(entryFrom);
 
       if (Number.isNaN(from.getTime())) {
-        throw createError("Invalid entryFrom date.");
+        throw new ApiError(400, "Invalid entryFrom date.");
       }
 
       filter.entryDate.$gte = from;
@@ -567,7 +564,7 @@ export const getEmployeesService = async (query = {}, areaScope = {}) => {
       const to = new Date(entryTo);
 
       if (Number.isNaN(to.getTime())) {
-        throw createError("Invalid entryTo date.");
+        throw new ApiError(400, "Invalid entryTo date.");
       }
 
       filter.entryDate.$lte = to;
@@ -578,7 +575,7 @@ export const getEmployeesService = async (query = {}, areaScope = {}) => {
       filter.entryDate.$lte &&
       filter.entryDate.$gte > filter.entryDate.$lte
     ) {
-      throw createError("entryFrom must be before entryTo.");
+      throw new ApiError(400, "entryFrom must be before entryTo.");
     }
   }
 
@@ -609,7 +606,7 @@ export const getEmployeesService = async (query = {}, areaScope = {}) => {
 
 export const lookupEmployeeService = async (empId, areaScope = {}) => {
   if (!empId || typeof empId !== "string" || !empId.trim()) {
-    throw createError("Employee ID (empId) is required");
+    throw new ApiError(400, "Employee ID (empId) is required");
   }
 
   const scopedAreaId = getScopedAreaId(areaScope);
@@ -625,7 +622,7 @@ export const lookupEmployeeService = async (empId, areaScope = {}) => {
   }).select("_id empId name fatherName designation status area");
 
   if (!employee) {
-    throw createError("Employee not found", 404);
+    throw new ApiError(404, "Employee not found");
   }
 
   return employee;
@@ -637,7 +634,7 @@ export const lookupEmployeeService = async (empId, areaScope = {}) => {
 
 export const getEmployeeByIdService = async (id, areaScope = {}) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw createError("Invalid employee ID");
+    throw new ApiError(400, "Invalid employee ID");
   }
 
   return findEmployeeInScope(id, areaScope, (q) =>
@@ -659,13 +656,22 @@ export const updateEmployeeService = async ({
   areaScope = {},
 }) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw createError("Invalid employee ID");
+    throw new ApiError(400, "Invalid employee ID");
+  }
+
+  const employeeData = data ?? {};
+
+  if (
+    typeof employeeData !== "object" ||
+    Array.isArray(employeeData)
+  ) {
+    throw new ApiError(400, "Employee update data must be an object");
   }
 
   // Employee must currently belong to the selected area.
   const employee = await findEmployeeInScope(id, areaScope);
 
-  const normalized = normalizeEmployeeData(data);
+  const normalized = normalizeEmployeeData(employeeData);
 
   // CNIC VALIDATION
 
@@ -676,7 +682,7 @@ export const updateEmployeeService = async ({
     });
 
     if (existing) {
-      throw createError("Another employee already uses this CNIC");
+      throw new ApiError(409, "Another employee already uses this CNIC");
     }
   }
 
@@ -684,9 +690,9 @@ export const updateEmployeeService = async ({
   // Only validated when one of them is being changed, so unrelated edits
   // don't fail on older records.
 
-  const areaChanging = data.area !== undefined;
-  const sectorChanging = data.sector !== undefined;
-  const locationChanging = data.currentLocation !== undefined;
+  const areaChanging = employeeData.area !== undefined;
+  const sectorChanging = employeeData.sector !== undefined;
+  const locationChanging = employeeData.currentLocation !== undefined;
 
   let targetArea = employee.area;
   let validatedSector = null;
@@ -694,27 +700,27 @@ export const updateEmployeeService = async ({
 
   if (areaChanging || sectorChanging || locationChanging) {
     if (areaChanging) {
-      const newArea = await validateArea(data.area);
+      const newArea = await validateArea(employeeData.area);
 
       // An employee cannot be left without an area.
       if (!newArea) {
-        throw createError("Employee must have an area", 400);
+        throw new ApiError(400, "Employee must have an area");
       }
 
       // Moving to another area requires access to that area.
       if (!canAccessArea(newArea, areaScope)) {
-        throw createError("Unauthorized area access", 403);
+        throw new ApiError(403, "Unauthorized area access");
       }
 
       targetArea = newArea;
     }
 
     const sectorId = sectorChanging
-      ? String(data.sector ?? "").trim() || null
+      ? String(employeeData.sector ?? "").trim() || null
       : employee.sector;
 
     const locationId = locationChanging
-      ? String(data.currentLocation ?? "").trim() || null
+      ? String(employeeData.currentLocation ?? "").trim() || null
       : employee.currentLocation;
 
     validatedSector = await validateSector(sectorId, targetArea);
@@ -741,10 +747,10 @@ export const updateEmployeeService = async ({
     "cnic",
     "address",
     "phone1",
-    "phone2",
+    "emergencyContacts",
+    "references",
     "education",
     "designation",
-    "reference",
     "defaultShift",
     "status",
     "entryDate",
@@ -763,6 +769,13 @@ export const updateEmployeeService = async ({
     }
 
     employee[field] = normalized[field];
+  }
+
+  if (
+    employeeData.removeProfileImage === true ||
+    employeeData.removeProfileImage === "true"
+  ) {
+    employee.profileImage = "";
   }
 
   // IMAGE UPDATES
@@ -784,7 +797,7 @@ export const updateEmployeeService = async ({
 
 export const deleteEmployeeService = async (id, areaScope = {}) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw createError("Invalid employee ID");
+    throw new ApiError(400, "Invalid employee ID");
   }
 
   const employee = await findEmployeeInScope(id, areaScope);

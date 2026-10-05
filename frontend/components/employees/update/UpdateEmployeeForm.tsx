@@ -3,7 +3,15 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, useWatch, Controller } from "react-hook-form";
+import {
+  useFieldArray,
+  useForm,
+  useWatch,
+  Controller,
+  Resolver,
+} from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 import {
   educationOptions,
@@ -30,21 +38,25 @@ import {
   CreditCard,
   Save,
   BadgeCheck,
-  BriefcaseBusiness,
   Cake,
   Clock3,
   ImageUp,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
 import { Employee } from "@/types/employee";
 import {
   EducationLevel,
   EmployeeDesignation,
+  EmployeeEmergencyContact,
+  EmployeeReference,
   EmployeeShift,
   SectorOptions,
 } from "@/types/employee";
 
 import { calculateAge, formatDate } from "@/utils/employee/employeeFormat";
+import { employeeContactFieldsSchema } from "@/utils/employee/employeeSchema";
 
 type FormValues = {
   name: string;
@@ -53,7 +65,8 @@ type FormValues = {
   cnic: string;
   address: string;
   phone1: string;
-  phone2: string;
+  emergencyContacts: EmployeeEmergencyContact[];
+  references: EmployeeReference[];
 
   education: EducationLevel | "";
   designation: EmployeeDesignation;
@@ -64,7 +77,6 @@ type FormValues = {
 
   defaultShift: EmployeeShift | "";
 
-  reference: string;
   status: "active" | "inactive";
 
   entryDate: string;
@@ -124,14 +136,14 @@ const getEmployeeFormValues = (employee: Employee): FormValues => ({
   cnic: employee.cnic || "",
   address: employee.address || "",
   phone1: employee.phone1 || "",
-  phone2: employee.phone2 || "",
+  emergencyContacts: employee.emergencyContacts || [],
+  references: employee.references || [],
   education: employee.education ?? "",
   designation: employee.designation,
   area: getAreaId(employee.area),
   sector: getSectorId(employee.sector),
   currentLocation: getCurrentLocationId(employee.currentLocation),
   defaultShift: employee.defaultShift ?? "",
-  reference: employee.reference || "",
   status: employee.status || "active",
   entryDate: normalizeDate(employee.entryDate),
   exitDate: normalizeDate(employee.exitDate),
@@ -151,9 +163,22 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     clearErrors,
     formState: { errors },
   } = useForm<FormValues>({
+    resolver: zodResolver(employeeContactFieldsSchema) as unknown as Resolver<FormValues>,
     defaultValues: getEmployeeFormValues(employee),
     mode: "onChange",
   });
+
+  const {
+    fields: emergencyContactFields,
+    append: appendEmergencyContact,
+    remove: removeEmergencyContact,
+  } = useFieldArray({ control, name: "emergencyContacts" });
+
+  const {
+    fields: referenceFields,
+    append: appendReference,
+    remove: removeReference,
+  } = useFieldArray({ control, name: "references" });
 
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(
@@ -328,14 +353,14 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     data.append("cnic", values.cnic.trim());
     data.append("address", values.address.trim());
     data.append("phone1", values.phone1.trim());
-    data.append("phone2", values.phone2.trim());
+    data.append("emergencyContacts", JSON.stringify(values.emergencyContacts));
+    data.append("references", JSON.stringify(values.references));
     data.append("education", values.education || "");
     data.append("designation", values.designation);
     data.append("area", values.area || "");
     data.append("sector", values.sector || "");
     data.append("currentLocation", values.currentLocation || "");
     data.append("defaultShift", values.defaultShift || "");
-    data.append("reference", values.reference.trim());
     data.append("status", values.status);
     data.append("entryDate", values.entryDate);
     data.append("exitDate", exitDate);
@@ -364,7 +389,11 @@ export default function UpdateEmployeeForm({ employee }: Props) {
 
       router.push(getAreaAwareHref("/employees"));
     } catch (error) {
-      console.error("Failed to update employee:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to update employee. Please try again.",
+      );
     }
   };
 
@@ -447,17 +476,174 @@ export default function UpdateEmployeeForm({ employee }: Props) {
 
         <Input icon={<CreditCard />} label="CNIC" {...register("cnic")} />
 
-        <Input icon={<Phone />} label="Phone 1" {...register("phone1")} />
-
-        <Input icon={<Phone />} label="Phone 2" {...register("phone2")} />
+        <Input
+          icon={<Phone />}
+          label="Phone 1"
+          error={errors.phone1?.message}
+          {...register("phone1")}
+        />
 
         <Input icon={<MapPin />} label="Address" {...register("address")} />
 
-        <Input
-          icon={<BriefcaseBusiness />}
-          label="Reference"
-          {...register("reference")}
-        />
+        <div className="space-y-3 md:col-span-2 lg:col-span-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-slate-800">Emergency Contacts</h3>
+            <button
+              type="button"
+              onClick={() =>
+                appendEmergencyContact({
+                  name: "",
+                  relation: "",
+                  contact: "",
+                  address: "",
+                  isPrimary: false,
+                })
+              }
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              <Plus className="h-4 w-4" /> Add contact
+            </button>
+          </div>
+          {emergencyContactFields.length === 0 && (
+            <p className="text-sm text-slate-500">No emergency contacts added.</p>
+          )}
+          {emergencyContactFields.map((field, index) => (
+            <div
+              key={field.id}
+              className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-5"
+            >
+              <Input
+                label="Name"
+                maxLength={100}
+                error={errors.emergencyContacts?.[index]?.name?.message}
+                {...register(`emergencyContacts.${index}.name`)}
+              />
+              <Input
+                label="Relation"
+                maxLength={50}
+                error={errors.emergencyContacts?.[index]?.relation?.message}
+                {...register(`emergencyContacts.${index}.relation`)}
+              />
+              <Input
+                type="tel"
+                label="Contact"
+                maxLength={20}
+                error={errors.emergencyContacts?.[index]?.contact?.message}
+                {...register(`emergencyContacts.${index}.contact`)}
+              />
+              <Input
+                label="Address"
+                maxLength={300}
+                error={errors.emergencyContacts?.[index]?.address?.message}
+                {...register(`emergencyContacts.${index}.address`)}
+              />
+              <div className="flex items-center justify-between gap-3">
+                <label className="flex items-center gap-2 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-orange-600"
+                    {...(() => {
+                      const field = register(
+                        `emergencyContacts.${index}.isPrimary`,
+                      );
+                      return {
+                        ...field,
+                        onChange: (event) => {
+                          field.onChange(event);
+                          if (event.target.checked) {
+                            emergencyContactFields.forEach((_, otherIndex) => {
+                              if (otherIndex !== index) {
+                                setValue(
+                                  `emergencyContacts.${otherIndex}.isPrimary`,
+                                  false,
+                                  { shouldDirty: true, shouldValidate: true },
+                                );
+                              }
+                            });
+                          }
+                        },
+                      };
+                    })()}
+                  />
+                  Primary
+                </label>
+                <button
+                  type="button"
+                  aria-label="Remove emergency contact"
+                  title="Remove emergency contact"
+                  onClick={() => removeEmergencyContact(index)}
+                  className="rounded-md p-2 text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+          {errors.emergencyContacts?.message && (
+            <p className="text-sm text-red-600">
+              {errors.emergencyContacts.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-3 md:col-span-2 lg:col-span-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-slate-800">References</h3>
+            <button
+              type="button"
+              onClick={() =>
+                appendReference({ name: "", relation: "", contact: "", address: "" })
+              }
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              <Plus className="h-4 w-4" /> Add reference
+            </button>
+          </div>
+          {referenceFields.length === 0 && (
+            <p className="text-sm text-slate-500">No references added.</p>
+          )}
+          {referenceFields.map((field, index) => (
+            <div
+              key={field.id}
+              className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-5"
+            >
+              <Input
+                label="Name"
+                maxLength={100}
+                error={errors.references?.[index]?.name?.message}
+                {...register(`references.${index}.name`)}
+              />
+              <Input
+                label="Relation"
+                maxLength={50}
+                error={errors.references?.[index]?.relation?.message}
+                {...register(`references.${index}.relation`)}
+              />
+              <Input
+                type="tel"
+                label="Contact"
+                maxLength={20}
+                error={errors.references?.[index]?.contact?.message}
+                {...register(`references.${index}.contact`)}
+              />
+              <Input
+                label="Address"
+                maxLength={300}
+                error={errors.references?.[index]?.address?.message}
+                {...register(`references.${index}.address`)}
+              />
+              <button
+                type="button"
+                aria-label="Remove reference"
+                title="Remove reference"
+                onClick={() => removeReference(index)}
+                className="justify-self-end rounded-md p-2 text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
 
         <Select
           icon={<GraduationCap />}

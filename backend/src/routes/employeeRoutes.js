@@ -78,6 +78,11 @@ router.put(
 );
 
 // DELETE (ONLY DEVELOPER + ADMIN)
-router.delete("/:id", authorizeRoles("developer", "admin"), deleteEmployee);
+router.delete(
+  "/:id",
+  authorizeRoles("developer", "admin"),
+  requireAreaAccess,
+  deleteEmployee,
+);
 
 export default router;

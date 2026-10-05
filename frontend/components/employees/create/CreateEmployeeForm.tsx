@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Resolver, useForm, useWatch } from "react-hook-form";
+import { Resolver, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import Input from "@/components/Input";
 import Select from "@/components/Select";
@@ -25,6 +25,8 @@ import {
   Cake,
   Banknote,
   Clock3,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
 import { useCreateEmployee } from "@/hooks/employee/create/useCreateEmployee";
@@ -50,6 +52,11 @@ import { buildEmployeeFormData } from "@/utils/employee/buildEmployeeFormData";
 export default function CreateEmployeeForm() {
   const router = useRouter();
   const { selectedAreaId, getAreaAwareHref } = useSelectedArea();
+  const [imageErrors, setImageErrors] = useState<{
+    profileImage?: string;
+    cnicFrontImage?: string;
+    cnicBackImage?: string;
+  }>({});
 
   const {
     control,
@@ -61,6 +68,18 @@ export default function CreateEmployeeForm() {
     resolver: zodResolver(employeeSchema) as Resolver<EmployeeFormValues>,
     defaultValues: defaultEmployeeValues,
   });
+
+  const {
+    fields: emergencyContactFields,
+    append: appendEmergencyContact,
+    remove: removeEmergencyContact,
+  } = useFieldArray({ control, name: "emergencyContacts" });
+
+  const {
+    fields: referenceFields,
+    append: appendReference,
+    remove: removeReference,
+  } = useFieldArray({ control, name: "references" });
 
   const selectedArea = useWatch({
     control,
@@ -126,6 +145,23 @@ export default function CreateEmployeeForm() {
   } = useEmployeeLocations(selectedSector);
 
   const onSubmit = async (values: EmployeeFormValues) => {
+    const missingImages = {
+      profileImage: !profileImage,
+      cnicFrontImage: !cnicFrontImage,
+      cnicBackImage: !cnicBackImage,
+    };
+
+    setImageErrors({
+      profileImage: missingImages.profileImage ? "Profile image is required" : undefined,
+      cnicFrontImage: missingImages.cnicFrontImage ? "CNIC front image is required" : undefined,
+      cnicBackImage: missingImages.cnicBackImage ? "CNIC back image is required" : undefined,
+    });
+
+    if (Object.values(missingImages).some(Boolean)) {
+      toast.error("Upload the profile image and both CNIC images to continue.");
+      return;
+    }
+
     const form = buildEmployeeFormData(values, {
       profileImage,
       cnicFrontImage,
@@ -179,15 +215,19 @@ export default function CreateEmployeeForm() {
                     type="file"
                     accept="image/png,image/jpeg,image/jpg,image/webp"
                     className="hidden"
-                    onChange={(e) =>
-                      setProfileImage(e.target.files?.[0] || null)
-                    }
+                    onChange={(e) => {
+                      setProfileImage(e.target.files?.[0] || null);
+                      setImageErrors((current) => ({ ...current, profileImage: undefined }));
+                    }}
                   />
                 </div>
 
                 <div className="text-white">
-                  <p className="text-sm font-semibold">Profile Image</p>
+                  <p className="text-sm font-semibold">Profile Image (Required)</p>
                   <p className="text-xs text-white/80">PNG, JPG or WEBP</p>
+                  {imageErrors.profileImage && (
+                    <p className="text-xs text-red-100">{imageErrors.profileImage}</p>
+                  )}
                 </div>
               </label>
             </div>
@@ -308,22 +348,175 @@ export default function CreateEmployeeForm() {
                     error={errors.phone1?.message}
                     {...register("phone1")}
                   />
+                </div>
+                {errors.emergencyContacts?.message && (
+                  <p className="text-sm text-red-600">
+                    {errors.emergencyContacts.message}
+                  </p>
+                )}
 
-                  <Input
-                    icon={<Phone />}
-                    label="Family Number"
-                    placeholder="0347-7654321"
-                    error={errors.phone2?.message}
-                    {...register("phone2")}
-                  />
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Emergency Contacts
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        appendEmergencyContact({
+                          name: "",
+                          relation: "",
+                          contact: "",
+                          address: "",
+                          isPrimary: false,
+                        })
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      <Plus className="h-4 w-4" /> Add contact
+                    </button>
+                  </div>
+                  {emergencyContactFields.length === 0 && (
+                    <p className="text-sm text-slate-500">No emergency contacts added.</p>
+                  )}
+                  {emergencyContactFields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-5"
+                    >
+                      <Input
+                        label="Name"
+                        maxLength={100}
+                        error={errors.emergencyContacts?.[index]?.name?.message}
+                        {...register(`emergencyContacts.${index}.name`)}
+                      />
+                      <Input
+                        label="Relation"
+                        maxLength={50}
+                        error={errors.emergencyContacts?.[index]?.relation?.message}
+                        {...register(`emergencyContacts.${index}.relation`)}
+                      />
+                      <Input
+                        type="tel"
+                        label="Contact"
+                        maxLength={20}
+                        error={errors.emergencyContacts?.[index]?.contact?.message}
+                        {...register(`emergencyContacts.${index}.contact`)}
+                      />
+                      <Input
+                        label="Address"
+                        maxLength={300}
+                        error={errors.emergencyContacts?.[index]?.address?.message}
+                        {...register(`emergencyContacts.${index}.address`)}
+                      />
+                      <div className="flex items-center justify-between gap-3">
+                        <label className="flex items-center gap-2 text-sm text-slate-700">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 accent-orange-600"
+                            {...(() => {
+                              const field = register(
+                                `emergencyContacts.${index}.isPrimary`,
+                              );
+                              return {
+                                ...field,
+                                onChange: (event) => {
+                                  field.onChange(event);
+                                  if (event.target.checked) {
+                                    emergencyContactFields.forEach((_, otherIndex) => {
+                                      if (otherIndex !== index) {
+                                        setValue(
+                                          `emergencyContacts.${otherIndex}.isPrimary`,
+                                          false,
+                                          { shouldDirty: true, shouldValidate: true },
+                                        );
+                                      }
+                                    });
+                                  }
+                                },
+                              };
+                            })()}
+                          />
+                          Primary
+                        </label>
+                        <button
+                          type="button"
+                          aria-label="Remove emergency contact"
+                          title="Remove emergency contact"
+                          onClick={() => removeEmergencyContact(index)}
+                          className="rounded-md p-2 text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-                  <Input
-                    icon={<User />}
-                    label="Reference"
-                    placeholder="Enter reference name"
-                    error={errors.reference?.message}
-                    {...register("reference")}
-                  />
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      References
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        appendReference({
+                          name: "",
+                          relation: "",
+                          contact: "",
+                          address: "",
+                        })
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      <Plus className="h-4 w-4" /> Add reference
+                    </button>
+                  </div>
+                  {referenceFields.length === 0 && (
+                    <p className="text-sm text-slate-500">No references added.</p>
+                  )}
+                  {referenceFields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-5"
+                    >
+                      <Input
+                        label="Name"
+                        maxLength={100}
+                        error={errors.references?.[index]?.name?.message}
+                        {...register(`references.${index}.name`)}
+                      />
+                      <Input
+                        label="Relation"
+                        maxLength={50}
+                        error={errors.references?.[index]?.relation?.message}
+                        {...register(`references.${index}.relation`)}
+                      />
+                      <Input
+                        type="tel"
+                        label="Contact"
+                        maxLength={20}
+                        error={errors.references?.[index]?.contact?.message}
+                        {...register(`references.${index}.contact`)}
+                      />
+                      <Input
+                        label="Address"
+                        maxLength={300}
+                        error={errors.references?.[index]?.address?.message}
+                        {...register(`references.${index}.address`)}
+                      />
+                      <button
+                        type="button"
+                        aria-label="Remove reference"
+                        title="Remove reference"
+                        onClick={() => removeReference(index)}
+                        className="justify-self-end rounded-md p-2 text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </section>
 
@@ -471,7 +664,7 @@ export default function CreateEmployeeForm() {
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">
-                      CNIC Front Picture
+                      CNIC Front Picture (Required)
                     </label>
 
                     <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-orange-300 hover:bg-orange-50">
@@ -506,16 +699,20 @@ export default function CreateEmployeeForm() {
                         type="file"
                         accept="image/png,image/jpeg,image/jpg,image/webp"
                         className="hidden"
-                        onChange={(e) =>
-                          setCnicFrontImage(e.target.files?.[0] || null)
-                        }
+                        onChange={(e) => {
+                          setCnicFrontImage(e.target.files?.[0] || null);
+                          setImageErrors((current) => ({ ...current, cnicFrontImage: undefined }));
+                        }}
                       />
                     </label>
+                    {imageErrors.cnicFrontImage && (
+                      <p className="text-sm text-red-600">{imageErrors.cnicFrontImage}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">
-                      CNIC Back Picture
+                      CNIC Back Picture (Required)
                     </label>
 
                     <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-orange-300 hover:bg-orange-50">
@@ -550,11 +747,15 @@ export default function CreateEmployeeForm() {
                         type="file"
                         accept="image/png,image/jpeg,image/jpg,image/webp"
                         className="hidden"
-                        onChange={(e) =>
-                          setCnicBackImage(e.target.files?.[0] || null)
-                        }
+                        onChange={(e) => {
+                          setCnicBackImage(e.target.files?.[0] || null);
+                          setImageErrors((current) => ({ ...current, cnicBackImage: undefined }));
+                        }}
                       />
                     </label>
+                    {imageErrors.cnicBackImage && (
+                      <p className="text-sm text-red-600">{imageErrors.cnicBackImage}</p>
+                    )}
                   </div>
                 </div>
               </section>

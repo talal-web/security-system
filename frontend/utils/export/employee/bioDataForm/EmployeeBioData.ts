@@ -250,8 +250,15 @@ export async function exportEmployeeBioData({
   addField(
     worksheet,
     currentRow++,
-    "Reference",
-    formatText(employee.reference),
+    "References",
+    (employee.references ?? [])
+      .map((reference) =>
+        [reference.name, reference.relation, reference.contact, reference.address]
+          .filter(Boolean)
+          .join(" | "),
+      )
+      .filter(Boolean)
+      .join("\n") || "-",
   );
 
   currentRow++;
@@ -268,7 +275,25 @@ export async function exportEmployeeBioData({
 
   addField(worksheet, currentRow++, "Primary Phone", employee.phone1 || "-");
 
-  addField(worksheet, currentRow++, "Secondary Phone", employee.phone2 || "-");
+  addField(
+    worksheet,
+    currentRow++,
+    "Emergency Contacts",
+    (employee.emergencyContacts ?? [])
+      .map((contact) =>
+        [
+          contact.name,
+          contact.relation,
+          contact.contact,
+          contact.address,
+          contact.isPrimary ? "Primary" : "",
+        ]
+          .filter(Boolean)
+          .join(" | "),
+      )
+      .filter(Boolean)
+      .join("\n") || "-",
+  );
 
   currentRow++;
 

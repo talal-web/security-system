@@ -13,6 +13,11 @@ export const buildEmployeeFormData = (
   const form = new FormData();
 
   Object.entries(values).forEach(([key, value]) => {
+    if (key === "emergencyContacts" || key === "references") {
+      form.append(key, JSON.stringify(value ?? []));
+      return;
+    }
+
     if (value !== undefined && value !== null && value !== "") {
       form.append(key, String(value));
     }

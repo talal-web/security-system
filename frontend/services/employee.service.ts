@@ -5,6 +5,7 @@ import {
   EmployeeLookupResult,
 } from "@/types/employee";
 import { getApiErrorMessage } from "@/lib/apiError";
+import { ApiError, getApiErrorStatus } from "@/lib/apiError";
 
 export async function lookupEmployee(
   empId: string,
@@ -93,9 +94,10 @@ export async function updateEmployee(
 
     return res.data.data;
   } catch (error) {
-    const message = getApiErrorMessage(error);
-
-    throw new Error(message);
+    throw new ApiError(
+      getApiErrorMessage(error),
+      getApiErrorStatus(error),
+    );
   }
 }
 
