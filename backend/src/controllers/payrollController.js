@@ -16,22 +16,6 @@ import {
   markPayrollPaid,
 } from "../services/payroll/payrollService.js";
 
-// Sends every error (ApiError or unexpected) to the central error handler.
-// A duplicate key (race condition backstop) becomes a 409.
-const handle = (fn) => async (req, res, next) => {
-  try {
-    await fn(req, res);
-  } catch (error) {
-    if (error?.code === 11000) {
-      return next(
-        new ApiError(409, "Payroll already exists for this employee and month"),
-      );
-    }
-
-    return next(error);
-  }
-};
-
 // enforceAreaScope has already validated exactly one area.
 // Needed here because two handlers query Payroll directly.
 const getAreaId = (req) => {
@@ -62,7 +46,7 @@ const validatePeriod = (year, month) => {
 /**
  * GET /api/payroll
  */
-export const getPayrolls = handle(async (req, res) => {
+export const getPayrolls = async (req, res) => {
   const payrolls = await getPayrollsService(req.query, req.areaScope);
 
   res.status(200).json({
@@ -70,24 +54,24 @@ export const getPayrolls = handle(async (req, res) => {
     count: payrolls.length,
     data: payrolls,
   });
-});
+};
 
 /**
  * GET /api/payroll/:id
  */
-export const getPayrollById = handle(async (req, res) => {
+export const getPayrollById = async (req, res) => {
   const payroll = await getPayrollByIdService(req.params.id, req.areaScope);
 
   res.status(200).json({
     success: true,
     data: payroll,
   });
-});
+};
 
 /**
  * GET /api/payroll/employee/:employeeId
  */
-export const getEmployeePayrolls = handle(async (req, res) => {
+export const getEmployeePayrolls = async (req, res) => {
   const payrolls = await getEmployeePayrollsService(
     req.params.employeeId,
     req.areaScope,
@@ -98,12 +82,12 @@ export const getEmployeePayrolls = handle(async (req, res) => {
     count: payrolls.length,
     data: payrolls,
   });
-});
+};
 
 /**
  * POST /api/payroll/generate
  */
-export const generatePayroll = handle(async (req, res) => {
+export const generatePayroll = async (req, res) => {
   const { employeeId } = req.body;
 
   if (!employeeId || !mongoose.isValidObjectId(employeeId)) {
@@ -125,12 +109,12 @@ export const generatePayroll = handle(async (req, res) => {
     message: "Payroll generated successfully",
     data: payroll,
   });
-});
+};
 
 /**
  * POST /api/payroll/generate-month
  */
-export const generateMonthlyPayroll = handle(async (req, res) => {
+export const generateMonthlyPayroll = async (req, res) => {
   const { year, month } = validatePeriod(req.body.year, req.body.month);
 
   const result = await generatePayrollForMonth({
@@ -145,12 +129,12 @@ export const generateMonthlyPayroll = handle(async (req, res) => {
     message: "Monthly payroll generated successfully",
     data: result,
   });
-});
+};
 
 /**
  * POST /api/payroll/:id/recalculate
  */
-export const recalculatePayroll = handle(async (req, res) => {
+export const recalculatePayroll = async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.isValidObjectId(id)) {
@@ -186,12 +170,12 @@ export const recalculatePayroll = handle(async (req, res) => {
     message: "Payroll recalculated successfully",
     data: updatedPayroll,
   });
-});
+};
 
 /**
  * POST /api/payroll/recalculate-month
  */
-export const recalculateMonthlyPayroll = handle(async (req, res) => {
+export const recalculateMonthlyPayroll = async (req, res) => {
   const { year, month } = validatePeriod(req.body.year, req.body.month);
 
   // Only draft payrolls in the selected area.
@@ -242,7 +226,7 @@ export const recalculateMonthlyPayroll = handle(async (req, res) => {
       return;
     }
 
-    const payroll = payrolls[index];
+  const payroll = payrolls[index];
 
     errors.push({
       payrollId: payroll._id,
@@ -268,12 +252,12 @@ export const recalculateMonthlyPayroll = handle(async (req, res) => {
       errors,
     },
   });
-});
+};
 
 /**
  * PATCH /api/payroll/:id/finalize
  */
-export const finalizePayroll = handle(async (req, res) => {
+export const finalizePayroll = async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.isValidObjectId(id)) {
@@ -291,12 +275,12 @@ export const finalizePayroll = handle(async (req, res) => {
     message: "Payroll finalized successfully",
     data: payroll,
   });
-});
+};
 
 /**
  * PATCH /api/payroll/:id/pay
  */
-export const markPayrollAsPaid = handle(async (req, res) => {
+export const markPayrollAsPaid = async (req, res) => {
   const { id } = req.params;
   const { paymentMethod, paymentReference } = req.body;
 
@@ -317,4 +301,4 @@ export const markPayrollAsPaid = handle(async (req, res) => {
     message: "Payroll marked as paid successfully",
     data: payroll,
   });
-});
+};

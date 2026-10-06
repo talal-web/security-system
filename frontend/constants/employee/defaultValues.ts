@@ -36,6 +36,13 @@ export type EmployeeFormValues = {
   exitDate: string;
 };
 
+const today = new Date();
+const todayString = [
+  today.getFullYear(),
+  String(today.getMonth() + 1).padStart(2, "0"),
+  String(today.getDate()).padStart(2, "0"),
+].join("-");
+
 export const defaultEmployeeValues: EmployeeFormValues = {
   name: "",
   fatherName: "",
@@ -53,6 +60,6 @@ export const defaultEmployeeValues: EmployeeFormValues = {
   currentLocation: "",
   monthlySalary: 22000,
   status: "active",
-  entryDate: "",
+  entryDate: todayString,
   exitDate: "",
 };

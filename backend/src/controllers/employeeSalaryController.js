@@ -1,3 +1,4 @@
+import ApiError from "../utils/ApiError.js";
 import {
   createEmployeeSalaryService,
   getCurrentEmployeeSalaryService,
@@ -6,7 +7,7 @@ import {
 } from "../services/employee-salary/employeeSalary.service.js";
 
 // CREATE
-export const createEmployeeSalary = async (req, res, next) => {
+export const createEmployeeSalary = async (req, res) => {
   try {
     const salary = await createEmployeeSalaryService(
       req.body,
@@ -21,65 +22,51 @@ export const createEmployeeSalary = async (req, res, next) => {
     });
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "A salary record already exists for this employee and month",
-      });
+      throw new ApiError(
+        409,
+        "A salary record already exists for this employee and month",
+      );
     }
 
-    console.error("createEmployeeSalary error:", error);
-    error.operationMessage = "Failed to create employee salary";
-    next(error);
+    throw error;
   }
 };
 
 // CURRENT SALARY
-export const getCurrentEmployeeSalary = async (req, res, next) => {
-  try {
-    const result = await getCurrentEmployeeSalaryService(
-      req.params.employeeId,
-      req.areaScope,
-    );
+export const getCurrentEmployeeSalary = async (req, res) => {
+  const result = await getCurrentEmployeeSalaryService(
+    req.params.employeeId,
+    req.areaScope,
+  );
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        employee: result.employee,
-        salary: result.salary,
-      },
-    });
-  } catch (error) {
-    console.error("getCurrentEmployeeSalary error:", error);
-    error.operationMessage = "Failed to get current employee salary";
-    next(error);
-  }
+  return res.status(200).json({
+    success: true,
+    data: {
+      employee: result.employee,
+      salary: result.salary,
+    },
+  });
 };
 
 // SALARY HISTORY
-export const getEmployeeSalaryHistory = async (req, res, next) => {
-  try {
-    const result = await getEmployeeSalaryHistoryService(
-      req.params.employeeId,
-      req.areaScope,
-    );
+export const getEmployeeSalaryHistory = async (req, res) => {
+  const result = await getEmployeeSalaryHistoryService(
+    req.params.employeeId,
+    req.areaScope,
+  );
 
-    return res.status(200).json({
-      success: true,
-      count: result.salaryHistory.length,
-      data: {
-        employee: result.employee,
-        salaryHistory: result.salaryHistory,
-      },
-    });
-  } catch (error) {
-    console.error("getEmployeeSalaryHistory error:", error);
-    error.operationMessage = "Failed to get employee salary history";
-    next(error);
-  }
+  return res.status(200).json({
+    success: true,
+    count: result.salaryHistory.length,
+    data: {
+      employee: result.employee,
+      salaryHistory: result.salaryHistory,
+    },
+  });
 };
 
 // UPDATE
-export const updateEmployeeSalary = async (req, res, next) => {
+export const updateEmployeeSalary = async (req, res) => {
   try {
     const salary = await updateEmployeeSalaryService(
       req.params.id,
@@ -95,14 +82,12 @@ export const updateEmployeeSalary = async (req, res, next) => {
     });
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "A salary record already exists for this employee and month",
-      });
+      throw new ApiError(
+        409,
+        "A salary record already exists for this employee and month",
+      );
     }
 
-    console.error("updateEmployeeSalary error:", error);
-    error.operationMessage = "Failed to update employee salary";
-    next(error);
+    throw error;
   }
 };

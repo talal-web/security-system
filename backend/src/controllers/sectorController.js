@@ -14,7 +14,7 @@ import {
 // CREATE
 // ======================================
 
-export const createSector = async (req, res, next) => {
+export const createSector = async (req, res) => {
   try {
     const sector = await createSectorService(req.body, req.areaScope);
 
@@ -25,10 +25,10 @@ export const createSector = async (req, res, next) => {
     });
   } catch (error) {
     if (error.code === 11000) {
-      return next(new ApiError(409, "Sector already exists"));
+      throw new ApiError(409, "Sector already exists");
     }
 
-    return next(error);
+    throw error;
   }
 };
 
@@ -36,48 +36,40 @@ export const createSector = async (req, res, next) => {
 // GET ALL
 // ======================================
 
-export const getSectors = async (req, res, next) => {
-  try {
-    const sectors = await getSectorsService(req.query, req.areaScope);
+export const getSectors = async (req, res) => {
+  const sectors = await getSectorsService(req.query, req.areaScope);
 
-    return res.status(200).json({
-      success: true,
-      count: sectors.length,
-      data: sectors,
-    });
-  } catch (error) {
-    return next(error);
-  }
+  return res.status(200).json({
+    success: true,
+    count: sectors.length,
+    data: sectors,
+  });
 };
 
 // ======================================
 // GET ONE
 // ======================================
 
-export const getSectorById = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+export const getSectorById = async (req, res) => {
+  const { id } = req.params;
 
-    if (!mongoose.isValidObjectId(id)) {
-      throw new ApiError(400, "Invalid sector ID");
-    }
-
-    const sector = await getSectorByIdService(id, req.areaScope);
-
-    return res.status(200).json({
-      success: true,
-      data: sector,
-    });
-  } catch (error) {
-    return next(error);
+  if (!mongoose.isValidObjectId(id)) {
+    throw new ApiError(400, "Invalid sector ID");
   }
+
+  const sector = await getSectorByIdService(id, req.areaScope);
+
+  return res.status(200).json({
+    success: true,
+    data: sector,
+  });
 };
 
 // ======================================
 // UPDATE
 // ======================================
 
-export const updateSector = async (req, res, next) => {
+export const updateSector = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -85,7 +77,7 @@ export const updateSector = async (req, res, next) => {
       throw new ApiError(400, "Invalid sector ID");
     }
 
-    const sector = await updateSectorService(id, req.body, req.areaScope);
+  const sector = await updateSectorService(id, req.body, req.areaScope);
 
     return res.status(200).json({
       success: true,
@@ -94,10 +86,10 @@ export const updateSector = async (req, res, next) => {
     });
   } catch (error) {
     if (error.code === 11000) {
-      return next(new ApiError(409, "Sector name or code already exists"));
+      throw new ApiError(409, "Sector name or code already exists");
     }
 
-    return next(error);
+    throw error;
   }
 };
 
@@ -105,38 +97,30 @@ export const updateSector = async (req, res, next) => {
 // DELETE
 // ======================================
 
-export const deleteSector = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+export const deleteSector = async (req, res) => {
+  const { id } = req.params;
 
-    if (!mongoose.isValidObjectId(id)) {
-      throw new ApiError(400, "Invalid sector ID");
-    }
-
-    await deleteSectorService(id, req.areaScope);
-
-    return res.status(200).json({
-      success: true,
-      message: "Sector deleted successfully",
-    });
-  } catch (error) {
-    return next(error);
+  if (!mongoose.isValidObjectId(id)) {
+    throw new ApiError(400, "Invalid sector ID");
   }
+
+  await deleteSectorService(id, req.areaScope);
+
+  return res.status(200).json({
+    success: true,
+    message: "Sector deleted successfully",
+  });
 };
 
 // ======================================
 // REORDER
 // ======================================
 
-export const reorderSectors = async (req, res, next) => {
-  try {
-    await reorderSectorsService(req.body.sectors, req.areaScope);
+export const reorderSectors = async (req, res) => {
+  await reorderSectorsService(req.body.sectors, req.areaScope);
 
-    return res.status(200).json({
-      success: true,
-      message: "Sectors reordered successfully.",
-    });
-  } catch (error) {
-    return next(error);
-  }
+  return res.status(200).json({
+    success: true,
+    message: "Sectors reordered successfully.",
+  });
 };

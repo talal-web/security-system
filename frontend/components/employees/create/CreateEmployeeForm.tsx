@@ -16,7 +16,6 @@ import {
   Phone,
   ShieldCheck,
   GraduationCap,
-  CalendarDays,
   MapPin,
   CreditCard,
   Save,
@@ -603,14 +602,6 @@ export default function CreateEmployeeForm() {
                     options={shiftOptions}
                     error={errors.defaultShift?.message}
                     {...register("defaultShift")}
-                  />
-
-                  <Input
-                    type="date"
-                    icon={<CalendarDays />}
-                    label="Entry Date"
-                    error={errors.entryDate?.message}
-                    {...register("entryDate")}
                   />
 
                   <Input

@@ -19,7 +19,7 @@ const validateId = (id) => {
 
 /* CREATE USER */
 
-export const createUser = async (req, res, next) => {
+export const createUser = async (req, res) => {
   try {
     const user = await createUserService(req.user, req.body);
 
@@ -29,103 +29,79 @@ export const createUser = async (req, res, next) => {
     });
   } catch (error) {
     if (error.code === 11000) {
-      return next(new ApiError(409, "User ID already exists"));
+      throw new ApiError(409, "User ID already exists");
     }
-    return next(error);
+    throw error;
   }
 };
 
 /* GET ALL USERS */
 
-export const getUsers = async (req, res, next) => {
-  try {
-    const users = await getUsersService(req.user);
+export const getUsers = async (req, res) => {
+  const users = await getUsersService(req.user);
 
-    return res.status(200).json({
-      count: users.length,
-      users,
-    });
-  } catch (error) {
-    return next(error);
-  }
+  return res.status(200).json({
+    count: users.length,
+    users,
+  });
 };
 
 /* GET SINGLE USER */
 
-export const getUserById = async (req, res, next) => {
-  try {
-    validateId(req.params.id);
+export const getUserById = async (req, res) => {
+  validateId(req.params.id);
 
-    const user = await getUserByIdService(req.user, req.params.id);
+  const user = await getUserByIdService(req.user, req.params.id);
 
-    return res.status(200).json({ user });
-  } catch (error) {
-    return next(error);
-  }
+  return res.status(200).json({ user });
 };
 
 /* UPDATE USER */
 
-export const updateUser = async (req, res, next) => {
-  try {
-    validateId(req.params.id);
+export const updateUser = async (req, res) => {
+  validateId(req.params.id);
 
-    const result = await updateUserService(req.user, req.params.id, req.body);
+  const result = await updateUserService(req.user, req.params.id, req.body);
 
-    return res.status(200).json(result);
-  } catch (error) {
-    return next(error);
-  }
+  return res.status(200).json(result);
 };
 
 /* CHANGE PASSWORD */
 
-export const changeUserPassword = async (req, res, next) => {
-  try {
-    validateId(req.params.id);
+export const changeUserPassword = async (req, res) => {
+  validateId(req.params.id);
 
-    const message = await changeUserPasswordService(
-      req.user,
-      req.params.id,
-      req.body.password,
-    );
+  const message = await changeUserPasswordService(
+    req.user,
+    req.params.id,
+    req.body.password,
+  );
 
-    return res.status(200).json({ message });
-  } catch (error) {
-    return next(error);
-  }
+  return res.status(200).json({ message });
 };
 
 /* ACTIVATE / DEACTIVATE */
 
-export const updateUserStatus = async (req, res, next) => {
-  try {
-    validateId(req.params.id);
+export const updateUserStatus = async (req, res) => {
+  validateId(req.params.id);
 
-    const result = await updateUserStatusService(
-      req.user,
-      req.params.id,
-      req.body.isActive,
-    );
+  const result = await updateUserStatusService(
+    req.user,
+    req.params.id,
+    req.body.isActive,
+  );
 
-    return res.status(200).json(result);
-  } catch (error) {
-    return next(error);
-  }
+  return res.status(200).json(result);
 };
 
 /* DELETE USER */
 
-export const deleteUser = async (req, res, next) => {
-  try {
-    validateId(req.params.id);
+export const deleteUser = async (req, res) => {
+  validateId(req.params.id);
 
-    await deleteUserService(req.user, req.params.id);
+  await deleteUserService(req.user, req.params.id);
 
-    return res.status(200).json({
-      message: "User deleted successfully",
-    });
-  } catch (error) {
-    return next(error);
-  }
+  return res.status(200).json({
+    message: "User deleted successfully",
+  });
 };

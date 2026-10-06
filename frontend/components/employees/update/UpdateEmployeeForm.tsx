@@ -33,7 +33,6 @@ import {
   Phone,
   ShieldCheck,
   GraduationCap,
-  CalendarDays,
   MapPin,
   CreditCard,
   Save,
@@ -79,7 +78,6 @@ type FormValues = {
 
   status: "active" | "inactive";
 
-  entryDate: string;
   exitDate: string;
 };
 
@@ -145,7 +143,6 @@ const getEmployeeFormValues = (employee: Employee): FormValues => ({
   currentLocation: getCurrentLocationId(employee.currentLocation),
   defaultShift: employee.defaultShift ?? "",
   status: employee.status || "active",
-  entryDate: normalizeDate(employee.entryDate),
   exitDate: normalizeDate(employee.exitDate),
 });
 
@@ -201,11 +198,6 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     name: "birthDate",
   });
 
-  const watchedEntryDate = useWatch({
-    control,
-    name: "entryDate",
-  });
-
   const watchedArea = useWatch({
     control,
     name: "area",
@@ -251,9 +243,6 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     if (watchedStatus === "active") {
       clearErrors("exitDate");
       setValue("exitDate", "", { shouldDirty: true });
-    } else {
-      clearErrors("entryDate");
-      setValue("entryDate", "", { shouldDirty: true });
     }
   }, [watchedStatus, clearErrors, setValue]);
 
@@ -365,10 +354,6 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     data.append("defaultShift", values.defaultShift || "");
     data.append("status", values.status);
     data.append(
-      "entryDate",
-      values.status === "active" ? values.entryDate : "",
-    );
-    data.append(
       "exitDate",
       values.status === "inactive" ? values.exitDate : "",
     );
@@ -427,7 +412,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             <TopStat label="Age" value={`${age} Years`} />
             <TopStat label="Created" value={formatDate(employee.createdAt)} />
-            <TopStat label="Entry" value={formatDate(watchedEntryDate)} />
+            <TopStat label="Status" value={employee.status} />
           </div>
         </div>
       </div>
@@ -751,15 +736,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
           {...register("defaultShift")}
         />
 
-        {watchedStatus === "active" ? (
-          <Input
-            icon={<CalendarDays />}
-            type="date"
-            label="Entry Date"
-            error={errors.entryDate?.message}
-            {...register("entryDate")}
-          />
-        ) : (
+        {watchedStatus === "inactive" && (
           <Input
             icon={<Clock3 />}
             type="date"

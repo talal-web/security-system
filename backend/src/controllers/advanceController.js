@@ -10,83 +10,63 @@ import {
 // Create Advance
 // ======================================
 
-export const createAdvance = async (req, res, next) => {
-  try {
-    const result = await createAdvanceService(
-      req.body,
-      req.user,
-      req.areaScope,
-    );
+export const createAdvance = async (req, res) => {
+  const result = await createAdvanceService(
+    req.body,
+    req.user,
+    req.areaScope,
+  );
 
-    return res.status(201).json(result);
-  } catch (error) {
-    next(error);
-  }
+  return res.status(201).json(result);
 };
 
 // ======================================
 // Get All Advances
 // ======================================
 
-export const getAdvances = async (req, res, next) => {
-  try {
-    const result = await getAdvancesService(req.query, req.areaScope);
+export const getAdvances = async (req, res) => {
+  const result = await getAdvancesService(req.query, req.areaScope);
 
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+  return res.status(200).json(result);
 };
 
 // ======================================
 // Get Employee Advance History
 // ======================================
 
-export const getEmployeeAdvances = async (req, res, next) => {
-  try {
-    const { employeeId } = req.params;
+export const getEmployeeAdvances = async (req, res) => {
+  const { employeeId } = req.params;
 
-    const result = await getEmployeeAdvancesService(employeeId, req.areaScope);
+  const result = await getEmployeeAdvancesService(employeeId, req.areaScope);
 
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+  return res.status(200).json(result);
 };
 
 // ======================================
 // Update Advance
 // ======================================
 
-export const updateAdvance = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+export const updateAdvance = async (req, res) => {
+  const { id } = req.params;
 
-    const result = await updateAdvanceService(
-      id,
-      req.body,
-      req.user,
-      req.areaScope,
-    );
+  const result = await updateAdvanceService(
+    id,
+    req.body,
+    req.user,
+    req.areaScope,
+  );
 
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+  return res.status(200).json(result);
 };
 
 // ======================================
 // Cancel Advance
 // ======================================
 
-export const cancelAdvance = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+export const cancelAdvance = async (req, res) => {
+  const { id } = req.params;
 
-    const result = await cancelAdvanceService(id, req.user, req.areaScope);
+  const result = await cancelAdvanceService(id, req.user, req.areaScope);
 
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+  return res.status(200).json(result);
 };

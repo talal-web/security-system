@@ -753,7 +753,6 @@ export const updateEmployeeService = async ({
     "designation",
     "defaultShift",
     "status",
-    "entryDate",
     "exitDate",
     "notes",
   ];

@@ -8,80 +8,68 @@ import {
 // Login
 // ======================================
 
-export const login = async (req, res, next) => {
-  try {
-    const { userId, password } = req.body;
+export const login = async (req, res) => {
+  const { userId, password } = req.body;
 
-    const { token, user } = await loginService({
-      rawUserId: userId,
-      password,
-    });
+  const { token, user } = await loginService({
+    rawUserId: userId,
+    password,
+  });
 
-    const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = process.env.NODE_ENV === "production";
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 60 * 60 * 1000,
-    });
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 60 * 60 * 1000,
+  });
 
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      user,
-    });
-  } catch (error) {
-    next(error);
-  }
+  return res.status(200).json({
+    success: true,
+    message: "Login successful",
+    user,
+  });
 };
 
 // ======================================
 // Logout
 // ======================================
 
-export const logout = async (req, res, next) => {
-  try {
-    await logoutService();
+export const logout = async (req, res) => {
+  await logoutService();
 
-    const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = process.env.NODE_ENV === "production";
 
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-    });
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+  });
 
-    return res.status(200).json({
-      success: true,
-      message: "Logged out successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };
 
 // ======================================
 // Get Current User
 // ======================================
 
-export const getMe = async (req, res, next) => {
-  try {
-    const user = await getMeService({
-      userId: req.user.id,
-    });
+export const getMe = async (req, res) => {
+  const user = await getMeService({
+    userId: req.user.id,
+  });
 
-    res.set({
-      "Cache-Control": "no-store, no-cache, must-revalidate, private",
-      Pragma: "no-cache",
-      Expires: "0",
-    });
+  res.set({
+    "Cache-Control": "no-store, no-cache, must-revalidate, private",
+    Pragma: "no-cache",
+    Expires: "0",
+  });
 
-    return res.status(200).json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    next(error);
-  }
+  return res.status(200).json({
+    success: true,
+    user,
+  });
 };
