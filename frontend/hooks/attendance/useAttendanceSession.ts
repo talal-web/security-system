@@ -4,6 +4,7 @@ import { useSelectedArea } from "@/components/area/AreaContext";
 import {
   getAttendanceSession,
   markAttendanceSession,
+  updateEmployeesSector,
   updateEmployeeLocations,
   updateEmployeeShifts,
 } from "@/services/attendance-session.service";
@@ -13,6 +14,8 @@ import type {
   MarkAttendanceSessionResponse,
   UpdateEmployeeLocationsPayload,
   UpdateEmployeeLocationsResponse,
+  UpdateEmployeesSectorPayload,
+  UpdateEmployeesSectorResponse,
   UpdateEmployeeShiftsPayload,
   UpdateEmployeeShiftsResponse,
 } from "@/types/attendance-session";
@@ -42,8 +45,29 @@ export function useAttendanceSession() {
 }
 
 // ======================================
-// UPDATE EMPLOYEE LOCATIONS
+// UPDATE EMPLOYEE SECTORS
 // ======================================
+
+export function useUpdateEmployeesSector() {
+  const queryClient = useQueryClient();
+  const { selectedAreaId } = useSelectedArea();
+
+  return useMutation<
+    UpdateEmployeesSectorResponse,
+    Error,
+    UpdateEmployeesSectorPayload
+  >({
+    mutationFn: (payload) => {
+      if (!selectedAreaId) throw new Error("No area is selected.");
+      return updateEmployeesSector(payload, selectedAreaId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: attendanceSessionKeys.all,
+      });
+    },
+  });
+}
 
 export function useUpdateEmployeeLocations() {
   const queryClient = useQueryClient();

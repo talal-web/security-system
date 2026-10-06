@@ -58,9 +58,14 @@ export default function AttendanceSessionPage() {
 
         <AttendanceFilters
           dateValue={attendance.dateValue}
-          query={attendance.query}
           statusFilter={attendance.statusFilter}
-          isSubmitting={attendance.markAttendanceMutation.isPending}
+          sectorFilter={attendance.sectorFilter}
+          sectorOptions={attendance.sectorOptions}
+          isSubmitting={
+            attendance.isSubmittingAttendance ||
+            attendance.markAttendanceMutation.isPending ||
+            attendance.isUpdatingSectors
+          }
           isSavingSettings={attendance.isSavingSettings}
           confirmationModalOpen={attendance.confirmationModal.open}
           confirmationTitle={attendance.confirmationModal.title}
@@ -69,9 +74,8 @@ export default function AttendanceSessionPage() {
           confirmationCancelText={attendance.confirmationModal.cancelText}
           confirmationIsLoading={attendance.isConfirmationPending}
           draftStatus={attendance.draftStatus}
-          onDateChange={attendance.setDate}
-          onQueryChange={attendance.setQuery}
           onStatusFilterChange={attendance.setStatusFilter}
+          onSectorFilterChange={attendance.setSectorFilter}
           onSaveSettings={attendance.openSaveSettingsConfirmation}
           onSaveDraft={attendance.handleSaveDraft}
           onSubmit={attendance.openSubmitAttendanceConfirmation}
@@ -84,8 +88,10 @@ export default function AttendanceSessionPage() {
         <AttendanceSectorList
           sectors={attendance.presentSectors}
           sectorLocations={attendance.sectorLocations}
+          sectorOptions={attendance.sectorOptions}
           onEmployeeChange={attendance.handleEmployeeChange}
           onEmployeeLocationChange={attendance.handleEmployeeLocationChange}
+          onEmployeeSectorChange={attendance.handleEmployeeSectorChange}
         />
 
         <AttendanceAbsentLeaveList

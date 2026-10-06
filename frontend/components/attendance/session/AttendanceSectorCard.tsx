@@ -11,6 +11,7 @@ interface AttendanceSectorCardProps {
   sector: AttendanceFormSector;
 
   allLocations: AttendanceFormSector["locations"];
+  sectorOptions: { _id: string; name: string; hasLocations: boolean }[];
 
   onEmployeeChange: (
     employeeId: string,
@@ -19,13 +20,16 @@ interface AttendanceSectorCardProps {
   ) => void;
 
   onEmployeeLocationChange: (employeeId: string, locationId: string) => void;
+  onEmployeeSectorChange: (employeeId: string, sectorId: string) => void;
 }
 
 export default function AttendanceSectorCard({
   sector,
   allLocations,
+  sectorOptions,
   onEmployeeChange,
   onEmployeeLocationChange,
+  onEmployeeSectorChange,
 }: AttendanceSectorCardProps) {
   /*
    * Keep the API hierarchy:
@@ -109,8 +113,10 @@ export default function AttendanceSectorCard({
                       key={employee.employeeId}
                       employee={employee}
                       locations={allLocations}
+                      sectors={sectorOptions}
                       onUpdate={onEmployeeChange}
                       onLocationChange={onEmployeeLocationChange}
+                      onSectorChange={onEmployeeSectorChange}
                     />
                   ))}
                 </div>

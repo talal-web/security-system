@@ -8,6 +8,7 @@ import { useSelectedArea } from "@/components/area/AreaContext";
 import {
   useAttendanceSession,
   useMarkAttendanceSession,
+  useUpdateEmployeesSector,
   useUpdateEmployeeLocations,
   useUpdateEmployeeShifts,
 } from "@/hooks/attendance/useAttendanceSession";
@@ -62,19 +63,19 @@ export function useAttendanceSessionPage() {
 
   const updateEmployeeLocationsMutation = useUpdateEmployeeLocations();
 
+  const updateEmployeesSectorMutation = useUpdateEmployeesSector();
+
   const updateEmployeeShiftsMutation = useUpdateEmployeeShifts();
 
   // ======================================
   // STATE
   // ======================================
 
-  const [date, setDate] = useState("");
-
-  const [query, setQuery] = useState("");
-
   const [statusFilter, setStatusFilter] = useState<
     "all" | "present" | "absent" | "leave"
   >("all");
+
+  const [sectorFilter, setSectorFilter] = useState("all");
 
   const [sectors, setSectors] = useState<AttendanceFormSector[]>([]);
 
@@ -82,6 +83,8 @@ export function useAttendanceSessionPage() {
     useState<AttendanceConfirmationAction | null>(null);
 
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  const [isSubmittingAttendance, setIsSubmittingAttendance] = useState(false);
 
   const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved">(
     "idle",
@@ -98,22 +101,24 @@ export function useAttendanceSessionPage() {
     previousAreaIdRef.current = selectedAreaId;
 
     queueMicrotask(() => {
-      setDate("");
-      setQuery("");
       setStatusFilter("all");
+      setSectorFilter("all");
       setSectors([]);
       setConfirmationAction(null);
       setIsSavingSettings(false);
+      setIsSubmittingAttendance(false);
       setDraftStatus("idle");
       setFormInitializedKey(null);
       markAttendanceMutation.reset();
       updateEmployeeLocationsMutation.reset();
+      updateEmployeesSectorMutation.reset();
       updateEmployeeShiftsMutation.reset();
     });
   }, [
     selectedAreaId,
     markAttendanceMutation,
     updateEmployeeLocationsMutation,
+    updateEmployeesSectorMutation,
     updateEmployeeShiftsMutation,
   ]);
 
@@ -128,7 +133,7 @@ export function useAttendanceSessionPage() {
     [data?.attendanceDate],
   );
 
-  const dateValue = date || defaultDate;
+  const dateValue = defaultDate;
 
   const userId = me?.user?.id;
 
@@ -243,12 +248,13 @@ export function useAttendanceSessionPage() {
   const stats = useMemo(() => getAttendanceStats(allEmployees), [allEmployees]);
 
   // ======================================
-  // SEARCH
+  // FILTERED EMPLOYEES
   // ======================================
 
-  const searchedEmployees = useMemo(
-    () => filterAttendanceEmployees(allEmployees, query, statusFilter),
-    [allEmployees, query, statusFilter],
+  const filteredEmployees = useMemo(
+    () =>
+      filterAttendanceEmployees(allEmployees, statusFilter, sectorFilter),
+    [allEmployees, statusFilter, sectorFilter],
   );
 
   // ======================================
@@ -256,8 +262,8 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const presentSectors = useMemo(
-    () => getPresentSectors(sectors, query, statusFilter),
-    [sectors, query, statusFilter],
+    () => getPresentSectors(sectors, statusFilter, sectorFilter),
+    [sectors, statusFilter, sectorFilter],
   );
 
   // ======================================
@@ -265,8 +271,8 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const absentEmployees = useMemo(
-    () => getAbsentEmployees(searchedEmployees),
-    [searchedEmployees],
+    () => getAbsentEmployees(filteredEmployees),
+    [filteredEmployees],
   );
 
   // ======================================
@@ -274,8 +280,8 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const leaveEmployees = useMemo(
-    () => getLeaveEmployees(searchedEmployees),
-    [searchedEmployees],
+    () => getLeaveEmployees(filteredEmployees),
+    [filteredEmployees],
   );
 
   // ======================================
@@ -298,11 +304,21 @@ export function useAttendanceSessionPage() {
     }
 
     if (confirmationAction === "submitAttendance") {
-      return markAttendanceMutation.isPending;
+      return (
+        isSubmittingAttendance ||
+        markAttendanceMutation.isPending ||
+        updateEmployeesSectorMutation.isPending
+      );
     }
 
     return false;
-  }, [confirmationAction, isSavingSettings, markAttendanceMutation.isPending]);
+  }, [
+    confirmationAction,
+    isSavingSettings,
+    isSubmittingAttendance,
+    markAttendanceMutation.isPending,
+    updateEmployeesSectorMutation.isPending,
+  ]);
 
   // ======================================
   // CONFIRMATION MODAL
@@ -317,7 +333,7 @@ export function useAttendanceSessionPage() {
         title: "Save Attendance Settings?",
 
         description:
-          "This will update the locations and default shifts of all present employees using the selections in this attendance session.",
+          "This will update sector assignments, locations, and default shifts for present employees using the selections in this attendance session.",
 
         confirmText: "Save Changes",
 
@@ -382,6 +398,75 @@ export function useAttendanceSessionPage() {
     );
   };
 
+  const handleEmployeeSectorChange = (
+    employeeId: string,
+    sectorId: string,
+  ) => {
+    const destinationSector = data?.sectors.find(
+      (sector) => sector.sector._id === sectorId,
+    );
+    const destinationLocation = [...(destinationSector?.locations ?? [])].sort(
+      (left, right) => left.sortOrder - right.sortOrder,
+    )[0];
+
+    if (!destinationLocation) {
+      toast.error("This sector has no active locations.");
+      return;
+    }
+
+    setSectors((previousSectors) =>
+      moveAttendanceEmployee(
+        previousSectors,
+        employeeId,
+        destinationLocation._id,
+      ),
+    );
+  };
+
+  const persistSectorChanges = async (
+    employees: AttendanceFormEmployee[],
+  ) => {
+    const sectorChanges = employees.filter(
+      (employee) =>
+        employee.sector && employee.sector !== employee.currentSector,
+    );
+
+    if (!sectorChanges.length) {
+      return [];
+    }
+
+    if (sectorChanges.some((employee) => !employee.selectedLocation)) {
+      throw new Error("Select a destination location for each sector change.");
+    }
+
+    await updateEmployeesSectorMutation.mutateAsync({
+      employees: sectorChanges.map((employee) => ({
+        employeeId: employee.employeeId,
+        sectorId: employee.sector!,
+        locationId: employee.selectedLocation!,
+      })),
+    });
+
+    setSectors((previousSectors) =>
+      sectorChanges.reduce((nextSectors, employee) => {
+        const withCurrentSector = updateEmployee(
+          nextSectors,
+          employee.employeeId,
+          "currentSector",
+          employee.sector,
+        );
+        return updateEmployee(
+          withCurrentSector,
+          employee.employeeId,
+          "currentLocation",
+          employee.selectedLocation,
+        );
+      }, previousSectors),
+    );
+
+    return sectorChanges;
+  };
+
   // ======================================
   // SAVE SETTINGS
   // ======================================
@@ -409,23 +494,32 @@ export function useAttendanceSessionPage() {
     setIsSavingSettings(true);
 
     try {
-      await Promise.all([
-        updateEmployeeLocationsMutation.mutateAsync({
-          employees: presentEmployees.map((employee) => ({
-            employeeId: employee.employeeId,
+      const sectorChanges = await persistSectorChanges(presentEmployees);
 
+      const transferredEmployeeIds = new Set(
+        sectorChanges.map((employee) => employee.employeeId),
+      );
+      const employeesStayingInSector = presentEmployees.filter(
+        (employee) => !transferredEmployeeIds.has(employee.employeeId),
+      );
+
+      if (employeesStayingInSector.length) {
+        await updateEmployeeLocationsMutation.mutateAsync({
+          employees: employeesStayingInSector.map((employee) => ({
+            employeeId: employee.employeeId,
             locationId: employee.selectedLocation!,
           })),
-        }),
+        });
+      }
 
-        updateEmployeeShiftsMutation.mutateAsync({
+      if (presentEmployees.length) {
+        await updateEmployeeShiftsMutation.mutateAsync({
           employees: presentEmployees.map((employee) => ({
             employeeId: employee.employeeId,
-
             shift: employee.shift!,
           })),
-        }),
-      ]);
+        });
+      }
 
       toast.success("Attendance settings updated successfully.");
     } catch (error) {
@@ -444,12 +538,27 @@ export function useAttendanceSessionPage() {
   // ======================================
 
   const handleSubmit = async () => {
-    if (!selectedAreaId || !isFormReady) {
+    if (!selectedAreaId || !isFormReady || isSubmittingAttendance) {
       toast.error("Select an area and wait for its attendance session to load.");
       return;
     }
 
     try {
+      const presentEmployees = allEmployees.filter(
+        (employee) => employee.status === "present",
+      );
+      const employeesWithoutLocation = presentEmployees.filter(
+        (employee) => !employee.selectedLocation,
+      );
+
+      if (employeesWithoutLocation.length) {
+        toast.error("Please select a location for all present employees.");
+        return;
+      }
+
+      setIsSubmittingAttendance(true);
+      await persistSectorChanges(presentEmployees);
+
       await markAttendanceMutation.mutateAsync({
         date: dateValue,
 
@@ -484,6 +593,8 @@ export function useAttendanceSessionPage() {
           ? error.message
           : "Failed to submit attendance.",
       );
+    } finally {
+      setIsSubmittingAttendance(false);
     }
   };
 
@@ -575,17 +686,16 @@ export function useAttendanceSessionPage() {
     // ----------------------------------
 
     dateValue,
-    setDate,
 
     // ----------------------------------
     // Filters
     // ----------------------------------
 
-    query,
-    setQuery,
-
     statusFilter,
     setStatusFilter,
+
+    sectorFilter,
+    setSectorFilter,
 
     // ----------------------------------
     // Stats
@@ -608,6 +718,18 @@ export function useAttendanceSessionPage() {
     allEmployees,
 
     sectorLocations,
+
+    sectorOptions: (data?.sectors ?? []).flatMap((sector) =>
+      sector.sector._id
+        ? [
+            {
+              _id: sector.sector._id,
+              name: sector.sector.name,
+              hasLocations: sector.locations.length > 0,
+            },
+          ]
+        : [],
+    ),
 
     visibleEmployeeCount,
 
@@ -639,6 +761,8 @@ export function useAttendanceSessionPage() {
 
     handleEmployeeLocationChange,
 
+    handleEmployeeSectorChange,
+
     // ----------------------------------
     // Attendance
     // ----------------------------------
@@ -652,5 +776,9 @@ export function useAttendanceSessionPage() {
     // ----------------------------------
 
     isSavingSettings,
+
+    isSubmittingAttendance,
+
+    isUpdatingSectors: updateEmployeesSectorMutation.isPending,
   };
 }

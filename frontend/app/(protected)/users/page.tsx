@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import UserForm from "@/components/users/UserForm";
 import UserCard from "@/components/users/UserCard";
 import UserFilters from "@/components/users/UserFilters";
 import UserHeader from "@/components/users/UserHeader";
@@ -10,13 +11,15 @@ import UserStats from "@/components/users/UserStats";
 import UserTable from "@/components/users/UserTable";
 import DeleteUserDialog from "@/components/users/DeleteUserDialog";
 import ChangeStatusDialog from "@/components/users/ChangeStatusDialog";
+import Modal from "@/components/ui/Modal";
 import {
+  useCreateUser,
   useDeleteUser,
   useUpdateUserStatus,
   useUsers,
 } from "@/hooks/users/useUsers";
 import { getApiErrorMessage } from "@/lib/apiError";
-import type { User, UserRole } from "@/types/user";
+import type { CreateUserPayload, User, UserRole } from "@/types/user";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 import { useMe } from "@/hooks/auth/useMe";
 
@@ -26,8 +29,10 @@ export default function UsersPage() {
   const router = useRouter();
   const { data: me } = useMe();
   const { data, isLoading, isError, error } = useUsers();
+  const createUser = useCreateUser();
   const deleteUser = useDeleteUser();
   const updateUserStatus = useUpdateUserStatus();
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<UserRole | "all">("all");
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
@@ -101,7 +106,7 @@ export default function UsersPage() {
   return (
     <ProtectedRoute allowedRoles={["developer", "admin"]}>
       <main className="space-y-6 bg-slate-50 p-4 sm:p-6">
-        <UserHeader />
+        <UserHeader onAddUser={() => setIsAddUserOpen(true)} />
         <UserStats users={users} />
         <UserFilters
           search={search}
@@ -168,6 +173,32 @@ export default function UsersPage() {
             />
           </>
         )}
+        <Modal
+          open={isAddUserOpen}
+          onClose={() => {
+            if (!createUser.isPending) setIsAddUserOpen(false);
+          }}
+          title="Create a user account"
+          size="2xl"
+          contentClassName="p-4 sm:p-6"
+        >
+          <UserForm
+            embedded
+            isPending={createUser.isPending}
+            onSubmit={(payload) =>
+              createUser.mutate(payload as CreateUserPayload, {
+                onSuccess: () => {
+                  toast.success("User created successfully.");
+                  setIsAddUserOpen(false);
+                },
+                onError: (err) =>
+                  toast.error(
+                    getApiErrorMessage(err) || "Failed to create user.",
+                  ),
+              })
+            }
+          />
+        </Modal>
       </main>
     </ProtectedRoute>
   );

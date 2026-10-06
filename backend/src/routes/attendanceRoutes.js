@@ -5,6 +5,7 @@ import {
   getMonthlyAttendanceReport,
   getAttendanceSession,
   submitAttendanceSession,
+  updateEmployeesSector,
   updateEmployeeLocations,
   updateEmployeeShifts,
   getAttendanceById,
@@ -28,7 +29,15 @@ router.get(
   getAttendanceSession,
 );
 
-// Update employee current locations
+// Update employee sector assignments and destination locations
+router.patch(
+  "/session/sectors",
+  authorizeRoles("developer", "admin", "clerk"),
+  requireAreaAccess,
+  updateEmployeesSector,
+);
+
+// Update employee current locations within their assigned sectors
 router.patch(
   "/session/locations",
   authorizeRoles("developer", "admin", "clerk"),

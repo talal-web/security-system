@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, type ChangeEvent } from "react";
-import { MapPin, Moon, Sun } from "lucide-react";
+import { Building2, MapPin, Moon, Sun } from "lucide-react";
 
 import type { AttendanceFormEmployee } from "@/types/attendance-session";
 import type { AttendanceShift, AttendanceStatus } from "@/types/attendance";
@@ -14,6 +14,7 @@ interface AttendanceEmployeeCardProps {
     name: string;
     sortOrder: number;
   }[];
+  sectors: { _id: string; name: string; hasLocations: boolean }[];
 
   onUpdate: (
     employeeId: string,
@@ -22,6 +23,7 @@ interface AttendanceEmployeeCardProps {
   ) => void;
 
   onLocationChange: (employeeId: string, locationId: string) => void;
+  onSectorChange: (employeeId: string, sectorId: string) => void;
 }
 
 const statusOptions: Array<{
@@ -142,8 +144,10 @@ function getShiftTagStyles(shift: AttendanceShift | null) {
 export default function AttendanceEmployeeCard({
   employee,
   locations,
+  sectors,
   onUpdate,
   onLocationChange,
+  onSectorChange,
 }: AttendanceEmployeeCardProps) {
   const orderedLocations = useMemo(
     () =>
@@ -194,6 +198,13 @@ export default function AttendanceEmployeeCard({
     }
 
     onLocationChange(employee.employeeId, locationId);
+  };
+
+  const handleSectorChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const sectorId = event.target.value;
+    if (sectorId && sectorId !== employee.sector) {
+      onSectorChange(employee.employeeId, sectorId);
+    }
   };
 
   const ShiftIcon = employee.shift === "night" ? Moon : Sun;
@@ -257,7 +268,33 @@ export default function AttendanceEmployeeCard({
         {/* =========================
             LOCATION
         ========================= */}
-        <div className="mt-2.5">
+        <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="relative">
+            <Building2
+              size={13}
+              className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-slate-400"
+            />
+            <select
+              value={employee.sector ?? ""}
+              onChange={handleSectorChange}
+              disabled={!isPresent}
+              aria-label={`Sector for ${employee.name}`}
+              className="h-9 w-full cursor-pointer appearance-none rounded-md border border-slate-300 bg-white pl-8 pr-2.5 text-[11px] font-medium text-slate-700 outline-none transition hover:border-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+            >
+              <option value="">Select sector</option>
+              {sectors.map((sector) => (
+                <option
+                  key={sector._id}
+                  value={sector._id}
+                  disabled={!sector.hasLocations}
+                >
+                  {sector.name}
+                  {!sector.hasLocations ? " (no locations)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="relative">
             <MapPin
               size={13}

@@ -47,6 +47,8 @@ USE_CUSTOM_DNS=false
 
 `MONGO_URI` and `JWT_SECRET` are required in every environment. In production, `FRONTEND_URLS` and the three Cloudinary variables are also required.
 
+`npm start` defaults `NODE_ENV` to `production` when it is not set in the host environment. Use `npm run dev` for local development.
+
 ### Frontend
 
 Create `frontend/.env.local` when the API is not using the default local address:

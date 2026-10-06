@@ -225,9 +225,7 @@ export const employeeSchema = z.object({
   // Dates
   // ------------------------------------------------
 
-  entryDate: z
-    .string()
-    .min(1, "Entry date is required"),
+  entryDate: z.string().optional(),
 
   exitDate: z
     .string()
@@ -242,4 +240,20 @@ export const employeeSchema = z.object({
       error: "Monthly salary is required",
     })
     .min(0, "Monthly salary must be 0 or greater"),
+}).superRefine((values, context) => {
+  if (values.status === "active" && !values.entryDate) {
+    context.addIssue({
+      code: "custom",
+      path: ["entryDate"],
+      message: "Entry date is required for an active employee.",
+    });
+  }
+
+  if (values.status === "inactive" && !values.exitDate) {
+    context.addIssue({
+      code: "custom",
+      path: ["exitDate"],
+      message: "Exit date is required for an inactive employee.",
+    });
+  }
 });

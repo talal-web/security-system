@@ -1,13 +1,14 @@
 "use client";
 
-import { Calendar, Save, Search, Send } from "lucide-react";
+import { Calendar, Save, Send } from "lucide-react";
 
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
 interface AttendanceFiltersProps {
   dateValue: string;
-  query: string;
   statusFilter: "all" | "present" | "absent" | "leave";
+  sectorFilter: string;
+  sectorOptions: { _id: string; name: string }[];
 
   isSubmitting: boolean;
   isSavingSettings: boolean;
@@ -19,9 +20,8 @@ interface AttendanceFiltersProps {
   confirmationIsLoading: boolean;
   draftStatus: "idle" | "saving" | "saved";
 
-  onDateChange: (value: string) => void;
-  onQueryChange: (value: string) => void;
   onStatusFilterChange: (value: "all" | "present" | "absent" | "leave") => void;
+  onSectorFilterChange: (value: string) => void;
 
   onSaveSettings: () => void;
   onSaveDraft: () => void;
@@ -32,8 +32,9 @@ interface AttendanceFiltersProps {
 
 export default function AttendanceFilters({
   dateValue,
-  query,
   statusFilter,
+  sectorFilter,
+  sectorOptions,
 
   isSubmitting,
   isSavingSettings,
@@ -45,9 +46,8 @@ export default function AttendanceFilters({
   confirmationIsLoading,
   draftStatus,
 
-  onDateChange,
-  onQueryChange,
   onStatusFilterChange,
+  onSectorFilterChange,
 
   onSaveSettings,
   onSaveDraft,
@@ -65,25 +65,13 @@ export default function AttendanceFilters({
             </h2>
 
             <p className="text-sm text-slate-500">
-              Search employees, filter attendance, update locations and shifts,
-              and submit attendance.
+              Filter attendance by status and sector, update assignments, and
+              submit today&apos;s attendance.
             </p>
           </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-
-            <input
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-              placeholder="Search employee..."
-              className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {/* Date */}
           <div className="relative">
             <Calendar className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
@@ -91,8 +79,9 @@ export default function AttendanceFilters({
             <input
               type="date"
               value={dateValue}
-              onChange={(e) => onDateChange(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              readOnly
+              aria-label="Attendance date, today"
+              className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-600 outline-none"
             />
           </div>
 
@@ -110,6 +99,21 @@ export default function AttendanceFilters({
             <option value="present">Present</option>
             <option value="absent">Absent</option>
             <option value="leave">Leave</option>
+          </select>
+
+          {/* Sector */}
+          <select
+            value={sectorFilter}
+            onChange={(e) => onSectorFilterChange(e.target.value)}
+            aria-label="Filter by sector"
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          >
+            <option value="all">All Sectors</option>
+            {sectorOptions.map((sector) => (
+              <option key={sector._id} value={sector._id}>
+                {sector.name}
+              </option>
+            ))}
           </select>
         </div>
 

@@ -21,6 +21,8 @@ export function buildAttendanceForm(
           (employee): AttendanceFormEmployee => ({
             ...employee,
 
+            currentSector: sector.sector._id ?? null,
+
             sector: sector.sector._id ?? null,
 
             currentLocation: location._id,

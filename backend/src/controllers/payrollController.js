@@ -195,12 +195,16 @@ export const recalculateMonthlyPayroll = handle(async (req, res) => {
   const { year, month } = validatePeriod(req.body.year, req.body.month);
 
   // Only draft payrolls in the selected area.
+  // Populate employee name so failed recalculations can identify
+  // the employee in the response.
   const payrolls = await Payroll.find({
     area: getAreaId(req),
     year,
     month,
     status: "draft",
-  }).select("_id employee year month");
+  })
+    .select("_id employee year month")
+    .populate("employee", "name");
 
   if (payrolls.length === 0) {
     return res.status(200).json({
@@ -218,7 +222,7 @@ export const recalculateMonthlyPayroll = handle(async (req, res) => {
   const results = await Promise.allSettled(
     payrolls.map((payroll) =>
       generatePayrollForEmployee({
-        employeeId: payroll.employee,
+        employeeId: payroll.employee._id,
         year: payroll.year,
         month: payroll.month,
         userId: req.user.id,
@@ -238,9 +242,12 @@ export const recalculateMonthlyPayroll = handle(async (req, res) => {
       return;
     }
 
+    const payroll = payrolls[index];
+
     errors.push({
-      payrollId: payrolls[index]._id,
-      employeeId: payrolls[index].employee,
+      payrollId: payroll._id,
+      employeeId: payroll.employee?._id,
+      employeeName: payroll.employee?.name ?? "Unknown employee",
       // Only expected (ApiError) messages reach the client.
       message:
         result.reason instanceof ApiError

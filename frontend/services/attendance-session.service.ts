@@ -7,6 +7,8 @@ import type {
   MarkAttendanceSessionResponse,
   UpdateEmployeeLocationsPayload,
   UpdateEmployeeLocationsResponse,
+  UpdateEmployeesSectorPayload,
+  UpdateEmployeesSectorResponse,
   UpdateEmployeeShiftsPayload,
   UpdateEmployeeShiftsResponse,
 } from "@/types/attendance-session";
@@ -33,8 +35,24 @@ export async function getAttendanceSession(
 }
 
 // ======================================
-// UPDATE EMPLOYEE LOCATIONS
+// UPDATE EMPLOYEE SECTORS
 // ======================================
+
+export async function updateEmployeesSector(
+  payload: UpdateEmployeesSectorPayload,
+  areaId: string,
+): Promise<UpdateEmployeesSectorResponse> {
+  try {
+    const res = await api.patch<UpdateEmployeesSectorResponse>(
+      "/attendance/session/sectors",
+      { ...payload, area: areaId },
+    );
+
+    return res.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error));
+  }
+}
 
 export async function updateEmployeeLocations(
   payload: UpdateEmployeeLocationsPayload,

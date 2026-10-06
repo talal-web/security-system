@@ -36,34 +36,29 @@ export type AttendanceStatusFilter = "all" | "present" | "absent" | "leave";
 
 export function filterAttendanceEmployees(
   employees: AttendanceFormEmployee[],
-  query: string,
   statusFilter: AttendanceStatusFilter,
+  sectorFilter: string,
 ) {
-  const q = query.trim().toLowerCase();
-
   return employees.filter((employee) => {
-    const matchesQuery =
-      q === "" ||
-      [employee.name, employee.empId, employee.fatherName, employee.designation]
-        .join(" ")
-        .toLowerCase()
-        .includes(q);
-
     const matchesStatus =
       statusFilter === "all" || employee.status === statusFilter;
+    const matchesSector =
+      sectorFilter === "all" || employee.sector === sectorFilter;
 
-    return matchesQuery && matchesStatus;
+    return matchesStatus && matchesSector;
   });
 }
 
 export function getPresentSectors(
   sectors: AttendanceFormSector[],
-  query: string,
   statusFilter: AttendanceStatusFilter,
+  sectorFilter: string,
 ) {
-  const q = query.trim().toLowerCase();
-
   return sectors
+    .filter(
+      (sector) =>
+        sectorFilter === "all" || sector.sector._id === sectorFilter,
+    )
     .map((sector) => ({
       ...sector,
 
@@ -80,20 +75,7 @@ export function getPresentSectors(
               return false;
             }
 
-            if (!q) {
-              return true;
-            }
-
-            return [
-              employee.name,
-              employee.empId,
-              employee.fatherName,
-              employee.designation,
-              location.name,
-            ]
-              .join(" ")
-              .toLowerCase()
-              .includes(q);
+            return true;
           }),
         }))
         .filter((location) => location.employees.length > 0),

@@ -72,6 +72,7 @@ export interface AttendanceSessionResponse {
 // ======================================
 
 export interface AttendanceFormEmployee extends AttendanceSessionEmployee {
+  currentSector: string | null;
   sector: string | null;
   currentLocation: string | null;
   selectedLocation: string | null;
@@ -100,6 +101,24 @@ export interface AttendanceFormSector {
   totalEmployees: number;
   totalLocations: number;
   locations: AttendanceFormLocation[];
+}
+
+// ======================================
+// PATCH /api/attendance/session/sectors
+// ======================================
+
+export interface UpdateEmployeeSectorPayload {
+  employeeId: string;
+  sectorId: string;
+  locationId: string;
+}
+
+export interface UpdateEmployeesSectorPayload {
+  employees: UpdateEmployeeSectorPayload[];
+}
+
+export interface UpdateEmployeesSectorResponse extends AttendanceSessionResponse {
+  message: string;
 }
 
 // ======================================

@@ -2,6 +2,7 @@ import ApiError from "../../utils/ApiError.js";
 import Attendance from "../../models/Attendance.js";
 import Employee from "../../models/Employee.js";
 import Location from "../../models/Location.js";
+import Sector from "../../models/Sector.js";
 
 import { buildAttendanceSession } from "./attendanceSession.service.js";
 import { normalizeDate, toSnapshotSectorId } from "./attendance.helpers.js";
@@ -599,6 +600,173 @@ export const updateEmployeeLocationsService = async ({
   return {
     success: true,
     message: "Employee locations updated successfully.",
+    ...session,
+  };
+};
+
+// ======================================
+// Update Employee Sectors
+// ======================================
+
+export const updateEmployeesSectorService = async ({
+  body = {},
+  areaScope = {},
+}) => {
+  const areaId = getScopedAreaId(areaScope);
+  const { employees } = body;
+
+  validateEmployeesArray(employees);
+
+  const seenEmployeeIds = new Set();
+  for (const item of employees) {
+    if (!item || typeof item !== "object") {
+      throw new ApiError(
+        400,
+        "Each employee sector assignment must be an object.",
+      );
+    }
+
+    validateObjectId(item.employeeId, "Invalid employee ID");
+    validateObjectId(item.sectorId, "Invalid sector ID");
+    validateObjectId(item.locationId, "Invalid location ID");
+
+    const employeeId = item.employeeId.toString();
+    if (seenEmployeeIds.has(employeeId)) {
+      throw new ApiError(400, "Each employee can only be transferred once.");
+    }
+    seenEmployeeIds.add(employeeId);
+  }
+
+  const employeeIds = employees.map((item) => item.employeeId.toString());
+  const sectorIds = [
+    ...new Set(employees.map((item) => item.sectorId.toString())),
+  ];
+  const locationIds = [
+    ...new Set(employees.map((item) => item.locationId.toString())),
+  ];
+
+  const [employeeDocs, sectorDocs, locationDocs] = await Promise.all([
+    Employee.find({
+      _id: { $in: employeeIds },
+      status: "active",
+      area: areaId,
+    })
+      .select("_id area sector currentLocation")
+      .lean(),
+    Sector.find({
+      _id: { $in: sectorIds },
+      area: areaId,
+      isActive: true,
+    })
+      .select("_id area isActive")
+      .lean(),
+    Location.find({
+      _id: { $in: locationIds },
+      isActive: true,
+    })
+      .select("_id sector isActive")
+      .lean(),
+  ]);
+
+  const employeeMap = new Map(
+    employeeDocs.map((employee) => [employee._id.toString(), employee]),
+  );
+  const sectorMap = new Map(
+    sectorDocs.map((sector) => [sector._id.toString(), sector]),
+  );
+  const locationMap = new Map(
+    locationDocs.map((location) => [location._id.toString(), location]),
+  );
+
+  const invalidEmployees = [];
+  const operations = [];
+
+  for (const item of employees) {
+    const employeeId = item.employeeId.toString();
+    const sectorId = item.sectorId.toString();
+    const locationId = item.locationId.toString();
+    const employee = employeeMap.get(employeeId);
+    const sector = sectorMap.get(sectorId);
+    const location = locationMap.get(locationId);
+
+    if (!employee) {
+      invalidEmployees.push({
+        employeeId,
+        missing: ["Employee not found, inactive, or outside selected area"],
+      });
+      continue;
+    }
+
+    if (!sector) {
+      invalidEmployees.push({
+        employeeId,
+        missing: [
+          "Destination sector not found, inactive, or outside selected area",
+        ],
+      });
+      continue;
+    }
+
+    if (!location) {
+      invalidEmployees.push({
+        employeeId,
+        missing: ["Destination location not found or inactive"],
+      });
+      continue;
+    }
+
+    if (location.sector?.toString() !== sectorId) {
+      invalidEmployees.push({
+        employeeId,
+        missing: [
+          "Destination location does not belong to destination sector",
+        ],
+      });
+      continue;
+    }
+
+    if (
+      employee.sector?.toString() === sectorId &&
+      employee.currentLocation?.toString() === locationId
+    ) {
+      continue;
+    }
+
+    operations.push({
+      updateOne: {
+        filter: {
+          _id: employeeId,
+          area: areaId,
+          status: "active",
+        },
+        update: {
+          $set: {
+            sector: sectorId,
+            currentLocation: locationId,
+          },
+        },
+      },
+    });
+  }
+
+  if (invalidEmployees.length) {
+    throwInvalidEmployees(
+      "Some employees have invalid sector assignments.",
+      invalidEmployees,
+    );
+  }
+
+  if (operations.length) {
+    await Employee.bulkWrite(operations);
+  }
+
+  const session = await buildAttendanceSession(
+    toSessionScope(areaScope, areaId),
+  );
+
+  return {
+    success: true,
+    message: "Employee sectors updated successfully.",
     ...session,
   };
 };

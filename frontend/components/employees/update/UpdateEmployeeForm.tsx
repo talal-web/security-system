@@ -250,8 +250,12 @@ export default function UpdateEmployeeForm({ employee }: Props) {
   useEffect(() => {
     if (watchedStatus === "active") {
       clearErrors("exitDate");
+      setValue("exitDate", "", { shouldDirty: true });
+    } else {
+      clearErrors("entryDate");
+      setValue("entryDate", "", { shouldDirty: true });
     }
-  }, [watchedStatus, clearErrors]);
+  }, [watchedStatus, clearErrors, setValue]);
 
   useEffect(() => {
     return () => {
@@ -343,8 +347,6 @@ export default function UpdateEmployeeForm({ employee }: Props) {
       return;
     }
 
-    const exitDate = values.status === "active" ? "" : values.exitDate;
-
     const data = new FormData();
 
     data.append("name", values.name.trim());
@@ -362,8 +364,14 @@ export default function UpdateEmployeeForm({ employee }: Props) {
     data.append("currentLocation", values.currentLocation || "");
     data.append("defaultShift", values.defaultShift || "");
     data.append("status", values.status);
-    data.append("entryDate", values.entryDate);
-    data.append("exitDate", exitDate);
+    data.append(
+      "entryDate",
+      values.status === "active" ? values.entryDate : "",
+    );
+    data.append(
+      "exitDate",
+      values.status === "inactive" ? values.exitDate : "",
+    );
 
     if (profileImage) {
       data.append("profileImage", profileImage);
@@ -743,23 +751,22 @@ export default function UpdateEmployeeForm({ employee }: Props) {
           {...register("defaultShift")}
         />
 
-        <Input
-          icon={<CalendarDays />}
-          type="date"
-          label="Entry Date"
-          {...register("entryDate")}
-        />
-
-        <Input
-          icon={<Clock3 />}
-          type="date"
-          label="Exit Date"
-          disabled={watchedStatus === "active"}
-          {...register("exitDate")}
-        />
-
-        {errors.exitDate && (
-          <p className="text-sm text-red-600">{errors.exitDate.message}</p>
+        {watchedStatus === "active" ? (
+          <Input
+            icon={<CalendarDays />}
+            type="date"
+            label="Entry Date"
+            error={errors.entryDate?.message}
+            {...register("entryDate")}
+          />
+        ) : (
+          <Input
+            icon={<Clock3 />}
+            type="date"
+            label="Exit Date"
+            error={errors.exitDate?.message}
+            {...register("exitDate")}
+          />
         )}
 
         <Input

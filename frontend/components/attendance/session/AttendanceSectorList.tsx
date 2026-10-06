@@ -12,6 +12,7 @@ interface AttendanceSectorListProps {
   sectors: AttendanceFormSector[];
 
   sectorLocations: Record<string, AttendanceFormLocation[]>;
+  sectorOptions: { _id: string; name: string; hasLocations: boolean }[];
 
   onEmployeeChange: (
     employeeId: string,
@@ -20,13 +21,16 @@ interface AttendanceSectorListProps {
   ) => void;
 
   onEmployeeLocationChange: (employeeId: string, locationId: string) => void;
+  onEmployeeSectorChange: (employeeId: string, sectorId: string) => void;
 }
 
 export default function AttendanceSectorList({
   sectors,
   sectorLocations,
+  sectorOptions,
   onEmployeeChange,
   onEmployeeLocationChange,
+  onEmployeeSectorChange,
 }: AttendanceSectorListProps) {
   if (sectors.length === 0) {
     return (
@@ -47,8 +51,10 @@ export default function AttendanceSectorList({
           allLocations={
             sectorLocations[presentSector.sector._id ?? "unassigned"] ?? []
           }
+          sectorOptions={sectorOptions}
           onEmployeeChange={onEmployeeChange}
           onEmployeeLocationChange={onEmployeeLocationChange}
+          onEmployeeSectorChange={onEmployeeSectorChange}
         />
       ))}
     </div>

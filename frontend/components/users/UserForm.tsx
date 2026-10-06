@@ -1,7 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save } from "lucide-react";
+import { Eye, EyeOff, Save, UsersRound } from "lucide-react";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -27,14 +28,17 @@ type Values = z.infer<typeof schema>;
 export default function UserForm({
   user,
   isSelf = false,
+  embedded = false,
   isPending,
   onSubmit,
 }: {
   user?: User;
   isSelf?: boolean;
+  embedded?: boolean;
   isPending: boolean;
   onSubmit: (payload: CreateUserPayload | UpdateUserPayload) => void;
 }) {
+  const [showPassword, setShowPassword] = useState(false);
   const { data: areaOptions = [] } = useAreas({ isActive: true });
 
   const {
@@ -140,15 +144,31 @@ export default function UserForm({
   return (
     <form
       onSubmit={handleSubmit(submit)}
-      className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className={
+        embedded
+          ? "space-y-4"
+          : "space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      }
     >
-      <div className="grid gap-5 sm:grid-cols-2">
+      {!user && (
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2.5">
+          <p className="text-sm text-slate-700">
+            Set up login details and choose the right access.
+          </p>
+          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-medium capitalize text-blue-700">
+            {selectedRole}
+          </span>
+        </div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2">
         {/* User ID */}
         <Field label="User ID" error={errors.userId?.message}>
           <input
             {...register("userId")}
             disabled={Boolean(user)}
             placeholder="e.g. supervisor01"
+            autoComplete="username"
             className="field"
           />
         </Field>
@@ -158,6 +178,7 @@ export default function UserForm({
           <input
             {...register("name")}
             placeholder="Full name"
+            autoComplete="name"
             className="field"
           />
         </Field>
@@ -165,13 +186,27 @@ export default function UserForm({
         {/* Password - CREATE ONLY */}
         {!user && (
           <Field label="Password" error={errors.password?.message}>
-            <input
-              {...register("password")}
-              type="password"
-              autoComplete="new-password"
-              placeholder="Minimum 6 characters"
-              className="field"
-            />
+            <div className="relative">
+              <input
+                {...register("password")}
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder="At least 6 characters"
+                className="field pr-11"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-500 hover:text-slate-800"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </Field>
         )}
 
@@ -199,37 +234,46 @@ export default function UserForm({
       </div>
 
       {!user || !isSelf ? (
-        <Field label="Assigned Areas" error={errors.areas?.message}>
-          <select
-            multiple
-            value={selectedAreas}
-            onChange={(event) => {
-              const nextAreas = Array.from(
-                event.target.selectedOptions,
-                (option) => option.value,
-              );
-
-              setValue("areas", nextAreas, { shouldValidate: true });
-            }}
-            disabled={selectedRole === "admin" || selectedRole === "developer"}
-            className="field min-h-[120px]"
-          >
-            {areaOptions.length === 0 ? (
-              <option value="">No areas available</option>
-            ) : (
-              areaOptions.map((area) => (
-                <option key={area._id} value={area._id}>
-                  {area.name}
-                </option>
-              ))
-            )}
-          </select>
-
-          <p className="mt-1 text-xs text-slate-500">
+        <Field label="Assigned areas" error={errors.areas?.message}>
+          <div className="mb-2 flex items-center gap-2 text-xs text-slate-500">
+            <UsersRound className="h-3.5 w-3.5" aria-hidden="true" />
             {selectedRole === "admin" || selectedRole === "developer"
-              ? "Admins and developers do not require area assignments."
-              : "Select one or more areas for this role."}
-          </p>
+              ? "This role has access across all areas."
+              : "Choose the areas this account can access."}
+          </div>
+          {areaOptions.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-500">
+              No active areas available.
+            </p>
+          ) : (
+            <div className="grid max-h-36 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
+              {areaOptions.map((area) => {
+                const checked = selectedAreas.includes(area._id);
+                const disabled =
+                  selectedRole === "admin" || selectedRole === "developer";
+                return (
+                  <label
+                    key={area._id}
+                    className={`flex min-h-10 cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-300 bg-blue-50 text-blue-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"} ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={disabled}
+                      onChange={(event) => {
+                        const nextAreas = event.target.checked
+                          ? [...selectedAreas, area._id]
+                          : selectedAreas.filter((id) => id !== area._id);
+                        setValue("areas", nextAreas, { shouldValidate: true });
+                      }}
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 accent-blue-600"
+                    />
+                    <span className="truncate">{area.name}</span>
+                  </label>
+                );
+              })}
+            </div>
+          )}
         </Field>
       ) : null}
 
@@ -280,7 +324,7 @@ export default function UserForm({
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Save className="h-4 w-4" />
 
@@ -301,9 +345,9 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">
+      <div className="mb-1.5 text-sm font-medium text-slate-700">
         {label}
-      </label>
+      </div>
 
       {children}
 

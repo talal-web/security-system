@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { Plus } from "lucide-react";
 
-export default function UserHeader() {
+export default function UserHeader({ onAddUser }: { onAddUser: () => void }) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -17,12 +16,13 @@ export default function UserHeader() {
           Manage accounts, roles, and access status.
         </p>
       </div>
-      <Link
-        href="/users/create"
+      <button
+        type="button"
+        onClick={onAddUser}
         className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
       >
         <Plus className="h-4 w-4" /> Add user
-      </Link>
+      </button>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import {
   getAttendanceSessionService,
   submitAttendanceSessionService,
   updateAttendanceService,
+  updateEmployeesSectorService,
   updateEmployeeLocationsService,
   updateEmployeeShiftsService,
 } from "../services/attendance/attendance.service.js";
@@ -79,6 +80,16 @@ export const getMonthlyAttendanceReport = handle(async (req, res) => {
 // Update Employee Locations
 export const updateEmployeeLocations = handle(async (req, res) => {
   const result = await updateEmployeeLocationsService({
+    body: req.body,
+    areaScope: req.areaScope,
+  });
+
+  res.status(200).json({ success: true, ...result });
+});
+
+// Update Employee Sectors
+export const updateEmployeesSector = handle(async (req, res) => {
+  const result = await updateEmployeesSectorService({
     body: req.body,
     areaScope: req.areaScope,
   });

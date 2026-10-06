@@ -90,7 +90,6 @@ export default function CreateEmployeeForm() {
     control,
     name: "sector",
   });
-
   useEffect(() => {
     if (!selectedAreaId || selectedArea === selectedAreaId) return;
 
@@ -162,11 +161,18 @@ export default function CreateEmployeeForm() {
       return;
     }
 
-    const form = buildEmployeeFormData(values, {
-      profileImage,
-      cnicFrontImage,
-      cnicBackImage,
-    });
+    const form = buildEmployeeFormData(
+      {
+        ...values,
+        status: "active",
+        exitDate: "",
+      },
+      {
+        profileImage,
+        cnicFrontImage,
+        cnicBackImage,
+      },
+    );
     return await handleCreateEmployee(form);
   };
 
@@ -608,14 +614,6 @@ export default function CreateEmployeeForm() {
                   />
 
                   <Input
-                    type="date"
-                    icon={<CalendarDays />}
-                    label="Exit Date"
-                    error={errors.exitDate?.message}
-                    {...register("exitDate")}
-                  />
-
-                  <Input
                     icon={<Banknote />}
                     type="number"
                     label="Monthly Salary"
@@ -627,13 +625,6 @@ export default function CreateEmployeeForm() {
                     })}
                   />
 
-                  <Select
-                    icon={<BadgeCheck />}
-                    label="Status"
-                    options={["active", "inactive"]}
-                    error={errors.status?.message}
-                    {...register("status")}
-                  />
                 </div>
 
                 {locationStatusMessage && (

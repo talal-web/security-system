@@ -9,6 +9,9 @@ export function moveAttendanceEmployee(
   locationId: string,
 ): AttendanceFormSector[] {
   let employee: AttendanceFormEmployee | null = null;
+  const destinationSector = sectors.find((sector) =>
+    sector.locations.some((location) => location._id === locationId),
+  );
 
   // 1. Remove employee from current location
   const next = sectors.map((sector) => ({
@@ -22,6 +25,7 @@ export function moveAttendanceEmployee(
 
         employee = {
           ...emp,
+          sector: destinationSector?.sector._id ?? emp.sector,
           selectedLocation: locationId,
         };
 
