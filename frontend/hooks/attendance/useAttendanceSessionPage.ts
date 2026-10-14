@@ -285,6 +285,26 @@ export function useAttendanceSessionPage() {
   );
 
   // ======================================
+  // SUBMIT PREVIEW (always the full, unfiltered set —
+  // this mirrors exactly what handleSubmit sends)
+  // ======================================
+
+  const previewPresentSectors = useMemo(
+    () => getPresentSectors(sectors, "all", "all"),
+    [sectors],
+  );
+
+  const previewAbsentEmployees = useMemo(
+    () => getAbsentEmployees(allEmployees),
+    [allEmployees],
+  );
+
+  const previewLeaveEmployees = useMemo(
+    () => getLeaveEmployees(allEmployees),
+    [allEmployees],
+  );
+
+  // ======================================
   // VISIBLE COUNT
   // ======================================
 
@@ -715,6 +735,12 @@ export function useAttendanceSessionPage() {
 
     leaveEmployees,
 
+    previewPresentSectors,
+
+    previewAbsentEmployees,
+
+    previewLeaveEmployees,
+
     allEmployees,
 
     sectorLocations,
@@ -738,6 +764,8 @@ export function useAttendanceSessionPage() {
     // ----------------------------------
 
     confirmationModal,
+
+    confirmationAction,
 
     draftStatus,
 

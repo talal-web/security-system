@@ -5,6 +5,7 @@ import AttendanceFilters from "@/components/attendance/session/AttendanceFilter"
 import AttendanceStats from "@/components/attendance/session/AttendanceStats";
 import AttendanceSectorList from "@/components/attendance/session/AttendanceSectorList";
 import AttendanceAbsentLeaveList from "@/components/attendance/session/AttendanceAbsentLeaveList";
+import AttendanceSubmitPreviewModal from "@/components/attendance/session/AttendanceSubmitPreviewModal";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 
 import { useAttendanceSessionPage } from "@/hooks/attendance/useAttendanceSessionPage";
@@ -67,7 +68,10 @@ export default function AttendanceSessionPage() {
             attendance.isUpdatingSectors
           }
           isSavingSettings={attendance.isSavingSettings}
-          confirmationModalOpen={attendance.confirmationModal.open}
+          confirmationModalOpen={
+            attendance.confirmationModal.open &&
+            attendance.confirmationAction !== "submitAttendance"
+          }
           confirmationTitle={attendance.confirmationModal.title}
           confirmationDescription={attendance.confirmationModal.description}
           confirmationConfirmText={attendance.confirmationModal.confirmText}
@@ -98,6 +102,17 @@ export default function AttendanceSessionPage() {
           absentEmployees={attendance.absentEmployees}
           leaveEmployees={attendance.leaveEmployees}
           onEmployeeChange={attendance.handleEmployeeChange}
+        />
+
+        <AttendanceSubmitPreviewModal
+          open={attendance.confirmationAction === "submitAttendance"}
+          presentSectors={attendance.previewPresentSectors}
+          absentEmployees={attendance.previewAbsentEmployees}
+          leaveEmployees={attendance.previewLeaveEmployees}
+          stats={attendance.stats}
+          isLoading={attendance.isConfirmationPending}
+          onConfirm={attendance.confirmAttendanceAction}
+          onCancel={attendance.closeConfirmationModal}
         />
       </main>
     </ProtectedRoute>

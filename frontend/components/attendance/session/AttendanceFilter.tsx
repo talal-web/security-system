@@ -118,8 +118,8 @@ export default function AttendanceFilters({
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-5">
-          <span className="mr-auto self-center text-xs text-slate-500">
+        <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+          <span className="text-xs text-slate-500 sm:mr-auto">
             {draftStatus === "saving" && "Saving draft..."}
             {draftStatus === "saved" && "Draft saved"}
           </span>
@@ -131,7 +131,7 @@ export default function AttendanceFilters({
             disabled={
               isSubmitting || isSavingSettings || draftStatus === "saving"
             }
-            className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-6 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-6 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             <Save className="h-4 w-4" />
             Save Draft
@@ -142,7 +142,7 @@ export default function AttendanceFilters({
             type="button"
             onClick={onSaveSettings}
             disabled={isSavingSettings || isSubmitting}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             <Save className="h-4 w-4" />
 
@@ -154,7 +154,7 @@ export default function AttendanceFilters({
             type="button"
             onClick={onSubmit}
             disabled={isSubmitting || isSavingSettings}
-            className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             <Send className="h-4 w-4" />
 
