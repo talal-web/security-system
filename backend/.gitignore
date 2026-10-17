@@ -23,5 +23,3 @@ scripts/*
 scripts/migrations/
 scripts/migrations/*
 .scripts
-
-tests/
