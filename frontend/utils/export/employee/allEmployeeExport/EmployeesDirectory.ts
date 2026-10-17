@@ -7,6 +7,8 @@ import {
   calculateAge,
 } from "../../../employee/employeeFormat";
 
+import { imageUrlToBase64 } from "../bioDataForm/employeeExcelImages";
+
 import type { Employee } from "@/types/employee";
 
 interface ExportEmployeesDirectoryOptions {
@@ -48,6 +50,18 @@ export async function exportEmployeesDirectory({
   const RED_LIGHT = "FEE2E2";
 
   const BLUE_LIGHT = "DBEAFE";
+
+  // =========================================================
+  // LOAD IMAGES (profile + CNIC) FOR ALL EMPLOYEES UP FRONT
+  // =========================================================
+
+  const employeeImages = await Promise.all(
+    employees.map(async (employee) => ({
+      profile: await imageUrlToBase64(employee.profileImage),
+      cnicFront: await imageUrlToBase64(employee.cnicFrontImage),
+      cnicBack: await imageUrlToBase64(employee.cnicBackImage),
+    })),
+  );
 
   // =========================================================
   // WORKSHEET
@@ -97,7 +111,7 @@ export async function exportEmployeesDirectory({
   // TITLE
   // =========================================================
 
-  worksheet.mergeCells("A1:T1");
+  worksheet.mergeCells("A1:U1");
 
   const titleCell = worksheet.getCell("A1");
 
@@ -131,7 +145,7 @@ export async function exportEmployeesDirectory({
   // REPORT TITLE
   // =========================================================
 
-  worksheet.mergeCells("A2:T2");
+  worksheet.mergeCells("A2:U2");
 
   const reportTitleCell = worksheet.getCell("A2");
 
@@ -157,7 +171,7 @@ export async function exportEmployeesDirectory({
   // REPORT INFO
   // =========================================================
 
-  worksheet.mergeCells("A3:T3");
+  worksheet.mergeCells("A3:U3");
 
   const generatedCell = worksheet.getCell("A3");
 
@@ -211,7 +225,7 @@ export async function exportEmployeesDirectory({
     vertical: "middle",
   };
 
-  worksheet.mergeCells("F4:T4");
+  worksheet.mergeCells("F4:U4");
 
   const activeCount = employees.filter(
     (employee) => employee.status === "active",
@@ -260,6 +274,7 @@ export async function exportEmployeesDirectory({
   const headers = [
     "#",
     "Emp ID",
+    "Photo",
     "Name",
     "Father Name",
     "CNIC",
@@ -356,6 +371,7 @@ export async function exportEmployeesDirectory({
     const row = worksheet.addRow([
       index + 1,
       employee.empId || "-",
+      "", // Photo (embedded as an image below)
       formatText(employee.name),
       formatText(employee.fatherName),
       employee.cnic || "-",
@@ -401,7 +417,7 @@ export async function exportEmployeesDirectory({
       employee.notes || "-",
     ]);
 
-    row.height = 24;
+    row.height = 56;
 
     // Alternating rows
     if (index % 2 === 1) {
@@ -458,17 +474,41 @@ export async function exportEmployeesDirectory({
     });
 
     // =======================================================
+    // PHOTO
+    // =======================================================
+
+    const { profile } = employeeImages[index];
+
+    if (profile) {
+      const profileImageId = workbook.addImage({
+        base64: profile.base64,
+        extension: profile.extension,
+      });
+
+      worksheet.addImage(profileImageId, {
+        tl: {
+          col: 2.1,
+          row: row.number - 1 + 0.1,
+        },
+        ext: {
+          width: 42,
+          height: 50,
+        },
+      });
+    }
+
+    // =======================================================
     // ALIGNMENT
     // =======================================================
 
-    for (const column of [1, 2, 5, 7, 12, 13]) {
+    for (const column of [1, 2, 3, 6, 8, 13, 14]) {
       row.getCell(column).alignment = {
         horizontal: "center",
         vertical: "middle",
       };
     }
 
-    for (const column of [6, 18, 19]) {
+    for (const column of [7, 19, 20]) {
       row.getCell(column).alignment = {
         horizontal: "center",
         vertical: "middle",
@@ -476,7 +516,7 @@ export async function exportEmployeesDirectory({
     }
 
     // Long text
-    for (const column of [14, 20]) {
+    for (const column of [15, 21]) {
       row.getCell(column).alignment = {
         vertical: "middle",
         wrapText: true,
@@ -487,7 +527,7 @@ export async function exportEmployeesDirectory({
     // STATUS
     // =======================================================
 
-    const employeeStatus = row.getCell(12);
+    const employeeStatus = row.getCell(13);
 
     employeeStatus.alignment = {
       horizontal: "center",
@@ -538,6 +578,7 @@ export async function exportEmployeesDirectory({
   worksheet.columns = [
     { key: "number", width: 5 },
     { key: "employeeId", width: 12 },
+    { key: "photo", width: 8 },
     { key: "name", width: 23 },
     { key: "fatherName", width: 23 },
     { key: "cnic", width: 18 },
@@ -566,14 +607,157 @@ export async function exportEmployeesDirectory({
 
   worksheet.autoFilter = {
     from: "A6",
-    to: `T${lastRow}`,
+    to: `U${lastRow}`,
   };
 
   // =========================================================
   // PRINT AREA
   // =========================================================
 
-  worksheet.pageSetup.printArea = `A1:T${lastRow}`;
+  worksheet.pageSetup.printArea = `A1:U${lastRow}`;
+
+  // =========================================================
+  // CNIC IMAGES SHEET (one section per employee with any CNIC image)
+  // =========================================================
+
+  const employeesWithCnic = employees
+    .map((employee, index) => ({ employee, images: employeeImages[index] }))
+    .filter(({ images }) => images.cnicFront || images.cnicBack);
+
+  if (employeesWithCnic.length > 0) {
+    const cnicSheet = workbook.addWorksheet("CNIC Images");
+
+    cnicSheet.views = [
+      {
+        showGridLines: false,
+      },
+    ];
+
+    cnicSheet.columns = [
+      { width: 5 },
+      { width: 35 },
+      { width: 35 },
+      { width: 5 },
+    ];
+
+    let currentRow = 1;
+
+    for (const { employee, images } of employeesWithCnic) {
+      cnicSheet.mergeCells(`A${currentRow}:D${currentRow}`);
+
+      const sectionTitle = cnicSheet.getCell(`A${currentRow}`);
+
+      sectionTitle.value = `${employee.empId || "-"} - ${formatText(employee.name)} - CNIC`;
+
+      sectionTitle.font = {
+        name: "Arial",
+        size: 14,
+        bold: true,
+        color: {
+          argb: WHITE,
+        },
+      };
+
+      sectionTitle.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: {
+          argb: PRIMARY,
+        },
+      };
+
+      sectionTitle.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+
+      cnicSheet.getRow(currentRow).height = 26;
+
+      currentRow += 2;
+
+      if (images.cnicFront) {
+        cnicSheet.mergeCells(`B${currentRow}:C${currentRow}`);
+
+        const frontLabel = cnicSheet.getCell(`B${currentRow}`);
+
+        frontLabel.value = "CNIC FRONT";
+
+        frontLabel.font = {
+          name: "Arial",
+          size: 10,
+          bold: true,
+          color: {
+            argb: SLATE_700,
+          },
+        };
+
+        frontLabel.alignment = {
+          horizontal: "center",
+          vertical: "middle",
+        };
+
+        const frontImageId = workbook.addImage({
+          base64: images.cnicFront.base64,
+          extension: images.cnicFront.extension,
+        });
+
+        cnicSheet.addImage(frontImageId, {
+          tl: {
+            col: 1.15,
+            row: currentRow + 0.5,
+          },
+          ext: {
+            width: 500,
+            height: 300,
+          },
+        });
+
+        currentRow += 16;
+      }
+
+      if (images.cnicBack) {
+        cnicSheet.mergeCells(`B${currentRow}:C${currentRow}`);
+
+        const backLabel = cnicSheet.getCell(`B${currentRow}`);
+
+        backLabel.value = "CNIC BACK";
+
+        backLabel.font = {
+          name: "Arial",
+          size: 10,
+          bold: true,
+          color: {
+            argb: SLATE_700,
+          },
+        };
+
+        backLabel.alignment = {
+          horizontal: "center",
+          vertical: "middle",
+        };
+
+        const backImageId = workbook.addImage({
+          base64: images.cnicBack.base64,
+          extension: images.cnicBack.extension,
+        });
+
+        cnicSheet.addImage(backImageId, {
+          tl: {
+            col: 1.15,
+            row: currentRow + 0.5,
+          },
+          ext: {
+            width: 500,
+            height: 300,
+          },
+        });
+
+        currentRow += 16;
+      }
+
+      currentRow += 2;
+    }
+  }
 
   // =========================================================
   // FILE
