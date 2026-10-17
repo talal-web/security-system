@@ -45,15 +45,6 @@ export default function DashboardPage() {
     const destination = query ? `${target}?${query}` : target;
     const currentUrl = `${pathname}${search ? `?${search}` : ""}`;
 
-    console.log("[Dashboard redirect check]", {
-      currentUrl,
-      destination,
-      routeAreaId,
-      selectedAreaId,
-      areaId,
-      role,
-    });
-
     if (currentUrl === destination) return;
 
     router.replace(destination, { scroll: false });
