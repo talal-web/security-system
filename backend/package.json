@@ -2,11 +2,11 @@
   "name": "security-company-api",
   "version": "1.0.0",
   "description": "",
-  "main": "src/server.js",
+  "main": "bin/server.js",
   "type": "module",
   "scripts": {
     "start": "node src/start.js",
-    "dev": "nodemon --env-file=.env src/server.js",
+    "dev": "nodemon --env-file=.env bin/server.js",
     "test": "node --test"
   },
   "keywords": [],
@@ -29,7 +29,8 @@
     "morgan": "^1.10.1",
     "multer": "^2.1.1",
     "streamifier": "^0.1.1",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

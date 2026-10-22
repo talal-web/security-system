@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import logger from "../src/config/logger.js";
-import { errorHandler } from "../src/middleware/errorHandler.js";
+import logger from "../src/infrastructure/config/logger.js";
+import { errorHandler } from "../http/middlewares/errorHandler.js";
 
 const runErrorHandler = (error) => {
   let statusCode;

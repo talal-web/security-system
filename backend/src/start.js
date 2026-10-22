@@ -1,3 +1,3 @@
 process.env.NODE_ENV ||= "production";
 
-await import("./server.js");
+await import("../bin/server.js");

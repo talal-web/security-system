@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import Bonus from "../src/models/Bonus.js";
 import Employee from "../src/models/Employee.js";
-import { createBonusService } from "../src/services/bonus/bonus.service.js";
+import { createBonusService } from "../src/services/bonus/BonusService.js";
 
 const originalFindById = Employee.findById;
 const originalBonusCreate = Bonus.create;

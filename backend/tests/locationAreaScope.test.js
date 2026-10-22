@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import locationRoutes from "../src/routes/locationRoutes.js";
-import { requireAreaAccess } from "../src/middleware/areaScopeMiddleware.js";
+import locationRoutes from "../http/routes/locationRoutes.js";
+import { requireAreaAccess } from "../http/middlewares/areaScopeMiddleware.js";
 
 test("every location endpoint requires validated area scope", () => {
   const routes = locationRoutes.stack.filter((layer) => layer.route);

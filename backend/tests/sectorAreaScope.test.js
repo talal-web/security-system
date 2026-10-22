@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import sectorRoutes from "../src/routes/sectorRoutes.js";
-import { requireAreaAccess } from "../src/middleware/areaScopeMiddleware.js";
+import sectorRoutes from "../http/routes/sectorRoutes.js";
+import { requireAreaAccess } from "../http/middlewares/areaScopeMiddleware.js";
 
 test("every sector endpoint requires validated area scope", () => {
   const routes = sectorRoutes.stack.filter((layer) => layer.route);

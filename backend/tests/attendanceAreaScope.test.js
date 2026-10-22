@@ -1,15 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { enforceAreaScope } from "../src/middleware/areaScopeMiddleware.js";
+import { enforceAreaScope } from "../http/middlewares/areaScopeMiddleware.js";
 import Attendance from "../src/models/Attendance.js";
 import Employee from "../src/models/Employee.js";
 import {
   getAttendanceByIdService,
   submitAttendanceSessionService,
-} from "../src/services/attendance/attendance.service.js";
-import { getAttendanceReportService } from "../src/services/attendance/attendanceReport.service.js";
-import { getMonthlyAttendanceReportService } from "../src/services/attendance/attendanceMonthly.service.js";
+} from "../src/services/attendance/AttendanceService.js";
+import { getAttendanceReportService } from "../src/services/attendance/AttendanceReportService.js";
+import { getMonthlyAttendanceReportService } from "../src/services/attendance/AttendanceMonthlyService.js";
 import { normalizeDate } from "../src/utils/normalize.js";
 
 const areaA = "507f1f77bcf86cd799439011";
@@ -31,14 +31,17 @@ test("attendance rejects unassigned areas and employees outside the selected are
       return payload;
     },
   };
-  let nextCalled = false;
+  let nextError;
 
-  enforceAreaScope(req, res, () => {
-    nextCalled = true;
+  enforceAreaScope(req, res, (error) => {
+    nextError = error;
   });
 
-  assert.equal(res.statusCode, 403);
-  assert.equal(nextCalled, false);
+  // Authorization failures are forwarded to errorHandler via next(error),
+  // not written to res directly.
+  assert.ok(nextError);
+  assert.equal(nextError.statusCode, 403);
+  assert.equal(res.statusCode, undefined);
 
   const originalEmployeeFind = Employee.find;
   const originalAttendanceBulkWrite = Attendance.bulkWrite;

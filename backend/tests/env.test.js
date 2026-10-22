@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateEnv } from "../src/config/env.js";
+import { validateEnv } from "../src/infrastructure/config/env.js";
 
 test("validateEnv rejects missing production config", () => {
   const originalNodeEnv = process.env.NODE_ENV;
