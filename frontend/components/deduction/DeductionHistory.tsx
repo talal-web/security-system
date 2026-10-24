@@ -32,7 +32,7 @@ const statusConfig = {
   },
   cancelled: {
     label: "Cancelled",
-    className: "bg-gray-100 text-gray-600",
+    className: "bg-slate-100 text-slate-600",
   },
 } as const;
 
@@ -72,16 +72,16 @@ export default function DeductionHistory({
 }: DeductionHistoryProps) {
   if (!deductions.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-          <CircleDollarSign className="h-5 w-5 text-gray-500" />
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+          <CircleDollarSign className="h-5 w-5 text-slate-500" />
         </div>
 
-        <h3 className="mt-4 text-sm font-semibold text-gray-900">
+        <h3 className="mt-4 text-sm font-semibold text-slate-900">
           No deduction records
         </h3>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-slate-500">
           No deductions have been recorded yet.
         </p>
       </div>
@@ -89,14 +89,14 @@ export default function DeductionHistory({
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       {/* Header */}
-      <div className="border-b border-gray-200 px-4 py-4 sm:px-6">
-        <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
+      <div className="border-b border-slate-200 px-4 py-4 sm:px-6">
+        <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
           Deduction History
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-slate-500">
           {deductions.length} record
           {deductions.length !== 1 ? "s" : ""}
         </p>
@@ -105,8 +105,8 @@ export default function DeductionHistory({
       {/* Desktop / Tablet */}
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
-          <thead className="border-b bg-gray-50/80">
-            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <thead className="border-b bg-slate-50/80">
+            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
               <th className="px-6 py-3">Employee</th>
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3">Deduction</th>
@@ -120,7 +120,7 @@ export default function DeductionHistory({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             {deductions.map((deduction) => {
               const deductedAmount =
                 deduction.amount - deduction.remainingAmount;
@@ -134,44 +134,44 @@ export default function DeductionHistory({
               return (
                 <tr
                   key={deduction._id}
-                  className="transition hover:bg-gray-50/70"
+                  className="transition hover:bg-slate-50/70"
                 >
                   {/* Employee */}
                   <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-slate-900">
                       {getEmployeeName(deduction)}
                     </div>
 
                     {typeof deduction.employee !== "string" && (
-                      <div className="mt-0.5 text-xs text-gray-500">
+                      <div className="mt-0.5 text-xs text-slate-500">
                         {deduction.employee.fatherName}
                       </div>
                     )}
                   </td>
 
                   {/* Date */}
-                  <td className="whitespace-nowrap px-4 py-4 text-gray-600">
+                  <td className="whitespace-nowrap px-4 py-4 text-slate-600">
                     {formatDate(deduction.deductionDate)}
                   </td>
 
                   {/* Original amount */}
-                  <td className="whitespace-nowrap px-4 py-4 font-semibold text-gray-900">
+                  <td className="whitespace-nowrap px-4 py-4 font-semibold text-slate-900">
                     {formatCurrency(deduction.amount)}
                   </td>
 
                   {/* Deducted */}
-                  <td className="whitespace-nowrap px-4 py-4 text-gray-600">
+                  <td className="whitespace-nowrap px-4 py-4 text-slate-600">
                     {formatCurrency(deductedAmount)}
                   </td>
 
                   {/* Remaining */}
-                  <td className="whitespace-nowrap px-4 py-4 font-semibold text-gray-900">
+                  <td className="whitespace-nowrap px-4 py-4 font-semibold text-slate-900">
                     {formatCurrency(deduction.remainingAmount)}
                   </td>
 
                   {/* Reason */}
                   <td className="max-w-60 px-4 py-4">
-                    <span className="block truncate text-gray-600">
+                    <span className="block truncate text-slate-600">
                       {deduction.reason}
                     </span>
                   </td>
@@ -186,7 +186,7 @@ export default function DeductionHistory({
                   </td>
 
                   {/* Creator */}
-                  <td className="px-4 py-4 text-gray-600">
+                  <td className="px-4 py-4 text-slate-600">
                     {getCreatedBy(deduction)}
                   </td>
 
@@ -199,7 +199,7 @@ export default function DeductionHistory({
                             <button
                               type="button"
                               onClick={() => onEdit(deduction)}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                             >
                               <Pencil className="h-3.5 w-3.5" />
                               Edit
@@ -228,7 +228,7 @@ export default function DeductionHistory({
       </div>
 
       {/* Mobile */}
-      <div className="divide-y divide-gray-100 md:hidden">
+      <div className="divide-y divide-slate-100 md:hidden">
         {deductions.map((deduction) => {
           const deductedAmount = deduction.amount - deduction.remainingAmount;
 
@@ -243,12 +243,12 @@ export default function DeductionHistory({
               {/* Top */}
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-slate-900">
                     {getEmployeeName(deduction)}
                   </h3>
 
                   {typeof deduction.employee !== "string" && (
-                    <p className="mt-0.5 text-xs text-gray-500">
+                    <p className="mt-0.5 text-xs text-slate-500">
                       {deduction.employee.fatherName}
                     </p>
                   )}
@@ -263,48 +263,48 @@ export default function DeductionHistory({
 
               {/* Financial details */}
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500">Deduction</p>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-slate-500">Deduction</p>
 
-                  <p className="mt-1 font-semibold text-gray-900">
+                  <p className="mt-1 font-semibold text-slate-900">
                     {formatCurrency(deduction.amount)}
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500">Remaining</p>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-slate-500">Remaining</p>
 
-                  <p className="mt-1 font-semibold text-gray-900">
+                  <p className="mt-1 font-semibold text-slate-900">
                     {formatCurrency(deduction.remainingAmount)}
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500">Deducted</p>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-slate-500">Deducted</p>
 
-                  <p className="mt-1 font-semibold text-gray-900">
+                  <p className="mt-1 font-semibold text-slate-900">
                     {formatCurrency(deductedAmount)}
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500">Date</p>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-slate-500">Date</p>
 
-                  <p className="mt-1 font-medium text-gray-900">
+                  <p className="mt-1 font-medium text-slate-900">
                     {formatDate(deduction.deductionDate)}
                   </p>
                 </div>
               </div>
 
               {/* Reason */}
-              <div className="mt-3 rounded-xl border border-gray-200 bg-white p-3">
+              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3">
                 <div className="flex items-start gap-2">
-                  <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                  <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
 
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-gray-500">Reason</p>
+                    <p className="text-xs font-medium text-slate-500">Reason</p>
 
-                    <p className="mt-1 text-sm leading-5 text-gray-700">
+                    <p className="mt-1 text-sm leading-5 text-slate-700">
                       {deduction.reason}
                     </p>
                   </div>
@@ -318,7 +318,7 @@ export default function DeductionHistory({
                     <button
                       type="button"
                       onClick={() => onEdit(deduction)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       Edit
@@ -339,11 +339,11 @@ export default function DeductionHistory({
               )}
 
               {/* Created by */}
-              <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+              <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
                 <UserRound className="h-3.5 w-3.5" />
                 <span>
                   Created by{" "}
-                  <span className="font-medium text-gray-700">
+                  <span className="font-medium text-slate-700">
                     {getCreatedBy(deduction)}
                   </span>
                 </span>

@@ -18,11 +18,11 @@ export default function ShiftCard({
     <div className="rounded-2xl border bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">{guardName}</h3>
+          <h3 className="text-base font-semibold text-slate-900">{guardName}</h3>
 
-          <p className="mt-1 text-sm text-gray-500">{shift}</p>
+          <p className="mt-1 text-sm text-slate-500">{shift}</p>
 
-          <p className="mt-1 text-xs text-gray-400">{location}</p>
+          <p className="mt-1 text-xs text-slate-400">{location}</p>
         </div>
 
         <span

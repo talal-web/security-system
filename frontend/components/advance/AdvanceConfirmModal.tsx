@@ -20,7 +20,7 @@ export default function AdvanceConfirmModal({
   return (
     <Modal open={open} onClose={onClose} title="Cancel Advance">
       <div className="space-y-5">
-        <p className="text-sm leading-6 text-gray-600">
+        <p className="text-sm leading-6 text-slate-600">
           Are you sure you want to cancel the advance of Rs.{" "}
           {amount.toLocaleString()}? This action cannot be undone.
         </p>
@@ -30,7 +30,7 @@ export default function AdvanceConfirmModal({
             type="button"
             onClick={onClose}
             disabled={pending}
-            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             Keep Advance
           </button>

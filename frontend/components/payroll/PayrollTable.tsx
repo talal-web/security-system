@@ -49,7 +49,7 @@ export default function PayrollTable({
                 <td className="px-5 py-4">
                   <Link
                     href={getAreaAwareHref(`/payroll/${payroll._id}`)}
-                    className="font-semibold text-slate-900 hover:text-emerald-700"
+                    className="font-semibold text-slate-900 hover:text-blue-700"
                   >
                     {name(payroll)}
                     <span className="mt-0.5 block text-xs font-normal text-slate-500">

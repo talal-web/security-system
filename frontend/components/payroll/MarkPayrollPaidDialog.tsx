@@ -74,7 +74,7 @@ export default function MarkPayrollPaidDialog({
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           disabled={mutation.isPending}
-          className="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
         >
           {mutation.isPending ? "Saving..." : "Mark paid"}
         </button>

@@ -27,17 +27,17 @@ export default function AttendanceEmployeeTable({
         return "inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700";
 
       default:
-        return "inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700";
+        return "inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700";
     }
   };
 
   return (
     <div className="rounded-xl border bg-white shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
+      <div className="flex items-center justify-between border-b bg-slate-50 px-4 py-3">
         <div>
-          <h2 className="font-semibold text-gray-900">{title}</h2>
-          <p className="text-xs text-gray-500">
+          <h2 className="font-semibold text-slate-900">{title}</h2>
+          <p className="text-xs text-slate-500">
             {employees.length} Employee{employees.length !== 1 && "s"}
           </p>
         </div>
@@ -50,7 +50,7 @@ export default function AttendanceEmployeeTable({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-212.5 text-sm">
-          <thead className="bg-gray-50 text-left text-xs font-semibold uppercase text-gray-600">
+          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-600">
             <tr>
               <th scope="col" className="w-16 px-4 py-3 text-center">
                 #
@@ -86,7 +86,7 @@ export default function AttendanceEmployeeTable({
             {employees.map((employee, index) => (
               <tr
                 key={employee.attendanceId}
-                className="transition hover:bg-gray-50"
+                className="transition hover:bg-slate-50"
               >
                 <td className="px-4 py-3 text-center font-medium text-slate-600">
                   {index + 1}
@@ -133,7 +133,7 @@ export default function AttendanceEmployeeTable({
 
             {employees.length === 0 && (
               <tr>
-                <td colSpan={9} className="py-8 text-center text-gray-500">
+                <td colSpan={9} className="py-8 text-center text-slate-500">
                   No employees found.
                 </td>
               </tr>

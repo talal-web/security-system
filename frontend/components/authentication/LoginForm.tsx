@@ -43,7 +43,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       <div className="mb-6 space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Login</h1>
 
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-500">
           Enter your credentials to continue
         </p>
       </div>

@@ -37,7 +37,7 @@ export default function PayrollActions({
           <button
             type="button"
             onClick={() => setPaymentOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
           >
             <CreditCard className="h-4 w-4" />
             Mark paid

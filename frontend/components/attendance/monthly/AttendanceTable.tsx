@@ -22,7 +22,7 @@ export default function MonthlyAttendanceTable({
   if (employees.length === 0) {
     return (
       <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-        <p className="text-gray-500">No employees found.</p>
+        <p className="text-slate-500">No employees found.</p>
       </div>
     );
   }

@@ -26,8 +26,8 @@ export default function PayrollHeader({
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
-        <div className="hidden h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 sm:flex">
-          <WalletCards className="h-5 w-5 text-emerald-600" />
+        <div className="hidden h-11 w-11 items-center justify-center rounded-xl bg-blue-50 sm:flex">
+          <WalletCards className="h-5 w-5 text-blue-600" />
         </div>
         <div>
           <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
@@ -58,7 +58,7 @@ export default function PayrollHeader({
             <button
               type="button"
               onClick={onGenerateMonth}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
             >
               <CalendarPlus className="h-4 w-4" />
               Generate month

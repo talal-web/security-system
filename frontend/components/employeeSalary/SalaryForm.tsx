@@ -136,11 +136,11 @@ export default function SalaryForm({
       className="rounded-xl border bg-white p-5 shadow-sm"
     >
       <div className="mb-5">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-slate-900">
           {isEditing ? "Correct Salary" : "Add Salary"}
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-slate-500">
           {isEditing
             ? "Correct an existing salary record."
             : "Add a new salary effective from a future month."}
@@ -177,7 +177,7 @@ export default function SalaryForm({
             className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-slate-500">
             Must be the first day of a month.
           </p>
         </div>
@@ -221,7 +221,7 @@ export default function SalaryForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50"
+          className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-slate-50"
         >
           Cancel
         </button>

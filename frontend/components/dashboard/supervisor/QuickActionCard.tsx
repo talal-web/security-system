@@ -12,7 +12,7 @@ export default function QuickActionCard({ title, href }: QuickActionCardProps) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-center rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition-all hover:bg-gray-800"
+      className="flex items-center justify-center rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition-all hover:bg-slate-800"
     >
       {title}
     </Link>

@@ -11,8 +11,8 @@ export default function AreaList() {
 
   if (isPending) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <p className="text-sm text-gray-500">Loading areas...</p>
+      <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <p className="text-sm text-slate-500">Loading areas...</p>
       </div>
     );
   }
@@ -36,9 +36,9 @@ export default function AreaList() {
 
   if (areas.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
-        <h3 className="font-semibold text-gray-800">No areas found</h3>
-        <p className="mt-1 text-sm text-gray-500">
+      <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+        <h3 className="font-semibold text-slate-800">No areas found</h3>
+        <p className="mt-1 text-sm text-slate-500">
           Add your first area to get started.
         </p>
       </div>
@@ -46,12 +46,12 @@ export default function AreaList() {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Areas</h2>
-          <p className="text-sm text-gray-500">Manage your operational areas</p>
+          <h2 className="text-lg font-semibold text-slate-900">Areas</h2>
+          <p className="text-sm text-slate-500">Manage your operational areas</p>
         </div>
 
         <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
@@ -60,7 +60,7 @@ export default function AreaList() {
       </div>
 
       {/* Area list */}
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-slate-100">
         {areas.map((area: Area) => (
           <div
             key={area._id}
@@ -68,11 +68,11 @@ export default function AreaList() {
           >
             {/* Area details */}
             <div className="min-w-0">
-              <h3 className="truncate font-medium text-gray-900">
+              <h3 className="truncate font-medium text-slate-900">
                 {area.name}
               </h3>
 
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-slate-500">
                 {area.description || "No description provided"}
               </p>
             </div>
@@ -83,7 +83,7 @@ export default function AreaList() {
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
                   area.isActive
                     ? "bg-green-50 text-green-700"
-                    : "bg-gray-100 text-gray-600"
+                    : "bg-slate-100 text-slate-600"
                 }`}
               >
                 {area.isActive ? "Active" : "Inactive"}

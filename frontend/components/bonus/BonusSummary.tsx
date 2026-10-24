@@ -59,19 +59,19 @@ export default function BonusSummary({ bonuses }: BonusSummaryProps) {
         return (
           <div
             key={item.label}
-            className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5"
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-500">
+                <p className="text-sm font-medium text-slate-500">
                   {item.label}
                 </p>
 
-                <p className="mt-1 truncate text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
+                <p className="mt-1 truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                   {item.value}
                 </p>
 
-                <p className="mt-1 text-xs leading-5 text-gray-500">
+                <p className="mt-1 text-xs leading-5 text-slate-500">
                   {item.description}
                 </p>
               </div>

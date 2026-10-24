@@ -61,7 +61,7 @@ export default function AreaCreateModal({
         <div>
           <label
             htmlFor="area-name"
-            className="mb-2 block text-sm font-semibold text-gray-700"
+            className="mb-2 block text-sm font-semibold text-slate-700"
           >
             Area Name <span className="text-red-500">*</span>
           </label>
@@ -69,7 +69,7 @@ export default function AreaCreateModal({
           <div className="relative">
             <MapPin
               size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
 
             <input
@@ -80,10 +80,10 @@ export default function AreaCreateModal({
                 required: "Area name is required",
                 validate: (value) => !!value.trim() || "Area name is required",
               })}
-              className={`w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:ring-2 ${
+              className={`w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-2 ${
                 errors.name
                   ? "border-red-400 focus:ring-red-100"
-                  : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                  : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"
               }`}
             />
           </div>
@@ -97,7 +97,7 @@ export default function AreaCreateModal({
         <div>
           <label
             htmlFor="area-description"
-            className="mb-2 block text-sm font-semibold text-gray-700"
+            className="mb-2 block text-sm font-semibold text-slate-700"
           >
             Description
           </label>
@@ -107,17 +107,17 @@ export default function AreaCreateModal({
             rows={4}
             placeholder="Enter a short description of this area..."
             {...register("description")}
-            className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
+        <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
           <button
             type="button"
             onClick={handleClose}
             disabled={createArea.isPending}
-            className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
           >
             Cancel
           </button>

@@ -257,19 +257,19 @@ export default function DeductionForm({
         {/* Edit mode */}
         {isEditing && editingEmployee && (
           <>
-            <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">
-              <UserRound className="h-4 w-4 text-gray-400" />
+            <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700">
+              <UserRound className="h-4 w-4 text-slate-400" />
               Employee
             </label>
 
-            <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-3.5">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-slate-900">
                     {editingEmployee.name}
                   </p>
 
-                  <p className="mt-0.5 text-xs text-gray-500">
+                  <p className="mt-0.5 text-xs text-slate-500">
                     {editingEmployee.empId} · {editingEmployee.fatherName} ·{" "}
                     {formatText(editingEmployee.designation)}
                   </p>
@@ -294,18 +294,18 @@ export default function DeductionForm({
           <>
             <label
               htmlFor="deduction-empId-lookup"
-              className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700"
+              className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
             >
-              <UserRound className="h-4 w-4 text-gray-400" />
+              <UserRound className="h-4 w-4 text-slate-400" />
               Employee
             </label>
 
             {selectedEmployee ? (
-              <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-3.5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-semibold text-slate-900">
                         {selectedEmployee.name}
                       </p>
 
@@ -320,17 +320,17 @@ export default function DeductionForm({
                       </span>
                     </div>
 
-                    <p className="mt-1 text-xs leading-5 text-gray-500">
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
                       ID:{" "}
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-slate-700">
                         {selectedEmployee.empId}
                       </span>{" "}
                       · Father:{" "}
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-slate-700">
                         {selectedEmployee.fatherName}
                       </span>{" "}
                       · Designation:{" "}
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-slate-700">
                         {formatText(selectedEmployee.designation)}
                       </span>
                     </p>
@@ -340,7 +340,7 @@ export default function DeductionForm({
                     <button
                       type="button"
                       onClick={handleClearSelectedEmployee}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-100"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
                     >
                       <X className="h-3 w-3" />
                       Change
@@ -362,7 +362,7 @@ export default function DeductionForm({
               <div>
                 <div className="flex gap-2">
                   <div className="relative min-w-0 flex-1">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 
                     <input
                       id="deduction-empId-lookup"
@@ -381,7 +381,7 @@ export default function DeductionForm({
                       }}
                       disabled={isPending || lookupLoading}
                       placeholder="Employee ID (e.g. BSS-0001)"
-                      className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
+                      className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
                     />
                   </div>
 
@@ -411,7 +411,7 @@ export default function DeductionForm({
                   <p className="mt-1.5 text-xs text-red-600">{lookupError}</p>
                 )}
 
-                <p className="mt-1.5 text-xs leading-5 text-gray-500">
+                <p className="mt-1.5 text-xs leading-5 text-slate-500">
                   Search by Employee ID to select the employee.
                 </p>
               </div>
@@ -428,14 +428,14 @@ export default function DeductionForm({
         <div>
           <label
             htmlFor="deduction-amount"
-            className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700"
+            className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
           >
-            <WalletCards className="h-4 w-4 text-gray-400" />
+            <WalletCards className="h-4 w-4 text-slate-400" />
             Deduction Amount
           </label>
 
           <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
               Rs.
             </span>
 
@@ -453,11 +453,11 @@ export default function DeductionForm({
               disabled={isPending}
               inputMode="numeric"
               placeholder="5,000"
-              className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-11 pr-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-11 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
             />
           </div>
 
-          <p className="mt-1.5 text-xs text-gray-500">
+          <p className="mt-1.5 text-xs text-slate-500">
             Enter the deduction in whole rupees.
           </p>
         </div>
@@ -465,9 +465,9 @@ export default function DeductionForm({
         <div>
           <label
             htmlFor="deduction-date"
-            className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700"
+            className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
           >
-            <CalendarDays className="h-4 w-4 text-gray-400" />
+            <CalendarDays className="h-4 w-4 text-slate-400" />
             Deduction Date
           </label>
 
@@ -481,7 +481,7 @@ export default function DeductionForm({
             }}
             required
             disabled={isPending}
-            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
           />
         </div>
       </div>
@@ -494,13 +494,13 @@ export default function DeductionForm({
         <div className="mb-2 flex items-center justify-between gap-3">
           <label
             htmlFor="deduction-reason"
-            className="flex items-center gap-2 text-sm font-medium text-gray-700"
+            className="flex items-center gap-2 text-sm font-medium text-slate-700"
           >
-            <FileText className="h-4 w-4 text-gray-400" />
+            <FileText className="h-4 w-4 text-slate-400" />
             Reason
           </label>
 
-          <span className="text-xs text-gray-400">{reason.length}/500</span>
+          <span className="text-xs text-slate-400">{reason.length}/500</span>
         </div>
 
         <textarea
@@ -515,7 +515,7 @@ export default function DeductionForm({
           required
           disabled={isPending}
           placeholder="Enter the reason for this deduction..."
-          className="w-full resize-none rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
+          className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
         />
       </div>
 
@@ -528,7 +528,7 @@ export default function DeductionForm({
           type="button"
           onClick={onCancel}
           disabled={isPending}
-          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           Cancel
         </button>

@@ -84,7 +84,7 @@ export default function EmployeeAdvancesPage({
       <main className="space-y-6 p-6">
         {isLoading && (
           <div className="rounded-xl border bg-white p-6">
-            <p className="text-sm text-gray-500">Loading advances...</p>
+            <p className="text-sm text-slate-500">Loading advances...</p>
           </div>
         )}
 
@@ -98,11 +98,11 @@ export default function EmployeeAdvancesPage({
           <>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-slate-900">
                   Employee Advances
                 </h1>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-slate-500">
                   {employee.name} · {employee.empId} · {employee.designation}
                 </p>
               </div>

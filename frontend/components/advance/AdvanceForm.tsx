@@ -208,18 +208,18 @@ export default function AdvanceForm({
         {/* Employee Field: Edit Mode (Read-only) */}
         {isEditing && editingEmployee && (
           <div>
-            <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">
-              <UserRound className="h-4 w-4 text-gray-400" />
+            <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700">
+              <UserRound className="h-4 w-4 text-slate-400" />
               Employee
             </label>
 
-            <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-3.5">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-slate-900">
                     {editingEmployee.name}
                   </p>
-                  <p className="mt-0.5 text-xs text-gray-500">
+                  <p className="mt-0.5 text-xs text-slate-500">
                     {editingEmployee.empId} · {editingEmployee.fatherName} ·{" "}
                     {formatText(editingEmployee.designation)}
                   </p>
@@ -244,18 +244,18 @@ export default function AdvanceForm({
           <div>
             <label
               htmlFor="advance-empId-lookup"
-              className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700"
+              className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
             >
-              <UserRound className="h-4 w-4 text-gray-400" />
+              <UserRound className="h-4 w-4 text-slate-400" />
               Employee
             </label>
 
             {selectedEmployee ? (
-              <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-3.5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-semibold text-slate-900">
                         {selectedEmployee.name}
                       </p>
                       <span
@@ -269,17 +269,17 @@ export default function AdvanceForm({
                       </span>
                     </div>
 
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-slate-500">
                       ID:{" "}
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-slate-700">
                         {selectedEmployee.empId}
                       </span>{" "}
                       · Father:{" "}
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-slate-700">
                         {selectedEmployee.fatherName}
                       </span>{" "}
                       · Designation:{" "}
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-slate-700">
                         {formatText(selectedEmployee.designation)}
                       </span>
                     </p>
@@ -289,7 +289,7 @@ export default function AdvanceForm({
                     <button
                       type="button"
                       onClick={handleClearSelectedEmployee}
-                      className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
                     >
                       <X className="h-3 w-3" />
                       Change
@@ -327,7 +327,7 @@ export default function AdvanceForm({
                       }}
                       disabled={isPending || lookupLoading}
                       placeholder="Enter Employee ID (e.g. BSS-0001)"
-                      className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
                     />
                   </div>
 
@@ -354,7 +354,7 @@ export default function AdvanceForm({
                 {lookupError && (
                   <p className="mt-1.5 text-xs text-red-600">{lookupError}</p>
                 )}
-                <p className="mt-1.5 text-xs text-gray-500">
+                <p className="mt-1.5 text-xs text-slate-500">
                   Search by Employee ID to select the employee for this advance.
                 </p>
               </div>
@@ -367,14 +367,14 @@ export default function AdvanceForm({
           <div>
             <label
               htmlFor="advance-amount"
-              className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700"
+              className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
             >
-              <CircleDollarSign className="h-4 w-4 text-gray-400" />
+              <CircleDollarSign className="h-4 w-4 text-slate-400" />
               Advance Amount
             </label>
 
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
                 Rs.
               </span>
 
@@ -392,11 +392,11 @@ export default function AdvanceForm({
                 required
                 inputMode="numeric"
                 placeholder="5,000"
-                className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-11 pr-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
+                className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-11 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
               />
             </div>
 
-            <p className="mt-1.5 text-xs text-gray-500">
+            <p className="mt-1.5 text-xs text-slate-500">
               Enter the advance in whole rupees.
             </p>
           </div>
@@ -404,9 +404,9 @@ export default function AdvanceForm({
           <div>
             <label
               htmlFor="advance-date"
-              className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700"
+              className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
             >
-              <CalendarDays className="h-4 w-4 text-gray-400" />
+              <CalendarDays className="h-4 w-4 text-slate-400" />
               Advance Date
             </label>
 
@@ -420,7 +420,7 @@ export default function AdvanceForm({
               }}
               disabled={isPending}
               required
-              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
             />
           </div>
         </div>
@@ -430,13 +430,13 @@ export default function AdvanceForm({
           <div className="mb-2 flex items-center justify-between gap-3">
             <label
               htmlFor="advance-description"
-              className="flex items-center gap-2 text-sm font-medium text-gray-700"
+              className="flex items-center gap-2 text-sm font-medium text-slate-700"
             >
-              <FileText className="h-4 w-4 text-gray-400" />
+              <FileText className="h-4 w-4 text-slate-400" />
               Description
             </label>
 
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-slate-400">
               {description.length}/500
             </span>
           </div>
@@ -452,7 +452,7 @@ export default function AdvanceForm({
             rows={4}
             disabled={isPending}
             placeholder="Add an optional note about this advance..."
-            className="w-full resize-none rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
+            className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
           />
         </div>
       </div>
@@ -462,7 +462,7 @@ export default function AdvanceForm({
           type="button"
           onClick={onCancel}
           disabled={isPending}
-          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           Cancel
         </button>

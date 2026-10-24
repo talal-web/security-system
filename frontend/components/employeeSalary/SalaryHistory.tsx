@@ -19,27 +19,27 @@ export default function SalaryHistory({
     <div className="rounded-xl border bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-slate-900">
             Salary History
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-500">
             {salaryHistory.length} record{salaryHistory.length === 1 ? "" : "s"}
           </p>
         </div>
       </div>
 
       {salaryHistory.length === 0 ? (
-        <p className="text-sm text-gray-500">No salary history available.</p>
+        <p className="text-sm text-slate-500">No salary history available.</p>
       ) : (
         <div className="space-y-3">
           {salaryHistory.map((salary) => (
             <div
               key={salary._id}
-              className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+              className="rounded-lg border border-slate-200 bg-slate-50 p-4"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
                     <CalendarDays className="h-4 w-4" />
                     <span>
                       Effective from{" "}
@@ -47,17 +47,17 @@ export default function SalaryHistory({
                     </span>
                   </div>
 
-                  <p className="mt-2 text-2xl font-bold text-gray-900">
+                  <p className="mt-2 text-2xl font-bold text-slate-900">
                     Rs. {salary.monthlySalary.toLocaleString()}
                   </p>
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-gray-200 px-2 py-1 text-xs font-medium text-gray-700">
+                    <span className="rounded-full bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700">
                       {salary.reason.replaceAll("_", " ")}
                     </span>
 
                     {salary.notes && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-slate-500">
                         {salary.notes}
                       </span>
                     )}
@@ -68,7 +68,7 @@ export default function SalaryHistory({
                   <button
                     type="button"
                     onClick={() => onEdit(salary)}
-                    className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
                   >
                     <Pencil className="h-4 w-4" />
                     Correct

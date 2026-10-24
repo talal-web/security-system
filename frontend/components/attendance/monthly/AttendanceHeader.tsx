@@ -6,25 +6,25 @@ export default function MonthlyAttendanceHeader({
   days,
 }: MonthlyAttendanceHeaderProps) {
   return (
-    <thead className="bg-gray-100">
+    <thead className="bg-slate-100">
       <tr>
         {/* ========================= */}
         {/* STICKY EMPLOYEE COLUMNS */}
         {/* ========================= */}
 
-        <th className="sticky left-0 z-40 min-w-22.5` border bg-gray-100 px-3 py-3 text-left text-sm font-semibold">
+        <th className="sticky left-0 z-40 min-w-22.5` border bg-slate-100 px-3 py-3 text-left text-sm font-semibold">
           Emp ID
         </th>
 
-        <th className="sticky left-22.5 z-40 min-w-45 border bg-gray-100 px-3 py-3 text-left text-sm font-semibold">
+        <th className="sticky left-22.5 z-40 min-w-45 border bg-slate-100 px-3 py-3 text-left text-sm font-semibold">
           Name
         </th>
 
-        <th className="sticky left-67.5 z-40 min-w-45 border bg-gray-100 px-3 py-3 text-left text-sm font-semibold">
+        <th className="sticky left-67.5 z-40 min-w-45 border bg-slate-100 px-3 py-3 text-left text-sm font-semibold">
           Father Name
         </th>
 
-        <th className="sticky left-112.5 z-40 min-w-35 border bg-gray-100 px-3 py-3 text-left text-sm font-semibold">
+        <th className="sticky left-112.5 z-40 min-w-35 border bg-slate-100 px-3 py-3 text-left text-sm font-semibold">
           Designation
         </th>
 

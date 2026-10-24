@@ -85,8 +85,8 @@ export default function EmployeeBonusesPage({
       <main className="space-y-6 p-4 sm:p-6">
         {/* Loading */}
         {isLoading && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-500">Loading bonuses...</p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm text-slate-500">Loading bonuses...</p>
           </div>
         )}
 
@@ -111,11 +111,11 @@ export default function EmployeeBonusesPage({
             {/* Header */}
             <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                   Employee Bonuses
                 </h1>
 
-                <p className="mt-1 truncate text-sm text-gray-500">
+                <p className="mt-1 truncate text-sm text-slate-500">
                   {employee.name} · {employee.empId} · {employee.designation}
                 </p>
               </div>

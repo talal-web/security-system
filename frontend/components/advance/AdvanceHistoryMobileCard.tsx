@@ -29,8 +29,8 @@ const statusConfig = {
   },
   cancelled: {
     label: "Cancelled",
-    className: "bg-gray-100 text-gray-600 ring-gray-500/10",
-    dotClass: "bg-gray-400",
+    className: "bg-slate-100 text-slate-600 ring-slate-500/10",
+    dotClass: "bg-slate-400",
   },
 } as const;
 

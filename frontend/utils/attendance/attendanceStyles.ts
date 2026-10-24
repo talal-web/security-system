@@ -1,24 +1,21 @@
 import type { AttendanceShift, AttendanceStatus } from "@/types/attendance";
+import { STATUS_SOFT_PILL_CLASSES, type StatusTone } from "@/utils/ui/statusColors";
+
+const STATUS_TONE: Record<AttendanceStatus, StatusTone> = {
+  present: "success",
+  absent: "danger",
+  leave: "warning",
+};
 
 export function getStatusStyle(status: AttendanceStatus) {
-  switch (status) {
-    case "present":
-      return "inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700";
+  const tone = STATUS_TONE[status] ?? "neutral";
 
-    case "absent":
-      return "inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700";
-
-    case "leave":
-      return "inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700";
-
-    default:
-      return "inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700";
-  }
+  return `inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${STATUS_SOFT_PILL_CLASSES[tone]}`;
 }
 
 export function getShiftStyle(shift?: AttendanceShift | null) {
   if (!shift) {
-    return "inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200";
+    return "inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200";
   }
 
   return shift === "day"

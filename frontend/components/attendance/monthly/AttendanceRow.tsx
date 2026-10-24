@@ -22,7 +22,7 @@ function getStatusClasses(status: MonthlyAttendanceStatus) {
       return "bg-red-100 text-red-700";
 
     default:
-      return "bg-gray-100 text-gray-500";
+      return "bg-slate-100 text-slate-500";
   }
 }
 
@@ -31,7 +31,7 @@ export default function MonthlyAttendanceRow({
   days,
 }: MonthlyAttendanceRowProps) {
   return (
-    <tr className="hover:bg-gray-50">
+    <tr className="hover:bg-slate-50">
       {/* ====================================== */}
       {/* STICKY EMPLOYEE INFO */}
       {/* ====================================== */}

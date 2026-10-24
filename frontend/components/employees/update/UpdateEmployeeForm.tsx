@@ -422,7 +422,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
         className="grid grid-cols-1 gap-4 px-4 py-6 sm:px-8 md:grid-cols-2 lg:grid-cols-3"
       >
         <div className="flex items-center gap-5 md:col-span-2 lg:col-span-3">
-          <div className="relative h-24 w-24 overflow-hidden rounded-2xl border bg-gray-100">
+          <div className="relative h-24 w-24 overflow-hidden rounded-2xl border bg-slate-100">
             {preview ? (
               <Image
                 src={preview}
@@ -433,7 +433,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
-                <User className="h-8 w-8 text-gray-400" />
+                <User className="h-8 w-8 text-slate-400" />
               </div>
             )}
           </div>

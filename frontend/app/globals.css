@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+/*
+ * Semantic color tokens. The app's primary accent is blue (the color most
+ * forms/dialogs/buttons already use); Payroll was migrated off emerald to
+ * match it. Status tones here mirror utils/ui/statusColors.ts — keep both in
+ * sync when changing a tone. These generate bg-brand-NAME, text-brand-NAME,
+ * border-brand-NAME, etc. utility classes for new code to use instead of
+ * hardcoding a palette color.
+ */
+/* Tailwind CSS v4 theme directive; not a standard CSS at-rule. */
+/* stylelint-disable at-rule-no-unknown */
+@theme {
+  --color-brand-primary: var(--color-blue-600);
+  --color-brand-primary-hover: var(--color-blue-700);
+  --color-brand-success: var(--color-emerald-600);
+  --color-brand-warning: var(--color-amber-600);
+  --color-brand-danger: var(--color-red-600);
+  --color-brand-info: var(--color-blue-600);
+  --color-brand-neutral: var(--color-slate-600);
+}

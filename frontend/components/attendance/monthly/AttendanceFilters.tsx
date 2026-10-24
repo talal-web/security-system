@@ -23,7 +23,7 @@ export default function MonthlyAttendanceFilters({
         <div>
           <h2 className="text-lg font-semibold">Monthly Attendance Report</h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500">
             Select a month to view attendance.
           </p>
         </div>
@@ -36,7 +36,7 @@ export default function MonthlyAttendanceFilters({
           <div>
             <label
               htmlFor="month"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-1 block text-sm font-medium text-slate-700"
             >
               Month
             </label>

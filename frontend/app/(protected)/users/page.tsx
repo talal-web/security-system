@@ -86,8 +86,8 @@ export default function UsersPage() {
     return (
       <main className="space-y-6 p-6">
         <div className="animate-pulse">
-          <div className="mb-6 h-8 w-40 rounded bg-gray-200" />
-          <div className="h-64 rounded-xl bg-gray-100" />
+          <div className="mb-6 h-8 w-40 rounded bg-slate-200" />
+          <div className="h-64 rounded-xl bg-slate-100" />
         </div>
       </main>
     );

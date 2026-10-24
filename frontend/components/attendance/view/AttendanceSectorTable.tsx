@@ -33,11 +33,11 @@ export default function AttendanceSectorTable({
   return (
     <div className="rounded-xl border bg-white shadow-sm">
       {/* Sector Header */}
-      <div className="flex flex-col gap-1 border-b bg-gray-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-1 border-b bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-semibold text-gray-900">{sectorTitle}</h2>
+          <h2 className="font-semibold text-slate-900">{sectorTitle}</h2>
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             {sector.sectorId || "Unassigned"} • Employee Attendance Records
           </p>
         </div>
@@ -50,7 +50,7 @@ export default function AttendanceSectorTable({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-237.5 w-full text-sm">
-          <thead className="bg-gray-50 text-left text-xs font-semibold uppercase text-gray-600">
+          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-600">
             <tr>
               <th className="w-16 px-4 py-3 text-center">#</th>
               <th className="px-4 py-3">Employee Name</th>
@@ -100,7 +100,7 @@ export default function AttendanceSectorTable({
                     return (
                       <tr
                         key={record.attendanceId}
-                        className="transition hover:bg-gray-50"
+                        className="transition hover:bg-slate-50"
                       >
                         <td className="px-4 py-3 text-center font-medium text-slate-600">
                           {serial++}

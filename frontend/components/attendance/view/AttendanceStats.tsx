@@ -11,8 +11,8 @@ export default function AttendanceStats({ stats }: AttendanceStatsProps) {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Attendance Report</h1>
-          <p className="text-xs text-gray-500">Workforce snapshot</p>
+          <h1 className="text-lg font-bold text-slate-900">Attendance Report</h1>
+          <p className="text-xs text-slate-500">Workforce snapshot</p>
         </div>
 
         <div className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5">
@@ -28,10 +28,10 @@ export default function AttendanceStats({ stats }: AttendanceStatsProps) {
 
       <div className="grid grid-cols-2 overflow-hidden rounded-lg border bg-white sm:grid-cols-3 lg:grid-cols-5">
         <div className="border-b p-3 sm:border-r lg:border-b-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
             Total
           </p>
-          <p className="mt-0.5 text-xl font-bold text-gray-900">
+          <p className="mt-0.5 text-xl font-bold text-slate-900">
             {stats.total}
           </p>
         </div>

@@ -85,7 +85,7 @@ export default function EmployeeDeductionsPage({
         {/* Loading */}
         {isLoading && (
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-500">Loading deductions...</p>
+            <p className="text-sm text-slate-500">Loading deductions...</p>
           </div>
         )}
 
@@ -110,11 +110,11 @@ export default function EmployeeDeductionsPage({
             {/* Header */}
             <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                   Employee Deductions
                 </h1>
 
-                <p className="mt-1 truncate text-sm text-gray-500">
+                <p className="mt-1 truncate text-sm text-slate-500">
                   {employee.name} · {employee.empId} · {employee.designation}
                 </p>
               </div>

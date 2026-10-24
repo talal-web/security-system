@@ -1,9 +1,16 @@
 import type { PayrollStatus } from "@/types/payroll";
+import { STATUS_RING_PILL_CLASSES, type StatusTone } from "@/utils/ui/statusColors";
+
+const STATUS_TONE: Record<PayrollStatus, StatusTone> = {
+  draft: "warning",
+  finalized: "info",
+  paid: "success",
+};
 
 const styles: Record<PayrollStatus, string> = {
-  draft: "bg-amber-50 text-amber-700 ring-amber-600/20",
-  finalized: "bg-blue-50 text-blue-700 ring-blue-600/20",
-  paid: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  draft: STATUS_RING_PILL_CLASSES[STATUS_TONE.draft],
+  finalized: STATUS_RING_PILL_CLASSES[STATUS_TONE.finalized],
+  paid: STATUS_RING_PILL_CLASSES[STATUS_TONE.paid],
 };
 
 export default function PayrollStatusBadge({

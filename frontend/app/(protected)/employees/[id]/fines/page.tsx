@@ -75,7 +75,7 @@ export default function EmployeeFinesPage({ params }: PageProps) {
       <main className="space-y-6 p-4 sm:p-6">
         {isLoading && (
           <div className="rounded-2xl border bg-white p-6">
-            <p className="text-sm text-gray-500">Loading fines...</p>
+            <p className="text-sm text-slate-500">Loading fines...</p>
           </div>
         )}
 
@@ -89,11 +89,11 @@ export default function EmployeeFinesPage({ params }: PageProps) {
           <>
             <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                   Employee Fines
                 </h1>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-slate-500">
                   {employee.name} · {employee.empId} · {employee.designation}
                 </p>
               </div>

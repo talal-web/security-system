@@ -27,18 +27,18 @@ export default function FineConfirmModal({
       title="Cancel Fine"
     >
       <div className="space-y-5">
-        <p className="text-sm leading-6 text-gray-600">
+        <p className="text-sm leading-6 text-slate-600">
           Are you sure you want to cancel this fine of{" "}
-          <span className="font-semibold text-gray-900">
+          <span className="font-semibold text-slate-900">
             Rs. {fine.amount.toLocaleString()}
           </span>
           ?
         </p>
 
-        <div className="rounded-xl bg-gray-50 p-4 text-sm">
-          <p className="font-medium text-gray-900">{fine.reason}</p>
+        <div className="rounded-xl bg-slate-50 p-4 text-sm">
+          <p className="font-medium text-slate-900">{fine.reason}</p>
 
-          <p className="mt-1 text-gray-500">
+          <p className="mt-1 text-slate-500">
             This action is only available before any deduction.
           </p>
         </div>
@@ -48,7 +48,7 @@ export default function FineConfirmModal({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="w-full rounded-xl border px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto"
+            className="w-full rounded-xl border px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:w-auto"
           >
             Keep Fine
           </button>

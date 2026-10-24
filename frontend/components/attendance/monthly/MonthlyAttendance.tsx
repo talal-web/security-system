@@ -37,7 +37,7 @@ export default function MonthlyAttendance() {
   if (isLoading) {
     return (
       <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-        <p className="text-gray-500">Loading monthly attendance...</p>
+        <p className="text-slate-500">Loading monthly attendance...</p>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export default function MonthlyAttendance() {
   if (!data?.data) {
     return (
       <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-        <p className="text-gray-500">No attendance found.</p>
+        <p className="text-slate-500">No attendance found.</p>
       </div>
     );
   }

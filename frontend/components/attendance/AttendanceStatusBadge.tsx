@@ -1,8 +1,15 @@
 import type { AttendanceStatus } from "@/types/attendance";
+import { STATUS_PILL_CLASSES, type StatusTone } from "@/utils/ui/statusColors";
 
 interface AttendanceStatusBadgeProps {
   status: AttendanceStatus;
 }
+
+const STATUS_TONE: Record<AttendanceStatus, StatusTone> = {
+  present: "success",
+  absent: "danger",
+  leave: "warning",
+};
 
 const STATUS_CONFIG: Record<
   AttendanceStatus,
@@ -13,15 +20,15 @@ const STATUS_CONFIG: Record<
 > = {
   present: {
     label: "Present",
-    className: "border border-green-200 bg-green-50 text-green-700",
+    className: `border ${STATUS_PILL_CLASSES[STATUS_TONE.present]}`,
   },
   absent: {
     label: "Absent",
-    className: "border border-red-200 bg-red-50 text-red-700",
+    className: `border ${STATUS_PILL_CLASSES[STATUS_TONE.absent]}`,
   },
   leave: {
     label: "Leave",
-    className: "border border-amber-200 bg-amber-50 text-amber-700",
+    className: `border ${STATUS_PILL_CLASSES[STATUS_TONE.leave]}`,
   },
 };
 

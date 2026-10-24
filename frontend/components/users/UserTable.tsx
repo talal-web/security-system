@@ -24,7 +24,7 @@ export default function UserTable({
     <div className="overflow-hidden rounded-xl border bg-white">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[800px] text-sm">
-          <thead className="border-b bg-gray-50">
+          <thead className="border-b bg-slate-50">
             <tr>
               <th className="px-4 py-3 text-left font-semibold">User ID</th>
 
@@ -43,7 +43,7 @@ export default function UserTable({
               const isSelf = user._id === currentUserId;
 
               return (
-                <tr key={user._id} className="hover:bg-gray-50">
+                <tr key={user._id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium">{user.userId}</td>
 
                   <td className="px-4 py-3">{user.name}</td>
@@ -77,7 +77,7 @@ export default function UserTable({
                       <Link
                         href={`/users/${user._id}`}
                         aria-label={`View ${user.name}`}
-                        className="rounded-lg border p-2 text-slate-600 hover:bg-gray-50"
+                        className="rounded-lg border p-2 text-slate-600 hover:bg-slate-50"
                       >
                         <Eye className="h-4 w-4" />
                       </Link>
@@ -85,7 +85,7 @@ export default function UserTable({
                         type="button"
                         onClick={() => onEdit?.(user)}
                         aria-label={`Edit ${user.name}`}
-                        className="rounded-lg border p-2 text-slate-600 hover:bg-gray-50"
+                        className="rounded-lg border p-2 text-slate-600 hover:bg-slate-50"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
@@ -104,7 +104,7 @@ export default function UserTable({
                             ? `Deactivate ${user.name}`
                             : `Activate ${user.name}`
                         }
-                        className="rounded-lg border p-2 text-slate-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-lg border p-2 text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {user.isActive ? (
                           <UserX className="h-4 w-4" />
@@ -137,7 +137,7 @@ export default function UserTable({
               <tr>
                 <td
                   colSpan={5}
-                  className="px-4 py-10 text-center text-gray-500"
+                  className="px-4 py-10 text-center text-slate-500"
                 >
                   No users found.
                 </td>

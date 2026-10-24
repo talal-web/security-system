@@ -87,7 +87,7 @@ export default function EmployeeSalaryPage({
     return (
       <main className="p-6">
         <div className="rounded-xl border bg-white p-6">
-          <p className="text-sm text-gray-500">Loading salary information...</p>
+          <p className="text-sm text-slate-500">Loading salary information...</p>
         </div>
       </main>
     );
@@ -97,13 +97,13 @@ export default function EmployeeSalaryPage({
     return (
       <main className="p-6">
         <div className="rounded-xl border bg-white p-6">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-slate-900">
             {queryError
               ? "Unable to load salary information"
               : "Employee not found"}
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500">
             {queryError instanceof Error
               ? queryError.message
               : "Unable to load employee salary information."}
@@ -120,9 +120,9 @@ export default function EmployeeSalaryPage({
       <main className="space-y-6 p-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Employee Salary</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Employee Salary</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500">
             {employee.name} · {employee.empId} · {employee.designation}
           </p>
         </div>
