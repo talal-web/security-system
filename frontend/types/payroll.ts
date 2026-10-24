@@ -250,11 +250,14 @@ export interface MarkPayrollPaidPayload {
 
 export type PayrollStatusFilter = "all" | PayrollStatus;
 
+export type EmployeeStatusFilter = "all" | "active" | "inactive";
+
 export interface PayrollFilters {
   year?: number;
   month?: number;
   employee?: string;
   status?: PayrollStatusFilter;
+  employeeStatus?: EmployeeStatusFilter;
   search?: string;
   area?: string;
 }

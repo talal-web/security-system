@@ -19,6 +19,7 @@ export default function PayrollPage() {
     year: now.getFullYear(),
     month: now.getMonth() + 1,
     status: "all",
+    employeeStatus: "active",
   });
   const [generateOpen, setGenerateOpen] = useState(false);
   const [monthOpen, setMonthOpen] = useState(false);
@@ -26,8 +27,19 @@ export default function PayrollPage() {
   const canManage = ["developer", "admin", "clerk"].includes(
     me?.user.role ?? "",
   );
-  const { data, isLoading, isError, error } = usePayrolls(filters);
-  const payrolls = data?.data ?? [];
+  // employeeStatus has no backend support; it's applied client-side below.
+  const { employeeStatus, ...serverFilters } = filters;
+  const { data, isLoading, isError, error } = usePayrolls(serverFilters);
+  const allPayrolls = data?.data ?? [];
+  const payrolls =
+    !employeeStatus || employeeStatus === "all"
+      ? allPayrolls
+      : allPayrolls.filter((payroll) => {
+          const employee = payroll.employee;
+          const status =
+            typeof employee === "string" ? undefined : employee?.status;
+          return status === employeeStatus;
+        });
   return (
     <ProtectedRoute
       allowedRoles={["developer", "admin", "clerk", "supervisor"]}

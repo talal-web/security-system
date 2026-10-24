@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Search, ShieldCheck, X } from "lucide-react";
+import { CalendarDays, Search, ShieldCheck, UserCheck, X } from "lucide-react";
 
 import type { PayrollFilters as PayrollFilterValues } from "@/types/payroll";
 
@@ -17,6 +17,7 @@ const defaultFilters: PayrollFilterValues = {
   year: currentYear,
   month: currentMonth,
   status: "all",
+  employeeStatus: "active",
   search: "",
 };
 
@@ -28,6 +29,7 @@ export default function PayrollFilters({
     filters.year !== defaultFilters.year ||
     filters.month !== defaultFilters.month ||
     (filters.status ?? "all") !== "all" ||
+    (filters.employeeStatus ?? "active") !== defaultFilters.employeeStatus ||
     Boolean(filters.search?.trim());
 
   const updateNumber = (key: "year" | "month", value: string) => {
@@ -45,7 +47,7 @@ export default function PayrollFilters({
   };
 
   const inputClass =
-    "h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10";
+    "h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10";
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 sm:p-4">
@@ -65,7 +67,7 @@ export default function PayrollFilters({
         )}
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         {/* Search */}
         <label className="relative lg:col-span-1">
           <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -145,6 +147,28 @@ export default function PayrollFilters({
             <option value="draft">Draft</option>
             <option value="finalized">Finalized</option>
             <option value="paid">Paid</option>
+          </select>
+        </label>
+
+        {/* Employee Status */}
+        <label className="relative">
+          <UserCheck className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+
+          <select
+            aria-label="Employee status"
+            value={filters.employeeStatus ?? "all"}
+            onChange={(event) =>
+              onChange({
+                ...filters,
+                employeeStatus: event.target
+                  .value as PayrollFilterValues["employeeStatus"],
+              })
+            }
+            className={`${inputClass} pl-9`}
+          >
+            <option value="all">All employees</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
         </label>
       </div>
