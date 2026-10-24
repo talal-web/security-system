@@ -10,10 +10,14 @@ import type { Payroll, PayrollFilters } from "@/types/payroll";
 const CURRENCY_FORMAT = '#,##0" PKR"';
 
 const COLORS = {
-  primary: "047857",
+  primary: "2563EB",
   header: "0F172A",
+  groupHeader: "1E293B",
   border: "CBD5E1",
   white: "FFFFFF",
+  zebra: "F8FAFC",
+  netSalaryFill: "ECFDF5",
+  netSalaryText: "047857",
 } as const;
 
 // -----------------------------------------------------------------------------
@@ -112,6 +116,41 @@ function applyCurrencyFormat(worksheet: ExcelJS.Worksheet, columns: number[]) {
   });
 }
 
+function applyZebraStriping(worksheet: ExcelJS.Worksheet, startRow: number) {
+  for (let rowNumber = startRow; rowNumber <= worksheet.rowCount; rowNumber++) {
+    if ((rowNumber - startRow) % 2 === 1) {
+      worksheet.getRow(rowNumber).eachCell({ includeEmpty: true }, (cell) => {
+        if (!cell.fill) {
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: COLORS.zebra },
+          };
+        }
+      });
+    }
+  }
+}
+
+function styleGroupHeaderCell(cell: ExcelJS.Cell) {
+  cell.font = {
+    bold: true,
+    size: 10,
+    color: { argb: COLORS.white },
+  };
+
+  cell.fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: COLORS.groupHeader },
+  };
+
+  cell.alignment = {
+    vertical: "middle",
+    horizontal: "center",
+  };
+}
+
 // -----------------------------------------------------------------------------
 // Overview Sheet
 // -----------------------------------------------------------------------------
@@ -208,6 +247,20 @@ function createOverviewSheet(
 // Payroll Details Sheet
 // -----------------------------------------------------------------------------
 
+// Column groups shown as a merged banner row above the real headers.
+// Each group's `span` must match the number of columns listed for it below.
+const DETAIL_COLUMN_GROUPS = [
+  { title: "Employee", span: 3 },
+  { title: "Attendance", span: 3 },
+  { title: "Earnings", span: 5 },
+  { title: "Deductions", span: 4 },
+  { title: "Net Pay", span: 1 },
+  { title: "Lifecycle", span: 2 },
+  { title: "Payment", span: 2 },
+] as const;
+
+const NET_SALARY_COLUMN = 16;
+
 function createPayrollDetailsSheet(
   workbook: ExcelJS.Workbook,
   payrolls: Payroll[],
@@ -215,64 +268,84 @@ function createPayrollDetailsSheet(
   const worksheet = workbook.addWorksheet("Payroll Details");
 
   worksheet.columns = [
-    { header: "Employee ID", key: "empId", width: 14 },
-    { header: "Employee", key: "name", width: 24 },
-    { header: "Designation", key: "designation", width: 20 },
-    { header: "Period", key: "period", width: 18 },
-    { header: "Status", key: "status", width: 13 },
+    { key: "empId", width: 14 },
+    { key: "name", width: 24 },
+    { key: "designation", width: 20 },
 
-    { header: "Present", key: "present", width: 11 },
-    { header: "Leave", key: "leave", width: 10 },
-    { header: "Absent", key: "absent", width: 11 },
-    { header: "Missing", key: "missing", width: 11 },
-    { header: "Payable Days", key: "payable", width: 14 },
+    { key: "present", width: 11 },
+    { key: "leave", width: 10 },
+    { key: "absent", width: 11 },
 
-    { header: "Monthly Salary", key: "monthly", width: 16 },
-    { header: "Daily Salary", key: "daily", width: 14 },
-    { header: "Earned Salary", key: "earned", width: 16 },
-    { header: "Bonus", key: "bonus", width: 13 },
-    { header: "Gross Salary", key: "gross", width: 16 },
+    { key: "monthly", width: 15 },
+    { key: "daily", width: 13 },
+    { key: "earned", width: 15 },
+    { key: "bonus", width: 13 },
+    { key: "gross", width: 15 },
 
-    {
-      header: "Advance Deduction",
-      key: "advance",
-      width: 19,
-    },
-    {
-      header: "Fine Deduction",
-      key: "fine",
-      width: 16,
-    },
-    {
-      header: "Other Deduction",
-      key: "other",
-      width: 18,
-    },
-    {
-      header: "Total Deductions",
-      key: "deductions",
-      width: 18,
-    },
+    { key: "advance", width: 17 },
+    { key: "fine", width: 15 },
+    { key: "other", width: 16 },
+    { key: "deductions", width: 16 },
 
-    { header: "Net Salary", key: "net", width: 15 },
+    { key: "net", width: 16 },
 
-    { header: "Generated", key: "generated", width: 14 },
-    { header: "Finalized", key: "finalized", width: 14 },
-    { header: "Paid", key: "paid", width: 14 },
+    { key: "finalized", width: 14 },
+    { key: "paid", width: 14 },
 
-    {
-      header: "Payment Method",
-      key: "paymentMethod",
-      width: 18,
-    },
-    {
-      header: "Payment Reference",
-      key: "paymentReference",
-      width: 24,
-    },
+    { key: "paymentMethod", width: 17 },
+    { key: "paymentReference", width: 22 },
   ];
 
-  styleHeader(worksheet.getRow(1));
+  // Row 1: group banner
+  const columnHeaders = [
+    "Employee ID",
+    "Employee",
+    "Designation",
+    "Present",
+    "Leave",
+    "Absent",
+    "Monthly Salary",
+    "Daily Salary",
+    "Earned Salary",
+    "Bonus",
+    "Gross Salary",
+    "Advance Deduction",
+    "Fine Deduction",
+    "Other Deduction",
+    "Total Deductions",
+    "Net Salary",
+    "Finalized",
+    "Paid",
+    "Payment Method",
+    "Payment Reference",
+  ];
+
+  const groupRow = worksheet.getRow(1);
+  groupRow.height = 20;
+
+  let columnCursor = 1;
+
+  DETAIL_COLUMN_GROUPS.forEach(({ title, span }) => {
+    const startCol = columnCursor;
+    const endCol = columnCursor + span - 1;
+
+    if (span > 1) {
+      worksheet.mergeCells(1, startCol, 1, endCol);
+    }
+
+    const cell = worksheet.getCell(1, startCol);
+    cell.value = title;
+    styleGroupHeaderCell(cell);
+
+    columnCursor = endCol + 1;
+  });
+
+  // Row 2: column headers
+  const headerRow = worksheet.getRow(2);
+  columnHeaders.forEach((text, index) => {
+    headerRow.getCell(index + 1).value = text;
+  });
+  styleHeader(headerRow);
 
   payrolls.forEach((payroll) => {
     const employee = getEmployee(payroll);
@@ -282,15 +355,9 @@ function createPayrollDetailsSheet(
       name: getEmployeeName(payroll),
       designation: employee?.designation ?? "-",
 
-      period: formatPeriod(payroll.year, payroll.month),
-
-      status: payroll.status,
-
       present: payroll.presentDays,
       leave: payroll.leaveDays,
       absent: payroll.absentDays,
-      missing: payroll.missingDays,
-      payable: payroll.payableDays,
 
       monthly: payroll.monthlySalary,
       daily: payroll.salaryPerDay,
@@ -305,7 +372,6 @@ function createPayrollDetailsSheet(
 
       net: payroll.netSalary,
 
-      generated: formatDate(payroll.generatedAt),
       finalized: formatDate(payroll.finalizedAt),
       paid: formatDate(payroll.paidAt),
 
@@ -315,20 +381,42 @@ function createPayrollDetailsSheet(
     });
   });
 
-  applyCurrencyFormat(worksheet, [
-    11, // Monthly Salary
-    12, // Daily Salary
-    13, // Earned Salary
-    14, // Bonus
-    15, // Gross Salary
-    16, // Advance Deduction
-    17, // Fine Deduction
-    18, // Other Deduction
-    19, // Total Deductions
-    20, // Net Salary
-  ]);
+  applyCurrencyFormat(
+    worksheet,
+    [7, 8, 9, 10, 11, 12, 13, 14, 15, NET_SALARY_COLUMN],
+  );
 
-  finishSheet(worksheet, "Y");
+  ["present", "leave", "absent"].forEach((key) => {
+    const column = worksheet.getColumn(key);
+    column.alignment = { vertical: "middle", horizontal: "center" };
+  });
+
+  worksheet.getColumn("empId").alignment = {
+    vertical: "middle",
+    horizontal: "center",
+  };
+
+  // Emphasize Net Salary as the headline figure of the sheet.
+  const netColumn = worksheet.getColumn(NET_SALARY_COLUMN);
+  netColumn.eachCell({ includeEmpty: false }, (cell, rowNumber) => {
+    if (rowNumber <= 2) return;
+
+    cell.font = { bold: true, color: { argb: COLORS.netSalaryText } };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: COLORS.netSalaryFill },
+    };
+  });
+
+  applyZebraStriping(worksheet, 3);
+
+  worksheet.views = [{ state: "frozen", ySplit: 2 }];
+  applyBorders(worksheet);
+  worksheet.autoFilter = {
+    from: "A2",
+    to: `T${worksheet.rowCount}`,
+  };
 
   return worksheet;
 }
@@ -388,6 +476,8 @@ function createSourcesSheet(workbook: ExcelJS.Workbook, payrolls: Payroll[]) {
   });
 
   applyCurrencyFormat(worksheet, [6]);
+
+  applyZebraStriping(worksheet, 2);
 
   finishSheet(worksheet, "F");
 
