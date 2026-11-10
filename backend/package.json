@@ -7,7 +7,13 @@
   "scripts": {
     "start": "node src/start.js",
     "dev": "nodemon --env-file=.env bin/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "backup": "node bin/backup.js run",
+    "backup:list": "node bin/backup.js list",
+    "backup:verify": "node bin/backup.js verify",
+    "backup:prune": "node bin/backup.js prune",
+    "restore": "node bin/backup.js restore",
+    "backup:decrypt": "node bin/backup.js decrypt"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +23,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "bson": "^7.3.3",
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
