@@ -3,6 +3,9 @@ import type {
   MonthlyAttendanceMonth,
 } from "@/types/attendance";
 
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/States";
+
 import MonthlyAttendanceHeader from "./AttendanceHeader";
 import MonthlyAttendanceRow from "./AttendanceRow";
 
@@ -21,9 +24,7 @@ export default function MonthlyAttendanceTable({
 
   if (employees.length === 0) {
     return (
-      <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-        <p className="text-slate-500">No employees found.</p>
-      </div>
+      <EmptyState title="No employees found." />
     );
   }
 
@@ -34,9 +35,9 @@ export default function MonthlyAttendanceTable({
   const days = Array.from({ length: month.days }, (_, index) => index + 1);
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+    <Card className="overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-max border-collapse">
+        <table className="min-w-max border-collapse text-sm">
           <MonthlyAttendanceHeader days={days} />
 
           <tbody>
@@ -50,6 +51,6 @@ export default function MonthlyAttendanceTable({
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   );
 }

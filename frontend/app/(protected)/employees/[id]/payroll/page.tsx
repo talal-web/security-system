@@ -2,9 +2,11 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, WalletCards } from "lucide-react";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 import PayrollTable from "@/components/payroll/PayrollTable";
+import { PageContainer, PageHeader } from "@/components/ui/PageHeader";
+import { ErrorState, LoadingState } from "@/components/ui/States";
 import { useMe } from "@/hooks/auth/useMe";
 import { useEmployeePayrolls } from "@/hooks/payroll/usePayroll";
 import { useSelectedArea } from "@/components/area/AreaContext";
@@ -29,36 +31,30 @@ export default function EmployeePayrollPage({
     <ProtectedRoute
       allowedRoles={["developer", "admin", "clerk", "supervisor"]}
     >
-      <main className="space-y-5 p-4 sm:p-6">
+      <PageContainer>
         <Link
           href={getAreaAwareHref(`/employees/${id}`)}
-          className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="size-4" />
           Back to employee
         </Link>
-        <header>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Employee Payroll History
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {payrolls.length} payroll record{payrolls.length === 1 ? "" : "s"}
-          </p>
-        </header>
-        {isLoading && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-            Loading payroll history...
-          </div>
-        )}
+        <PageHeader
+          title="Employee Payroll History"
+          icon={WalletCards}
+          description={`${payrolls.length} payroll record${payrolls.length === 1 ? "" : "s"}`}
+        />
+        {isLoading && <LoadingState title="Loading payroll history..." />}
         {isError && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-            {error.message}
-          </div>
+          <ErrorState
+            title="Failed to load payroll history"
+            description={error.message}
+          />
         )}
         {!isLoading && !isError && (
           <PayrollTable payrolls={payrolls} canManage={canManage} />
         )}
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

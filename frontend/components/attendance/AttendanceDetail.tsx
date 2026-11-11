@@ -12,7 +12,13 @@ import {
 
 import type { AttendanceRecord } from "@/types/attendance";
 
+import { Card, CardHeader } from "@/components/ui/Card";
+
 import AttendanceStatusBadge from "./AttendanceStatusBadge";
+
+// 1px slate dividers between grid cells, without double borders on wrap.
+const gridClass =
+  "grid gap-px bg-slate-100 sm:grid-cols-2 lg:grid-cols-4 [&>*]:bg-white";
 
 interface AttendanceDetailProps {
   attendance: AttendanceRecord;
@@ -68,26 +74,15 @@ export default function AttendanceDetail({
       {/* Employee Header */}
       {/* ------------------------------------------------------------------ */}
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 bg-white px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                <User className="size-4" />
-              </div>
+      <Card className="overflow-hidden">
+        <CardHeader
+          icon={User}
+          title={employeeSnapshot.name}
+          actions={<AttendanceStatusBadge status={status} />}
+          className="items-center"
+        />
 
-              <div className="min-w-0">
-                <h2 className="truncate text-base font-semibold">
-                  {employeeSnapshot.name}
-                </h2>
-              </div>
-            </div>
-
-            <AttendanceStatusBadge status={status} />
-          </div>
-        </div>
-
-        <div className="grid divide-x divide-y divide-slate-100 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={gridClass}>
           <DetailItem
             icon={IdCard}
             label="Employee ID"
@@ -112,22 +107,22 @@ export default function AttendanceDetail({
             value={formatDate(date)}
           />
         </div>
-      </section>
+      </Card>
 
       {/* ------------------------------------------------------------------ */}
       {/* Attendance Information */}
       {/* ------------------------------------------------------------------ */}
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <SectionHeader
+      <Card className="overflow-hidden">
+        <CardHeader
           icon={CalendarDays}
           title="Attendance Information"
           description="Details of the employee attendance record"
         />
 
-        <div className="grid divide-x divide-y divide-slate-100 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="px-4 py-3">
-            <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        <div className={gridClass}>
+          <div className="px-4 py-3 sm:px-5">
+            <p className="mb-1.5 text-xs font-medium text-slate-500">
               Status
             </p>
 
@@ -153,32 +148,32 @@ export default function AttendanceDetail({
           />
 
           <div className="sm:col-span-2 lg:col-span-4">
-            <div className="flex gap-2 px-4 py-3">
-              <div className="mb-2 flex items-center gap-2">
-                <FileText className="size-4 text-muted-foreground" />
+            <div className="flex gap-2 px-4 py-3 sm:px-5">
+              <div className="flex items-center gap-2 pt-0.5">
+                <FileText className="size-4 text-slate-400" />
               </div>
 
-              <p className="wrap-break-word text-sm leading-5 text-foreground">
+              <p className="wrap-break-word text-sm leading-5 text-slate-700">
                 {remarks || "No remarks added for this attendance record."}
               </p>
             </div>
           </div>
         </div>
-      </section>
+      </Card>
 
       {/* ------------------------------------------------------------------ */}
       {/* Record Information */}
       {/* ------------------------------------------------------------------ */}
 
       {(createdAt || updatedAt) && (
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <SectionHeader
+        <Card className="overflow-hidden">
+          <CardHeader
             icon={FileText}
             title="Record Information"
             description="System timestamps for this attendance record"
           />
 
-          <div className="grid divide-x divide-y divide-slate-100 sm:grid-cols-2">
+          <div className="grid divide-y divide-slate-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
             {createdAt && (
               <DetailItem
                 icon={Clock3}
@@ -195,36 +190,8 @@ export default function AttendanceDetail({
               />
             )}
           </div>
-        </section>
+        </Card>
       )}
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Section Header                                                             */
-/* -------------------------------------------------------------------------- */
-
-interface SectionHeaderProps {
-  icon: React.ElementType;
-  title: string;
-  description?: string;
-}
-
-function SectionHeader({ icon: Icon, title, description }: SectionHeaderProps) {
-  return (
-    <div className="flex items-center gap-2 border-b border-slate-100 bg-white px-4 py-2.5">
-      <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600">
-        <Icon className="size-3.5" />
-      </div>
-
-      <div className="min-w-0">
-        <h2 className="text-sm font-semibold">{title}</h2>
-
-        {description && (
-          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-        )}
-      </div>
     </div>
   );
 }
@@ -241,18 +208,14 @@ interface DetailItemProps {
 
 function DetailItem({ icon: Icon, label, value }: DetailItemProps) {
   return (
-    <div className="group min-w-0 px-4 py-3">
+    <div className="min-w-0 px-4 py-3 sm:px-5">
       <div className="mb-1 flex items-center gap-1.5">
-        {Icon && (
-          <Icon className="size-3.5 text-slate-400 transition-colors group-hover:text-blue-600" />
-        )}
+        {Icon && <Icon className="size-3.5 text-slate-400" />}
 
-        <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-          {label}
-        </p>
+        <p className="text-xs font-medium text-slate-500">{label}</p>
       </div>
 
-      <p className="wrap-break-word text-sm font-semibold leading-5 text-foreground">
+      <p className="wrap-break-word text-sm font-medium leading-5 text-slate-900">
         {value}
       </p>
     </div>

@@ -2,10 +2,13 @@
 
 import { use, useState } from "react";
 
-import { Plus } from "lucide-react";
+import { Plus, WalletCards } from "lucide-react";
 import { toast } from "sonner";
 
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
+import { Button } from "@/components/ui/Button";
+import { PageContainer, PageHeader } from "@/components/ui/PageHeader";
+import { ErrorState, LoadingState } from "@/components/ui/States";
 import AdvanceSummary from "@/components/advance/AdvanceSummary";
 import AdvanceHistory from "@/components/advance/AdvanceHistory";
 import AdvanceModal from "@/components/advance/AdvanceModal";
@@ -81,43 +84,26 @@ export default function EmployeeAdvancesPage({
     <ProtectedRoute
       allowedRoles={["developer", "admin", "clerk", "supervisor"]}
     >
-      <main className="space-y-6 p-6">
-        {isLoading && (
-          <div className="rounded-xl border bg-white p-6">
-            <p className="text-sm text-slate-500">Loading advances...</p>
-          </div>
-        )}
+      <PageContainer>
+        {isLoading && <LoadingState title="Loading advances..." />}
 
-        {isError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-            <p className="text-sm text-red-600">{error.message}</p>
-          </div>
-        )}
+        {isError && <ErrorState title={error.message} />}
 
         {!isLoading && !isError && employee && (
           <>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">
-                  Employee Advances
-                </h1>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  {employee.name} · {employee.empId} · {employee.designation}
-                </p>
-              </div>
-
-              {canEdit && (
-                <button
-                  type="button"
-                  onClick={handleAdd}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Advance
-                </button>
-              )}
-            </div>
+            <PageHeader
+              title="Employee Advances"
+              description={`${employee.name} · ${employee.empId} · ${employee.designation}`}
+              icon={WalletCards}
+              actions={
+                canEdit && (
+                  <Button onClick={handleAdd}>
+                    <Plus />
+                    Add Advance
+                  </Button>
+                )
+              }
+            />
 
             <AdvanceSummary advances={advances} />
 
@@ -146,7 +132,7 @@ export default function EmployeeAdvancesPage({
           onConfirm={confirmCancel}
           onClose={() => setCancellingAdvance(null)}
         />
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

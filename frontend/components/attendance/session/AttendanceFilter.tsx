@@ -1,8 +1,18 @@
 "use client";
 
-import { Calendar, Save, Send } from "lucide-react";
+import { Calendar, Save, Send, SlidersHorizontal } from "lucide-react";
 
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import { Button } from "@/components/ui/Button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/Card";
+
+const controlClass =
+  "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-card focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15";
 
 interface AttendanceFiltersProps {
   dateValue: string;
@@ -57,31 +67,29 @@ export default function AttendanceFilters({
 }: AttendanceFiltersProps) {
   return (
     <>
-      <div className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">
-              Attendance Controls
-            </h2>
-
-            <p className="text-sm text-slate-500">
+      <Card>
+        <CardHeader
+          icon={SlidersHorizontal}
+          title="Attendance Controls"
+          description={
+            <span className="whitespace-normal">
               Filter attendance by status and sector, update assignments, and
               submit today&apos;s attendance.
-            </p>
-          </div>
-        </div>
+            </span>
+          }
+        />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {/* Date */}
           <div className="relative">
-            <Calendar className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+            <Calendar className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
 
             <input
               type="date"
               value={dateValue}
               readOnly
               aria-label="Attendance date, today"
-              className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-600 outline-none"
+              className="h-9 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-600 outline-none"
             />
           </div>
 
@@ -93,7 +101,7 @@ export default function AttendanceFilters({
                 e.target.value as "all" | "present" | "absent" | "leave",
               )
             }
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className={controlClass}
           >
             <option value="all">All Employees</option>
             <option value="present">Present</option>
@@ -106,7 +114,7 @@ export default function AttendanceFilters({
             value={sectorFilter}
             onChange={(e) => onSectorFilterChange(e.target.value)}
             aria-label="Filter by sector"
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className={controlClass}
           >
             <option value="all">All Sectors</option>
             {sectorOptions.map((sector) => (
@@ -115,53 +123,52 @@ export default function AttendanceFilters({
               </option>
             ))}
           </select>
-        </div>
+        </CardContent>
 
         {/* Actions */}
-        <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+        <CardFooter className="flex-col items-stretch sm:flex-row sm:flex-wrap sm:items-center">
           <span className="text-xs text-slate-500 sm:mr-auto">
             {draftStatus === "saving" && "Saving draft..."}
             {draftStatus === "saved" && "Draft saved"}
           </span>
 
           {/* Save Draft */}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={onSaveDraft}
             disabled={
               isSubmitting || isSavingSettings || draftStatus === "saving"
             }
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-6 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="w-full sm:w-auto"
           >
-            <Save className="h-4 w-4" />
+            <Save />
             Save Draft
-          </button>
+          </Button>
 
           {/* Save Settings */}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={onSaveSettings}
             disabled={isSavingSettings || isSubmitting}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="w-full sm:w-auto"
           >
-            <Save className="h-4 w-4" />
+            <Save />
 
             {isSavingSettings ? "Saving..." : "Save Changes"}
-          </button>
+          </Button>
 
           {/* Submit Attendance */}
-          <button
-            type="button"
+          <Button
             onClick={onSubmit}
             disabled={isSubmitting || isSavingSettings}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="w-full sm:w-auto"
           >
-            <Send className="h-4 w-4" />
+            <Send />
 
             {isSubmitting ? "Saving..." : "Submit Attendance"}
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardFooter>
+      </Card>
 
       <ConfirmationModal
         open={confirmationModalOpen}

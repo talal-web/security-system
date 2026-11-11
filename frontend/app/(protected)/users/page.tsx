@@ -12,6 +12,8 @@ import UserTable from "@/components/users/UserTable";
 import DeleteUserDialog from "@/components/users/DeleteUserDialog";
 import ChangeStatusDialog from "@/components/users/ChangeStatusDialog";
 import Modal from "@/components/ui/Modal";
+import { PageContainer } from "@/components/ui/PageHeader";
+import { EmptyState, ErrorState, Skeleton } from "@/components/ui/States";
 import {
   useCreateUser,
   useDeleteUser,
@@ -84,28 +86,28 @@ export default function UsersPage() {
 
   if (isLoading) {
     return (
-      <main className="space-y-6 p-6">
-        <div className="animate-pulse">
-          <div className="mb-6 h-8 w-40 rounded bg-slate-200" />
-          <div className="h-64 rounded-xl bg-slate-100" />
-        </div>
-      </main>
+      <PageContainer>
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-64 rounded-xl" />
+      </PageContainer>
     );
   }
 
   if (isError) {
     return (
-      <main className="p-6">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-          {error instanceof Error ? error.message : "Failed to load users."}
-        </div>
-      </main>
+      <PageContainer>
+        <ErrorState
+          title={
+            error instanceof Error ? error.message : "Failed to load users."
+          }
+        />
+      </PageContainer>
     );
   }
 
   return (
     <ProtectedRoute allowedRoles={["developer", "admin"]}>
-      <main className="space-y-6 bg-slate-50 p-4 sm:p-6">
+      <PageContainer>
         <UserHeader onAddUser={() => setIsAddUserOpen(true)} />
         <UserStats users={users} />
         <UserFilters
@@ -150,9 +152,7 @@ export default function UsersPage() {
               />
             ))
           ) : (
-            <p className="rounded-2xl border bg-white p-8 text-center text-sm text-slate-500">
-              No users match your filters.
-            </p>
+            <EmptyState title="No users match your filters." />
           )}
         </div>
         {selected && (
@@ -199,7 +199,7 @@ export default function UsersPage() {
             }
           />
         </Modal>
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

@@ -2,6 +2,7 @@
 
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/Button";
 import { useRecalculatePayroll } from "@/hooks/payroll/usePayroll";
 
 export default function RecalculatePayrollButton({
@@ -11,8 +12,9 @@ export default function RecalculatePayrollButton({
 }) {
   const mutation = useRecalculatePayroll();
   return (
-    <button
-      type="button"
+    <Button
+      variant="secondary"
+      size="sm"
       onClick={() =>
         mutation.mutate(payrollId, {
           onSuccess: () => toast.success("Payroll recalculated."),
@@ -20,12 +22,9 @@ export default function RecalculatePayrollButton({
         })
       }
       disabled={mutation.isPending}
-      className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
     >
-      <RefreshCw
-        className={`h-4 w-4 ${mutation.isPending ? "animate-spin" : ""}`}
-      />
+      <RefreshCw className={mutation.isPending ? "animate-spin" : undefined} />
       Recalculate
-    </button>
+    </Button>
   );
 }

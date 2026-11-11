@@ -5,6 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { GripVertical, MapPin } from "lucide-react";
 
 import { ILocation } from "@/types/location";
+import { cn } from "@/lib/utils";
 
 interface LocationSortableItemProps {
   location: ILocation;
@@ -35,46 +36,32 @@ export default function LocationSortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`
-        flex items-center gap-4
-        rounded-xl border bg-white
-        px-4 py-3
-        transition-all
-
-        ${
-          isDragging
-            ? "shadow-xl ring-2 ring-primary z-50 opacity-90 scale-[1.02]"
-            : "hover:border-primary/40 hover:shadow-md"
-        }
-      `}
+      className={cn(
+        "relative flex items-center gap-3 rounded-lg border bg-white px-3 py-2.5 sm:gap-4 sm:px-4",
+        isDragging
+          ? "z-50 border-blue-300 opacity-95 shadow-pop ring-2 ring-blue-500/30"
+          : "border-slate-200 shadow-card hover:border-slate-300",
+      )}
     >
       {/* Drag Handle */}
       <button
         type="button"
         {...attributes}
         {...listeners}
-        className="
-          cursor-grab
-          active:cursor-grabbing
-
-          rounded-lg
-          p-2
-
-          text-muted-foreground
-          hover:bg-muted
-          transition
-        "
+        className="cursor-grab rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 active:cursor-grabbing"
       >
-        <GripVertical className="h-5 w-5" />
+        <GripVertical className="size-4" />
       </button>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
-        <h3 className="truncate font-medium">{location.name}</h3>
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-sm font-medium text-slate-900">
+          {location.name}
+        </h3>
 
         {location.address && (
-          <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5" />
+          <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
+            <MapPin className="size-3.5 shrink-0" />
 
             <span className="truncate">{location.address}</span>
           </p>
@@ -82,19 +69,9 @@ export default function LocationSortableItem({
       </div>
 
       {/* Order Badge */}
-      <div
-        className="
-          rounded-full
-          bg-muted
-          px-3
-          py-1
-
-          text-xs
-          font-semibold
-        "
-      >
+      <span className="shrink-0 rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/15">
         #{location.sortOrder}
-      </div>
+      </span>
     </div>
   );
 }

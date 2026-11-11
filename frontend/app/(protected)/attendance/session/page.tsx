@@ -7,6 +7,13 @@ import AttendanceSectorList from "@/components/attendance/session/AttendanceSect
 import AttendanceAbsentLeaveList from "@/components/attendance/session/AttendanceAbsentLeaveList";
 import AttendanceSubmitPreviewModal from "@/components/attendance/session/AttendanceSubmitPreviewModal";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
+import { PageContainer } from "@/components/ui/PageHeader";
+import {
+  EmptyState,
+  ErrorState,
+  FullPageLoader,
+} from "@/components/ui/States";
+import { MapPin } from "lucide-react";
 
 import { useAttendanceSessionPage } from "@/hooks/attendance/useAttendanceSessionPage";
 
@@ -14,42 +21,42 @@ export default function AttendanceSessionPage() {
   const attendance = useAttendanceSessionPage();
 
   if (attendance.isLoading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
   if (!attendance.hasSelectedArea) {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-800">
-        Select an area to load its attendance session.
-      </div>
+      <PageContainer>
+        <EmptyState
+          icon={MapPin}
+          title="No area selected"
+          description="Select an area to load its attendance session."
+        />
+      </PageContainer>
     );
   }
 
   if (attendance.error) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">
-        {attendance.error instanceof Error
-          ? attendance.error.message
-          : "Something went wrong."}
-      </div>
+      <PageContainer>
+        <ErrorState
+          description={
+            attendance.error instanceof Error
+              ? attendance.error.message
+              : "Something went wrong."
+          }
+        />
+      </PageContainer>
     );
   }
 
   if (!attendance.isFormReady) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
   return (
     <ProtectedRoute allowedRoles={["developer", "admin", "clerk"]}>
-      <main className="space-y-6 p-4 lg:p-6">
+      <PageContainer>
         <AttendanceHeader
           attendanceDate={
             attendance.data?.attendanceDate ?? attendance.dateValue
@@ -114,7 +121,7 @@ export default function AttendanceSessionPage() {
           onConfirm={attendance.confirmAttendanceAction}
           onCancel={attendance.closeConfirmationModal}
         />
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

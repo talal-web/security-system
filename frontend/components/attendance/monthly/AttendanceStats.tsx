@@ -6,6 +6,7 @@ import {
   UserX,
 } from "lucide-react";
 
+import { StatCard } from "@/components/ui/StatCard";
 import type { MonthlyAttendanceOverall } from "@/types/attendance";
 
 interface MonthlyAttendanceStatsProps {
@@ -17,36 +18,31 @@ const stats = [
     key: "employees",
     label: "Employees",
     icon: Briefcase,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
+    tone: "blue",
   },
   {
     key: "absent",
     label: "Absent",
     icon: UserX,
-    color: "text-red-600",
-    bg: "bg-red-50",
+    tone: "red",
   },
   {
     key: "present",
     label: "Present",
     icon: UserCheck,
-    color: "text-green-600",
-    bg: "bg-green-50",
+    tone: "emerald",
   },
   {
     key: "leave",
     label: "Leave",
     icon: CalendarMinus,
-    color: "text-amber-600",
-    bg: "bg-amber-50",
+    tone: "amber",
   },
   {
     key: "total",
     label: "Attendance",
     icon: Users,
-    color: "text-violet-600",
-    bg: "bg-violet-50",
+    tone: "violet",
   },
 ] as const;
 
@@ -54,33 +50,16 @@ export default function MonthlyAttendanceStats({
   overall,
 }: MonthlyAttendanceStatsProps) {
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-
-        return (
-          <div
-            key={stat.key}
-            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">
-                  {stat.label}
-                </p>
-
-                <p className="mt-2 text-3xl font-bold text-slate-900">
-                  {overall[stat.key]}
-                </p>
-              </div>
-
-              <div className={`rounded-lg p-2.5 ${stat.bg}`}>
-                <Icon className={`h-5 w-5 ${stat.color}`} />
-              </div>
-            </div>
-          </div>
-        );
-      })}
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {stats.map((stat) => (
+        <StatCard
+          key={stat.key}
+          label={stat.label}
+          value={overall[stat.key]}
+          icon={stat.icon}
+          tone={stat.tone}
+        />
+      ))}
     </div>
   );
 }

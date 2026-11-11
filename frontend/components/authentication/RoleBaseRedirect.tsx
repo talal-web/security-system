@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useMe } from "@/hooks/auth/useMe";
 import type { UserRole } from "@/types/user";
+import { FullPageLoader } from "@/components/ui/States";
 
 type Props = {
   children: React.ReactNode;
@@ -60,11 +61,7 @@ export default function RoleBasedRedirect({ children }: Props) {
   }, [isLoading, role, pathname, router]);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-lg font-medium">Loading dashboard...</p>
-      </div>
-    );
+    return <FullPageLoader label="Loading dashboard..." />;
   }
 
   return <>{children}</>;

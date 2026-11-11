@@ -1,9 +1,12 @@
 "use client";
 
 import { use, useState } from "react";
-import { Plus } from "lucide-react";
+import { Gavel, Plus } from "lucide-react";
 
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
+import { Button } from "@/components/ui/Button";
+import { PageContainer, PageHeader } from "@/components/ui/PageHeader";
+import { ErrorState, LoadingState } from "@/components/ui/States";
 import FineSummary from "@/components/fine/FineSummary";
 import FineHistory from "@/components/fine/FineHistory";
 import FineModal from "@/components/fine/FineModal";
@@ -72,43 +75,26 @@ export default function EmployeeFinesPage({ params }: PageProps) {
     <ProtectedRoute
       allowedRoles={["developer", "admin", "clerk", "supervisor"]}
     >
-      <main className="space-y-6 p-4 sm:p-6">
-        {isLoading && (
-          <div className="rounded-2xl border bg-white p-6">
-            <p className="text-sm text-slate-500">Loading fines...</p>
-          </div>
-        )}
+      <PageContainer>
+        {isLoading && <LoadingState title="Loading fines..." />}
 
-        {isError && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-            <p className="text-sm text-red-700">{error.message}</p>
-          </div>
-        )}
+        {isError && <ErrorState title={error.message} />}
 
         {!isLoading && !isError && employee && (
           <>
-            <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                  Employee Fines
-                </h1>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  {employee.name} · {employee.empId} · {employee.designation}
-                </p>
-              </div>
-
-              {canEdit && (
-                <button
-                  type="button"
-                  onClick={handleAdd}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 sm:w-auto"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Fine
-                </button>
-              )}
-            </header>
+            <PageHeader
+              title="Employee Fines"
+              description={`${employee.name} · ${employee.empId} · ${employee.designation}`}
+              icon={Gavel}
+              actions={
+                canEdit && (
+                  <Button onClick={handleAdd}>
+                    <Plus />
+                    Add Fine
+                  </Button>
+                )
+              }
+            />
 
             <FineSummary fines={fines} />
 
@@ -135,7 +121,7 @@ export default function EmployeeFinesPage({ params }: PageProps) {
           onConfirm={confirmCancel}
           onClose={() => setCancelFine(null)}
         />
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

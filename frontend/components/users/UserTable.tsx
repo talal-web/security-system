@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { Eye, Pencil, Trash2, UserCheck, UserX } from "lucide-react";
 
+import { Badge } from "@/components/ui/Badge";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import type { User } from "@/types/user";
 
 interface UserTableProps {
@@ -13,6 +15,10 @@ interface UserTableProps {
   onStatusChange?: (user: User) => void;
 }
 
+// Keep hover titles working on disabled buttons (Button disables pointer events).
+const disabledWithTitle =
+  "disabled:pointer-events-auto disabled:cursor-not-allowed";
+
 export default function UserTable({
   users,
   currentUserId,
@@ -21,37 +27,42 @@ export default function UserTable({
   onStatusChange,
 }: UserTableProps) {
   return (
-    <div className="overflow-hidden rounded-xl border bg-white">
+    <Card className="overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[800px] text-sm">
-          <thead className="border-b bg-slate-50">
+          <thead className="border-b border-slate-100 bg-slate-50/80 text-xs font-medium text-slate-500">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold">User ID</th>
+              <th className="px-4 py-3 text-left font-medium">User ID</th>
 
-              <th className="px-4 py-3 text-left font-semibold">Name</th>
+              <th className="px-4 py-3 text-left font-medium">Name</th>
 
-              <th className="px-4 py-3 text-left font-semibold">Role</th>
+              <th className="px-4 py-3 text-left font-medium">Role</th>
 
-              <th className="px-4 py-3 text-left font-semibold">Status</th>
+              <th className="px-4 py-3 text-left font-medium">Status</th>
 
-              <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
 
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-slate-100">
             {users.map((user) => {
               const isSelf = user._id === currentUserId;
 
               return (
-                <tr key={user._id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium">{user.userId}</td>
+                <tr
+                  key={user._id}
+                  className="transition-colors hover:bg-slate-50/60"
+                >
+                  <td className="px-4 py-3 font-medium text-slate-900">
+                    {user.userId}
+                  </td>
 
-                  <td className="px-4 py-3">{user.name}</td>
+                  <td className="px-4 py-3 text-slate-700">{user.name}</td>
 
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium capitalize text-blue-700">
+                    <Badge tone="info" className="capitalize">
                       {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                    </span>
+                    </Badge>
                   </td>
 
                   <td className="px-4 py-3">
@@ -62,36 +73,34 @@ export default function UserTable({
                       title={
                         isSelf ? "You cannot change your own status" : undefined
                       }
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-60 ${
-                        user.isActive
-                          ? "bg-green-50 text-green-700"
-                          : "bg-red-50 text-red-700"
-                      }`}
+                      className="rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {user.isActive ? "Active" : "Inactive"}
+                      <Badge tone={user.isActive ? "success" : "danger"} dot>
+                        {user.isActive ? "Active" : "Inactive"}
+                      </Badge>
                     </button>
                   </td>
 
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      <Link
+                    <div className="flex justify-end gap-1.5">
+                      <ButtonLink
                         href={`/users/${user._id}`}
                         aria-label={`View ${user.name}`}
-                        className="rounded-lg border p-2 text-slate-600 hover:bg-slate-50"
+                        variant="secondary"
+                        size="icon-sm"
                       >
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                      <button
-                        type="button"
+                        <Eye />
+                      </ButtonLink>
+                      <Button
                         onClick={() => onEdit?.(user)}
                         aria-label={`Edit ${user.name}`}
-                        className="rounded-lg border p-2 text-slate-600 hover:bg-slate-50"
+                        variant="secondary"
+                        size="icon-sm"
                       >
-                        <Pencil className="h-4 w-4" />
-                      </button>
+                        <Pencil />
+                      </Button>
 
-                      <button
-                        type="button"
+                      <Button
                         onClick={() => onStatusChange?.(user)}
                         disabled={isSelf}
                         title={
@@ -104,17 +113,14 @@ export default function UserTable({
                             ? `Deactivate ${user.name}`
                             : `Activate ${user.name}`
                         }
-                        className="rounded-lg border p-2 text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        variant="secondary"
+                        size="icon-sm"
+                        className={disabledWithTitle}
                       >
-                        {user.isActive ? (
-                          <UserX className="h-4 w-4" />
-                        ) : (
-                          <UserCheck className="h-4 w-4" />
-                        )}
-                      </button>
+                        {user.isActive ? <UserX /> : <UserCheck />}
+                      </Button>
 
-                      <button
-                        type="button"
+                      <Button
                         onClick={() => onDelete?.(user)}
                         disabled={isSelf}
                         title={
@@ -123,10 +129,12 @@ export default function UserTable({
                             : undefined
                         }
                         aria-label={`Delete ${user.name}`}
-                        className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        variant="danger-soft"
+                        size="icon-sm"
+                        className={disabledWithTitle}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                        <Trash2 />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -137,7 +145,7 @@ export default function UserTable({
               <tr>
                 <td
                   colSpan={5}
-                  className="px-4 py-10 text-center text-slate-500"
+                  className="px-4 py-12 text-center text-sm text-slate-500"
                 >
                   No users found.
                 </td>
@@ -146,6 +154,6 @@ export default function UserTable({
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   );
 }

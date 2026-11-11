@@ -5,6 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { MapPin, X, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/Button";
 import { useUpdateArea } from "@/hooks/area/useArea";
 import type { Area } from "@/types/area";
 
@@ -97,7 +98,7 @@ export default function AreaEditModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-3 backdrop-blur-[2px] animate-in fade-in duration-150 sm:p-6"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !isSaving) {
           onClose();
@@ -108,34 +109,23 @@ export default function AreaEditModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-area-title"
-        className="
-    flex
-    max-h-[92dvh]
-    w-[calc(100%-2rem)]
-    max-w-lg
-    flex-col
-    overflow-hidden
-    rounded-2xl
-    bg-white
-    shadow-2xl
-    sm:w-full
-  "
+        className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-pop animate-in fade-in zoom-in-95 duration-200 sm:max-h-[calc(100dvh-3rem)]"
       >
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-100 px-5 py-5 sm:px-6">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-              <MapPin size={21} />
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600">
+              <MapPin className="size-4" />
             </div>
 
             <div className="min-w-0">
               <h2
                 id="edit-area-title"
-                className="text-lg font-semibold text-slate-900"
+                className="text-base font-semibold leading-6 text-slate-900"
               >
                 Edit area
               </h2>
-              <p className="mt-1 wrap-break-words text-sm text-slate-500">
+              <p className="mt-0.5 wrap-break-word text-sm text-slate-500">
                 Update the details for {area.name}.
               </p>
             </div>
@@ -146,9 +136,9 @@ export default function AreaEditModal({
             onClick={onClose}
             disabled={isSaving}
             aria-label="Close edit area"
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
           >
-            <X size={20} />
+            <X className="size-4" />
           </button>
         </div>
 
@@ -157,12 +147,12 @@ export default function AreaEditModal({
           onSubmit={handleSubmit(onSubmit)}
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="space-y-5 overflow-y-auto px-5 py-6 sm:px-6">
+          <div className="space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
             {/* Area name */}
             <div>
               <label
                 htmlFor="area-name"
-                className="mb-2 block text-sm font-medium text-slate-700"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
               >
                 Area name <span className="text-red-500">*</span>
               </label>
@@ -184,7 +174,7 @@ export default function AreaEditModal({
                     message: "Name cannot exceed 100 characters",
                   },
                 })}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:bg-slate-50"
+                className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15 disabled:bg-slate-50"
               />
 
               {errors.name ? (
@@ -192,7 +182,7 @@ export default function AreaEditModal({
                   {errors.name.message}
                 </p>
               ) : (
-                <p className="mt-1.5 text-xs text-slate-400">
+                <p className="mt-1.5 text-xs text-slate-500">
                   Choose a clear name for this operational area.
                 </p>
               )}
@@ -200,14 +190,14 @@ export default function AreaEditModal({
 
             {/* Description */}
             <div>
-              <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
                 <label
                   htmlFor="area-description"
                   className="block text-sm font-medium text-slate-700"
                 >
                   Description
                 </label>
-                <span className="text-xs text-slate-400">Optional</span>
+                <span className="text-xs text-slate-500">Optional</span>
               </div>
 
               <textarea
@@ -222,10 +212,10 @@ export default function AreaEditModal({
                     message: "Description cannot exceed 500 characters",
                   },
                 })}
-                className="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:bg-slate-50"
+                className="w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-900 shadow-card transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15 disabled:bg-slate-50"
               />
 
-              <div className="mt-1 flex items-center justify-between">
+              <div className="mt-1.5 flex items-center justify-between">
                 {errors.description ? (
                   <p className="text-xs text-red-600">
                     {errors.description.message}
@@ -233,7 +223,7 @@ export default function AreaEditModal({
                 ) : (
                   <span />
                 )}
-                <span className="text-xs text-slate-400">
+                <span className="text-xs tabular-nums text-slate-500">
                   {description.length}/500
                 </span>
               </div>
@@ -241,33 +231,24 @@ export default function AreaEditModal({
           </div>
 
           {/* Footer */}
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSaving}
-              className="w-full rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 sm:w-auto"
-            >
+          <div className="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3 sm:flex-row sm:justify-end sm:px-6">
+            <Button variant="secondary" onClick={onClose} disabled={isSaving}>
               Cancel
-            </button>
+            </Button>
 
-            <button
-              type="submit"
-              disabled={isSaving || !isDirty}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-            >
+            <Button type="submit" disabled={isSaving || !isDirty}>
               {isSaving ? (
                 <>
-                  <Loader2 size={17} className="animate-spin" />
+                  <Loader2 className="animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save size={17} />
+                  <Save />
                   Save changes
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </section>

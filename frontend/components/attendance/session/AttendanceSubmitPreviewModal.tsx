@@ -2,6 +2,8 @@
 
 import { X, Users, CheckCircle2, XCircle, CalendarClock } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
+
 import type {
   AttendanceFormEmployee,
   AttendanceFormSector,
@@ -42,10 +44,10 @@ function EmployeeChip({ employee }: { employee: AttendanceFormEmployee }) {
 
       <span
         className={[
-          "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+          "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset",
           employee.shift === "night"
-            ? "bg-indigo-100 text-indigo-700"
-            : "bg-amber-100 text-amber-700",
+            ? "bg-indigo-50 text-indigo-700 ring-indigo-600/20"
+            : "bg-amber-50 text-amber-700 ring-amber-600/20",
         ].join(" ")}
       >
         {employee.shift === "night" ? "Night" : "Day"}
@@ -63,8 +65,8 @@ function StatusChip({
 }) {
   const styles =
     tone === "red"
-      ? "border-red-200 bg-red-50"
-      : "border-amber-200 bg-amber-50";
+      ? "border-red-200 bg-red-50/60"
+      : "border-amber-200 bg-amber-50/60";
 
   return (
     <div className={["rounded-lg border px-3 py-2", styles].join(" ")}>
@@ -101,7 +103,7 @@ export default function AttendanceSubmitPreviewModal({
       label: "Present",
       value: stats.present,
       icon: CheckCircle2,
-      text: "text-green-700",
+      text: "text-emerald-700",
     },
     {
       label: "Absent",
@@ -121,7 +123,7 @@ export default function AttendanceSubmitPreviewModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px]"
         onClick={isLoading ? undefined : onCancel}
       />
 
@@ -130,14 +132,14 @@ export default function AttendanceSubmitPreviewModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="attendance-preview-title"
-        className="relative flex h-full w-full max-w-4xl flex-col overflow-hidden border border-slate-200 bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-2xl"
+        className="relative flex h-full w-full max-w-4xl flex-col overflow-hidden border border-slate-200 bg-white shadow-pop sm:h-auto sm:max-h-[90vh] sm:rounded-xl"
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
           <div className="min-w-0">
             <h2
               id="attendance-preview-title"
-              className="text-base font-semibold text-slate-900 sm:text-lg"
+              className="text-base font-semibold tracking-tight text-slate-900"
             >
               Review Attendance Before Submitting
             </h2>
@@ -149,28 +151,29 @@ export default function AttendanceSubmitPreviewModal({
             </p>
           </div>
 
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={onCancel}
             disabled={isLoading}
             aria-label="Close"
-            className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="text-slate-400"
           >
-            <X className="h-5 w-5" />
-          </button>
+            <X />
+          </Button>
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-2 gap-3 border-b border-slate-100 bg-slate-50 px-4 py-4 sm:grid-cols-4 sm:px-6">
+        <div className="grid grid-cols-2 gap-3 border-b border-slate-100 bg-slate-50/60 px-4 py-4 sm:grid-cols-4 sm:px-6">
           {statCards.map(({ label, value, icon: Icon, text }) => (
             <div
               key={label}
-              className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm"
+              className="flex items-center gap-2.5 rounded-lg border border-slate-200/80 bg-white px-3 py-2 shadow-card"
             >
               <Icon className={`h-4 w-4 shrink-0 ${text}`} />
 
               <div>
-                <p className={`text-base font-bold leading-4 ${text}`}>
+                <p className="text-base font-semibold leading-5 text-slate-900 tabular-nums">
                   {value}
                 </p>
                 <p className="text-[11px] font-medium text-slate-500">
@@ -190,7 +193,7 @@ export default function AttendanceSubmitPreviewModal({
             </h3>
 
             {presentSectors.length === 0 ? (
-              <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+              <p className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-500">
                 No employees marked present.
               </p>
             ) : (
@@ -198,9 +201,9 @@ export default function AttendanceSubmitPreviewModal({
                 {presentSectors.map((sector) => (
                   <div
                     key={sector.sector._id ?? "unassigned"}
-                    className="overflow-hidden rounded-xl border border-slate-200"
+                    className="overflow-hidden rounded-xl border border-slate-200/80"
                   >
-                    <div className="border-b border-slate-100 bg-slate-50 px-4 py-2">
+                    <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-2">
                       <p className="text-sm font-semibold text-slate-800">
                         {sector.sector.name}
                       </p>
@@ -211,7 +214,7 @@ export default function AttendanceSubmitPreviewModal({
                         .filter((location) => location.employees.length > 0)
                         .map((location) => (
                           <div key={location._id} className="px-4 py-3">
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            <p className="mb-2 text-xs font-medium text-slate-500">
                               {location.name} · {location.employees.length}{" "}
                               {location.employees.length === 1
                                 ? "employee"
@@ -279,24 +282,23 @@ export default function AttendanceSubmitPreviewModal({
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col-reverse gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:justify-end sm:px-6">
-          <button
-            type="button"
+        <div className="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3 sm:flex-row sm:justify-end sm:px-6">
+          <Button
+            variant="secondary"
             onClick={onCancel}
             disabled={isLoading}
-            className="w-full rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="w-full sm:w-auto"
           >
             Back to Edit
-          </button>
+          </Button>
 
-          <button
-            type="button"
+          <Button
             onClick={onConfirm}
             disabled={isLoading}
-            className="w-full rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="w-full sm:w-auto"
           >
             {isLoading ? "Submitting..." : "Confirm & Submit"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

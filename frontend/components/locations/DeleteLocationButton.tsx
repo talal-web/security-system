@@ -7,6 +7,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useDeleteLocation } from "@/hooks/location/useDeleteLocation";
+import { Button } from "@/components/ui/Button";
 
 type Props = {
   id: string;
@@ -36,31 +37,23 @@ export default function DeleteLocationButton({ id }: Props) {
   };
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="danger"
       onClick={handleDelete}
       disabled={isLoading}
-      className="
-        inline-flex h-11 min-w-36 items-center justify-center gap-2
-        rounded-xl bg-red-600 px-5
-        text-sm font-semibold text-white
-        transition-colors duration-200
-        hover:bg-red-700
-        disabled:cursor-not-allowed
-        disabled:opacity-70
-      "
+      className="min-w-36"
     >
       {isLoading ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="animate-spin" />
           Deleting...
         </>
       ) : (
         <>
-          <Trash2 className="h-4 w-4" />
+          <Trash2 />
           Delete Location
         </>
       )}
-    </button>
+    </Button>
   );
 }

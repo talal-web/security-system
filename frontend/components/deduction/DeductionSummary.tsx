@@ -2,6 +2,8 @@
 
 import { ArrowDownLeft, CheckCircle2, ClipboardMinus } from "lucide-react";
 
+import { StatCard, type StatTone } from "@/components/ui/StatCard";
+
 import type { Deduction } from "@/types/deduction";
 
 interface DeductionSummaryProps {
@@ -28,13 +30,19 @@ export default function DeductionSummary({
     0,
   );
 
-  const summary = [
+  const summary: {
+    label: string;
+    value: string;
+    description: string;
+    icon: React.ElementType;
+    tone: StatTone;
+  }[] = [
     {
       label: "Total Deductions",
       value: deductions.length.toLocaleString(),
       description: `${outstandingDeductions.length} outstanding`,
       icon: ClipboardMinus,
-      iconWrapper: "bg-slate-100 text-slate-600",
+      tone: "slate",
     },
     {
       label: "Outstanding",
@@ -46,52 +54,35 @@ export default function DeductionSummary({
             }`
           : "No outstanding balance",
       icon: ArrowDownLeft,
-      iconWrapper: "bg-amber-50 text-amber-600",
+      tone: "amber",
     },
     {
       label: "Total Deducted",
       value: `Rs. ${totalDeducted.toLocaleString()}`,
       description: "Recovered through payroll",
       icon: CheckCircle2,
-      iconWrapper: "bg-emerald-50 text-emerald-600",
+      tone: "emerald",
     },
   ];
 
   return (
     <section
       aria-label="Deduction summary"
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
+      className="grid grid-cols-2 gap-3 lg:grid-cols-3"
     >
-      {summary.map((item) => {
-        const Icon = item.icon;
-
-        return (
-          <div
-            key={item.label}
-            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-500">
-                  {item.label}
-                </p>
-
-                <p className="mt-1 truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-                  {item.value}
-                </p>
-
-                <p className="mt-1 text-xs text-slate-500">{item.description}</p>
-              </div>
-
-              <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.iconWrapper}`}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-            </div>
-          </div>
-        );
-      })}
+      {summary.map((item, index) => (
+        <StatCard
+          key={item.label}
+          label={item.label}
+          value={item.value}
+          hint={item.description}
+          icon={item.icon}
+          tone={item.tone}
+          className={
+            index === summary.length - 1 ? "col-span-2 lg:col-span-1" : ""
+          }
+        />
+      ))}
     </section>
   );
 }

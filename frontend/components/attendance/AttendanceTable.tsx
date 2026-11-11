@@ -12,6 +12,9 @@ import {
 
 import type { AttendanceEmployee } from "@/types/attendance";
 
+import { buttonVariants } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/States";
+
 import AttendanceStatusBadge from "./AttendanceStatusBadge";
 
 interface AttendanceTableProps {
@@ -21,55 +24,49 @@ interface AttendanceTableProps {
 export default function AttendanceTable({ employees }: AttendanceTableProps) {
   if (!employees.length) {
     return (
-      <div className="flex min-h-55 flex-col items-center justify-center rounded-2xl border bg-card px-6 py-10 text-center shadow-sm">
-        <div className="mb-3 flex size-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-          <CalendarCheck className="size-5" />
-        </div>
-
-        <h3 className="text-sm font-semibold">No attendance records</h3>
-
-        <p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">
-          No attendance records match the current filters.
-        </p>
-      </div>
+      <EmptyState
+        icon={CalendarCheck}
+        title="No attendance records"
+        description="No attendance records match the current filters."
+      />
     );
   }
 
   return (
-    <div className="hidden overflow-hidden rounded-lg border bg-card shadow-sm md:block">
+    <div className="hidden overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-card md:block">
       <div className="overflow-x-auto">
         <table className="w-full min-w-250 text-sm">
           {/* ---------------------------------------------------------------- */}
           {/* Header                                                           */}
           {/* ---------------------------------------------------------------- */}
 
-          <thead className="border-b border-slate-100 bg-slate-50 text-slate-600">
+          <thead className="border-b border-slate-100 bg-slate-50/80 text-xs font-medium text-slate-500">
             <tr className="text-left">
-              <th className="px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-4 py-3 font-medium">
                 Employee
               </th>
 
-              <th className="px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-3 font-medium">
                 Designation
               </th>
 
-              <th className="px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-3 font-medium">
                 Status
               </th>
 
-              <th className="px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-3 font-medium">
                 Shift
               </th>
 
-              <th className="px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-3 font-medium">
                 Location
               </th>
 
-              <th className="px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-3 font-medium">
                 Remarks
               </th>
 
-              <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                 Action
               </th>
             </tr>
@@ -79,11 +76,11 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
           {/* Body                                                             */}
           {/* ---------------------------------------------------------------- */}
 
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-slate-100">
             {employees.map((employee) => (
               <tr
                 key={employee.attendanceId}
-                className="group transition-colors hover:bg-blue-50/60"
+                className="group transition-colors hover:bg-slate-50/60"
               >
                 {/* -------------------------------------------------------- */}
                 {/* Employee                                                   */}
@@ -91,22 +88,22 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
 
                 <td className="px-4 py-2.5">
                   <div className="flex min-w-50 items-center gap-2.5">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
                       <UserRound className="size-4" />
                     </div>
 
                     <div className="min-w-0">
                       <p
-                        className="truncate font-semibold"
+                        className="truncate font-medium text-slate-900"
                         title={employee.name}
                       >
                         {employee.name}
                       </p>
 
-                      <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
                         <span>{employee.empId}</span>
 
-                        <span className="text-border">•</span>
+                        <span className="text-slate-300">•</span>
 
                         <span
                           className="truncate"
@@ -124,7 +121,7 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
                 {/* -------------------------------------------------------- */}
 
                 <td className="px-3 py-2.5">
-                  <span className="inline-flex max-w-35 items-center rounded-md border border-slate-100 bg-white px-2 py-1 text-xs font-medium text-slate-600">
+                  <span className="inline-flex max-w-35 items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-500/15">
                     {employee.designation || "—"}
                   </span>
                 </td>
@@ -143,15 +140,15 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
 
                 <td className="px-3 py-2.5">
                   {employee.shift ? (
-                    <div className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 text-blue-700">
-                      <Clock3 className="size-3.5 text-blue-500" />
+                    <div className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-0.5 text-slate-700 ring-1 ring-inset ring-slate-500/15">
+                      <Clock3 className="size-3.5 text-slate-500" />
 
                       <span className="text-xs font-medium capitalize">
                         {employee.shift}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
+                    <span className="text-sm text-slate-400">—</span>
                   )}
                 </td>
 
@@ -162,7 +159,7 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
                 <td className="px-3 py-2.5">
                   {employee.sector || employee.location ? (
                     <div className="flex max-w-45 items-start gap-2">
-                      <MapPin className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                      <MapPin className="mt-0.5 size-3.5 shrink-0 text-slate-400" />
 
                       <div className="min-w-0">
                         {employee.sector && (
@@ -176,7 +173,7 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
 
                         {employee.location && (
                           <p
-                            className="truncate text-xs text-muted-foreground"
+                            className="truncate text-xs text-slate-400"
                             title={employee.location}
                           >
                             {employee.location}
@@ -185,7 +182,7 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
                       </div>
                     </div>
                   ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
+                    <span className="text-sm text-slate-400">—</span>
                   )}
                 </td>
 
@@ -196,17 +193,17 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
                 <td className="max-w-45 px-3 py-2.5">
                   {employee.remarks ? (
                     <div className="flex items-start gap-2">
-                      <MessageSquareText className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                      <MessageSquareText className="mt-0.5 size-3.5 shrink-0 text-slate-400" />
 
                       <p
-                        className="truncate text-xs leading-5 text-muted-foreground"
+                        className="truncate text-xs leading-5 text-slate-400"
                         title={employee.remarks}
                       >
                         {employee.remarks}
                       </p>
                     </div>
                   ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
+                    <span className="text-sm text-slate-400">—</span>
                   )}
                 </td>
 
@@ -219,9 +216,12 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
                     href={`/attendance/${employee.attendanceId}`}
                     aria-label={`View attendance for ${employee.name}`}
                     title="View attendance"
-                    className="inline-flex size-8 items-center justify-center rounded-md border bg-background text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                    className={buttonVariants({
+                      variant: "secondary",
+                      size: "icon-sm",
+                    })}
                   >
-                    <ArrowUpRight className="size-3.5" />
+                    <ArrowUpRight />
                   </Link>
                 </td>
               </tr>
@@ -234,17 +234,17 @@ export default function AttendanceTable({ employees }: AttendanceTableProps) {
       {/* Footer                                                             */}
       {/* ------------------------------------------------------------------ */}
 
-      <div className="flex items-center justify-between border-t border-slate-100 bg-white px-4 py-2.5">
-        <p className="text-xs text-muted-foreground">
+      <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/60 px-4 py-2.5">
+        <p className="text-xs text-slate-500">
           Showing{" "}
-          <span className="font-semibold text-foreground">
+          <span className="font-semibold text-slate-900">
             {employees.length}
           </span>{" "}
           {employees.length === 1 ? "employee" : "employees"}
         </p>
 
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <div className="size-1.5 rounded-full bg-primary" />
+        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+          <div className="size-1.5 rounded-full bg-blue-600" />
           Attendance records
         </div>
       </div>

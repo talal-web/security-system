@@ -6,6 +6,8 @@ import { ArrowLeft } from "lucide-react";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 import PayrollActions from "@/components/payroll/PayrollActions";
 import PayrollDetails from "@/components/payroll/PayrollDetails";
+import { PageContainer } from "@/components/ui/PageHeader";
+import { ErrorState, LoadingState } from "@/components/ui/States";
 import { useMe } from "@/hooks/auth/useMe";
 import { usePayroll } from "@/hooks/payroll/usePayroll";
 import { useSelectedArea } from "@/components/area/AreaContext";
@@ -25,31 +27,25 @@ export default function PayrollDetailPage({ params }: PayrollDetailPageProps) {
     <ProtectedRoute
       allowedRoles={["developer", "admin", "clerk", "supervisor"]}
     >
-      <main className="space-y-5 p-4 sm:p-6">
-        <Link
-          href={getAreaAwareHref("/payroll")}
-          className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to payroll
-        </Link>
-        {isLoading && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-            Loading payroll...
-          </div>
-        )}
-        {isError && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-            {error.message}
-          </div>
-        )}
-        {data?.data && (
-          <>
+      <PageContainer>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Link
+            href={getAreaAwareHref("/payroll")}
+            className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+          >
+            <ArrowLeft className="size-4" />
+            Back to payroll
+          </Link>
+          {data?.data && (
             <PayrollActions payroll={data.data} canManage={canManage} />
-            <PayrollDetails payroll={data.data} />
-          </>
+          )}
+        </div>
+        {isLoading && <LoadingState title="Loading payroll..." />}
+        {isError && (
+          <ErrorState title="Failed to load payroll" description={error.message} />
         )}
-      </main>
+        {data?.data && <PayrollDetails payroll={data.data} />}
+      </PageContainer>
     </ProtectedRoute>
   );
 }

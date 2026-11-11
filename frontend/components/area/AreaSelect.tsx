@@ -59,7 +59,7 @@ export default function AreaSelect({
   };
 
   return (
-    <div className={showLabel ? "space-y-2" : undefined}>
+    <div className={showLabel ? "space-y-1.5" : undefined}>
       {showLabel && (
         <label
           htmlFor={selectId}
@@ -72,7 +72,7 @@ export default function AreaSelect({
       <div
         className={
           wrapperClassName ??
-          "flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3"
+          "flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 shadow-card transition focus-within:border-blue-500 focus-within:ring-3 focus-within:ring-blue-500/15"
         }
       >
         {icon && (
@@ -112,7 +112,7 @@ export default function AreaSelect({
       {error && (
         <p
           id={`${selectId}-error`}
-          className="mt-1 text-xs font-medium text-red-500"
+          className="mt-1.5 text-xs text-red-600"
         >
           {error}
         </p>

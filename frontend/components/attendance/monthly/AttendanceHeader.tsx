@@ -2,41 +2,36 @@ interface MonthlyAttendanceHeaderProps {
   days: number[];
 }
 
+const stickyTh =
+  "sticky z-40 border border-slate-200 bg-slate-50 px-3 py-3 text-left text-xs font-medium text-slate-500";
+
+const th =
+  "border border-slate-200 px-2 py-3 text-center text-xs font-medium text-slate-500";
+
 export default function MonthlyAttendanceHeader({
   days,
 }: MonthlyAttendanceHeaderProps) {
   return (
-    <thead className="bg-slate-100">
+    <thead className="bg-slate-50">
       <tr>
         {/* ========================= */}
         {/* STICKY EMPLOYEE COLUMNS */}
         {/* ========================= */}
 
-        <th className="sticky left-0 z-40 min-w-22.5` border bg-slate-100 px-3 py-3 text-left text-sm font-semibold">
-          Emp ID
-        </th>
+        <th className={`${stickyTh} left-0 min-w-22.5`}>Emp ID</th>
 
-        <th className="sticky left-22.5 z-40 min-w-45 border bg-slate-100 px-3 py-3 text-left text-sm font-semibold">
-          Name
-        </th>
+        <th className={`${stickyTh} left-22.5 min-w-45`}>Name</th>
 
-        <th className="sticky left-67.5 z-40 min-w-45 border bg-slate-100 px-3 py-3 text-left text-sm font-semibold">
-          Father Name
-        </th>
+        <th className={`${stickyTh} left-67.5 min-w-45`}>Father Name</th>
 
-        <th className="sticky left-112.5 z-40 min-w-35 border bg-slate-100 px-3 py-3 text-left text-sm font-semibold">
-          Designation
-        </th>
+        <th className={`${stickyTh} left-112.5 min-w-35`}>Designation</th>
 
         {/* ========================= */}
         {/* DAYS */}
         {/* ========================= */}
 
         {days.map((day) => (
-          <th
-            key={day}
-            className="min-w-13 border px-2 py-3 text-center text-sm font-semibold"
-          >
+          <th key={day} className={`${th} min-w-13 tabular-nums`}>
             {day}
           </th>
         ))}
@@ -45,21 +40,13 @@ export default function MonthlyAttendanceHeader({
         {/* SUMMARY */}
         {/* ========================= */}
 
-        <th className="min-w-15 border px-2 py-3 text-center text-sm font-semibold">
-          P
-        </th>
+        <th className={`${th} min-w-15`}>P</th>
 
-        <th className="min-w-15 border px-2 py-3 text-center text-sm font-semibold">
-          L
-        </th>
+        <th className={`${th} min-w-15`}>L</th>
 
-        <th className="min-w-15 border px-2 py-3 text-center text-sm font-semibold">
-          A
-        </th>
+        <th className={`${th} min-w-15`}>A</th>
 
-        <th className="min-w-17.5 border px-2 py-3 text-center text-sm font-semibold">
-          Total
-        </th>
+        <th className={`${th} min-w-17.5`}>Total</th>
       </tr>
     </thead>
   );

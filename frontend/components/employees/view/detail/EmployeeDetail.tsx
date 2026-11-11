@@ -12,9 +12,13 @@ import {
   CalendarDays,
   Clock3,
   CreditCard,
+  FileImage,
   MapPin,
   Phone,
   ShieldCheck,
+  StickyNote,
+  User,
+  Users,
 } from "lucide-react";
 
 import { Employee } from "@/types/employee";
@@ -33,19 +37,20 @@ export default function EmployeeDetail({ employee }: Props) {
   const age = calculateAge(employee.birthDate);
 
   return (
-    <div className="mx-auto w-full max-w-7xl py-1 sm:py-2">
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
         <EmployeeHeader employee={employee} />
 
         {/* Quick Stats */}
         <EmployeeQuickStats employee={employee} />
+      </div>
 
         {/* Details */}
-        <div className="p-4 sm:p-5 lg:p-6">
-          <div className="space-y-4 sm:space-y-5">
+        <div>
+          <div className="space-y-4 sm:space-y-6">
             {/* ================= PERSONAL ================= */}
-            <EmployeeSection title="Personal Information" color="bg-orange-500">
+            <EmployeeSection title="Personal Information" icon={User}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <InfoCard
                   icon={<CreditCard className="h-5 w-5" />}
@@ -69,7 +74,7 @@ export default function EmployeeDetail({ employee }: Props) {
             </EmployeeSection>
 
             {/* ================= CONTACT ================= */}
-            <EmployeeSection title="Contact Information" color="bg-blue-500">
+            <EmployeeSection title="Contact Information" icon={Phone}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <div className="sm:col-span-2 xl:col-span-3">
                   <InfoCard
@@ -106,7 +111,7 @@ export default function EmployeeDetail({ employee }: Props) {
               </div>
             </EmployeeSection>
 
-            <EmployeeSection title="References" color="bg-amber-500">
+            <EmployeeSection title="References" icon={Users}>
               {(employee.references ?? []).length > 0 ? (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {employee.references?.map((reference, index) => (
@@ -131,7 +136,7 @@ export default function EmployeeDetail({ employee }: Props) {
             {/* ================= EMPLOYMENT ================= */}
             <EmployeeSection
               title="Employment Information"
-              color="bg-emerald-500"
+              icon={BriefcaseBusiness}
             >
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <InfoCard
@@ -192,7 +197,7 @@ export default function EmployeeDetail({ employee }: Props) {
               </div>
             </EmployeeSection>
 
-            <EmployeeSection title="Documents" color="bg-indigo-500">
+            <EmployeeSection title="Documents" icon={FileImage}>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <EmployeeDocumentCard
                   title="Profile Picture"
@@ -216,8 +221,8 @@ export default function EmployeeDetail({ employee }: Props) {
 
             {/* ================= NOTES ================= */}
             {employee.notes && (
-              <EmployeeSection title="Additional Notes" color="bg-slate-900">
-                <div className="rounded-lg border border-slate-200 bg-white p-3">
+              <EmployeeSection title="Additional Notes" icon={StickyNote}>
+                <div>
                   <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
                     {employee.notes}
                   </p>
@@ -226,7 +231,6 @@ export default function EmployeeDetail({ employee }: Props) {
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 }

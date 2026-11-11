@@ -5,6 +5,7 @@ import {
   AlertCircle,
   CalendarCheck,
   Check,
+  ChevronDown,
   FileText,
   Loader2,
   MapPin,
@@ -14,6 +15,8 @@ import {
   X,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
+import { CardFooter, CardHeader } from "@/components/ui/Card";
 import { useLocations } from "@/hooks/location/useLocation";
 import { useUpdateAttendance } from "@/hooks/attendance/useAttendance";
 import type {
@@ -133,48 +136,36 @@ export default function AttendanceEditForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+      className="w-full overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-card"
     >
       {/* ------------------------------------------------------------------ */}
       {/* Header                                                              */}
       {/* ------------------------------------------------------------------ */}
 
-      <div className="border-b border-slate-100 bg-white px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-            <CalendarCheck className="size-4" />
-          </div>
-
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold">Edit Attendance</h2>
-
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              Update attendance details for {attendance.employeeSnapshot.name}
-            </p>
-          </div>
-        </div>
-      </div>
+      <CardHeader
+        icon={CalendarCheck}
+        title="Edit Attendance"
+        description={`Update attendance details for ${attendance.employeeSnapshot.name}`}
+      />
 
       {/* ------------------------------------------------------------------ */}
       {/* Form Content                                                        */}
       {/* ------------------------------------------------------------------ */}
 
-      <div className="space-y-4 p-4">
+      <div className="space-y-5 p-4 sm:p-5">
         {/* ---------------------------------------------------------------- */}
         {/* Status                                                            */}
         {/* ---------------------------------------------------------------- */}
 
         <section>
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="mb-1.5 flex items-center justify-between gap-3">
+            <label className="text-xs font-medium text-slate-600">
               Attendance Status
             </label>
-            <span className="text-xs text-muted-foreground">
-              Select a status
-            </span>
+            <span className="text-xs text-slate-400">Select a status</span>
           </div>
 
-          <div className="grid grid-cols-3 rounded-lg border border-slate-200 bg-slate-50 p-1">
+          <div className="grid grid-cols-3 gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
             {STATUS_OPTIONS.map((option) => {
               const isSelected = status === option.value;
 
@@ -185,12 +176,15 @@ export default function AttendanceEditForm({
                   disabled={isPending}
                   onClick={() => handleStatusChange(option.value)}
                   className={[
-                    "relative flex h-9 items-center justify-center rounded-md px-2 text-xs font-semibold transition-all",
-                    "hover:bg-background hover:text-foreground",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
+                    "relative flex h-8 items-center justify-center rounded-md px-2 text-sm font-medium transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
                     isSelected
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-slate-500",
+                      ? option.value === "present"
+                        ? "bg-white text-emerald-700 shadow-card ring-1 ring-emerald-600/20"
+                        : option.value === "absent"
+                          ? "bg-white text-red-700 shadow-card ring-1 ring-red-600/20"
+                          : "bg-white text-amber-700 shadow-card ring-1 ring-amber-600/20"
+                      : "text-slate-500 hover:bg-white hover:text-slate-900",
                     isPending && "cursor-not-allowed opacity-60",
                   ].join(" ")}
                 >
@@ -207,15 +201,15 @@ export default function AttendanceEditForm({
         {/* ---------------------------------------------------------------- */}
 
         {status === "present" && (
-          <section className="rounded-lg border border-slate-200 bg-slate-50/50 p-3">
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <section className="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+            <h3 className="mb-3 text-sm font-semibold text-slate-900">
               Duty Details
             </h3>
 
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Shift */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                <label className="mb-1.5 block text-xs font-medium text-slate-600">
                   Shift
                 </label>
 
@@ -248,13 +242,13 @@ export default function AttendanceEditForm({
               <div>
                 <label
                   htmlFor="attendance-location"
-                  className="mb-1.5 block text-xs font-medium text-muted-foreground"
+                  className="mb-1.5 block text-xs font-medium text-slate-600"
                 >
                   Location
                 </label>
 
                 <div className="relative">
-                  <MapPin className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <MapPin className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
 
                   <select
                     id="attendance-location"
@@ -264,7 +258,7 @@ export default function AttendanceEditForm({
                       setError("");
                     }}
                     disabled={isPending || isLoadingLocations}
-                    className="h-10 w-full appearance-none rounded-md border border-slate-300 bg-white pl-9 pr-9 text-sm outline-none transition-colors hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="h-9 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-700 shadow-card outline-none transition-colors focus:border-blue-500 focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <option value="">
                       {isLoadingLocations
@@ -279,13 +273,11 @@ export default function AttendanceEditForm({
                     ))}
                   </select>
 
-                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                    ▾
-                  </div>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                 </div>
 
                 {isLocationsError && (
-                  <p className="mt-2 text-xs text-destructive">
+                  <p className="mt-1.5 text-xs text-red-600">
                     Unable to load locations.
                   </p>
                 )}
@@ -299,16 +291,16 @@ export default function AttendanceEditForm({
         {/* ---------------------------------------------------------------- */}
 
         <section>
-          <div className="mb-2 flex items-center justify-between gap-3">
+          <div className="mb-1.5 flex items-center justify-between gap-3">
             <label
               htmlFor="attendance-remarks"
-              className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              className="flex items-center gap-1.5 text-xs font-medium text-slate-600"
             >
-              <FileText className="size-4 text-muted-foreground" />
+              <FileText className="size-3.5 text-slate-400" />
               Remarks
             </label>
 
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-slate-400 tabular-nums">
               {remarks.length}/500
             </span>
           </div>
@@ -324,7 +316,7 @@ export default function AttendanceEditForm({
             disabled={isPending}
             rows={3}
             placeholder="Add any relevant notes about this attendance..."
-            className="w-full resize-none rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm leading-5 outline-none transition-colors placeholder:text-muted-foreground/60 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm leading-5 text-slate-700 shadow-card outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-60"
           />
         </section>
 
@@ -335,12 +327,14 @@ export default function AttendanceEditForm({
         {error && (
           <div
             role="alert"
-            className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive"
+            className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50/70 px-3 py-2.5 text-sm text-red-700"
           >
-            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-600" />
 
             <div className="min-w-0">
-              <p className="font-medium">Unable to save changes</p>
+              <p className="font-semibold text-red-800">
+                Unable to save changes
+              </p>
               <p className="mt-0.5 text-xs leading-5">{error}</p>
             </div>
           </div>
@@ -351,37 +345,28 @@ export default function AttendanceEditForm({
       {/* Footer / Actions                                                    */}
       {/* ------------------------------------------------------------------ */}
 
-      <div className="flex flex-col-reverse gap-2 border-t border-slate-100 bg-white px-4 py-3 sm:flex-row sm:justify-end">
+      <CardFooter className="flex-col-reverse items-stretch sm:flex-row sm:items-center">
         {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isPending}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <X className="size-4" />
+          <Button variant="secondary" onClick={onCancel} disabled={isPending}>
+            <X />
             Cancel
-          </button>
+          </Button>
         )}
 
-        <button
-          type="submit"
-          disabled={isPending || isLoadingLocations}
-          className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <Button type="submit" disabled={isPending || isLoadingLocations}>
           {isPending ? (
             <>
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="animate-spin" />
               Saving changes...
             </>
           ) : (
             <>
-              <Save className="size-4" />
+              <Save />
               Save Attendance
             </>
           )}
-        </button>
-      </div>
+        </Button>
+      </CardFooter>
     </form>
   );
 }
@@ -411,11 +396,11 @@ function ShiftButton({
       onClick={onClick}
       disabled={disabled}
       className={[
-        "flex h-10 items-center justify-center gap-2 rounded-md border text-sm font-medium transition-all",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200",
+        "flex h-9 items-center justify-center gap-2 rounded-lg border text-sm font-medium transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
         selected
-          ? "border-blue-500 bg-blue-50 text-blue-600 ring-1 ring-blue-100"
-          : "border-slate-300 bg-white text-slate-500 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600",
+          ? "border-blue-500 bg-blue-50 text-blue-700 ring-1 ring-blue-500/20"
+          : "border-slate-200 bg-white text-slate-600 shadow-card hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900",
         disabled && "cursor-not-allowed opacity-60",
       ].join(" ")}
     >

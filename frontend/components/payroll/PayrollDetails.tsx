@@ -3,6 +3,7 @@ import PayrollAttendanceSummary from "./PayrollAttendanceSummary";
 import PayrollEarningsSummary from "./PayrollEarningsSummary";
 import PayrollDeductionsSummary from "./PayrollDeductionsSummary";
 import PayrollSourceItems from "./PayrollSourceItems";
+import { Card } from "@/components/ui/Card";
 import type { Payroll } from "@/types/payroll";
 
 const money = (amount: number) => `Rs. ${amount.toLocaleString()}`;
@@ -10,17 +11,17 @@ export default function PayrollDetails({ payroll }: { payroll: Payroll }) {
   const employee =
     typeof payroll.employee === "string" ? null : payroll.employee;
   return (
-    <div className="space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="space-y-6">
+      <Card className="p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="text-sm text-slate-500">
               {new Date(payroll.year, payroll.month - 1).toLocaleString("en", {
                 month: "long",
                 year: "numeric",
               })}
             </p>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900">
+            <h1 className="mt-1 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
               {employee?.name ?? "Employee payroll"}
             </h1>
             {employee && (
@@ -29,47 +30,49 @@ export default function PayrollDetails({ payroll }: { payroll: Payroll }) {
               </p>
             )}
           </div>
-          <PayrollStatusBadge status={payroll.status} />
-        </div>
-        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-4">
           <div>
-            <p className="text-xs text-slate-500">Period</p>
-            <p className="mt-1 text-sm font-semibold text-slate-800">
+            <PayrollStatusBadge status={payroll.status} />
+          </div>
+        </div>
+        <dl className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 sm:grid-cols-4">
+          <div className="min-w-0">
+            <dt className="text-xs font-medium text-slate-500">Period</dt>
+            <dd className="mt-1 text-sm font-medium text-slate-900">
               {new Date(payroll.periodStart).toLocaleDateString()} -{" "}
               {new Date(payroll.periodEnd).toLocaleDateString()}
-            </p>
+            </dd>
           </div>
-          <div>
-            <p className="text-xs text-slate-500">Net salary</p>
-            <p className="mt-1 text-lg font-bold text-emerald-700">
+          <div className="min-w-0">
+            <dt className="text-xs font-medium text-slate-500">Net salary</dt>
+            <dd className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-emerald-700">
               {money(payroll.netSalary)}
-            </p>
+            </dd>
           </div>
-          <div>
-            <p className="text-xs text-slate-500">Generated</p>
-            <p className="mt-1 text-sm font-semibold text-slate-800">
+          <div className="min-w-0">
+            <dt className="text-xs font-medium text-slate-500">Generated</dt>
+            <dd className="mt-1 text-sm font-medium text-slate-900">
               {new Date(payroll.generatedAt).toLocaleDateString()}
-            </p>
+            </dd>
           </div>
-          <div>
-            <p className="text-xs text-slate-500">Payment</p>
-            <p className="mt-1 text-sm font-semibold capitalize text-slate-800">
+          <div className="min-w-0">
+            <dt className="text-xs font-medium text-slate-500">Payment</dt>
+            <dd className="mt-1 text-sm font-medium capitalize text-slate-900">
               {payroll.paymentMethod?.replace("_", " ") || "Not paid"}
-            </p>
+            </dd>
           </div>
-        </div>
+        </dl>
         {payroll.paymentReference && (
-          <p className="mt-3 text-sm text-slate-500">
+          <p className="mt-4 text-sm text-slate-500">
             Reference: {payroll.paymentReference}
           </p>
         )}
-      </section>
-      <div className="grid gap-5 lg:grid-cols-3">
+      </Card>
+      <div className="grid gap-4 lg:grid-cols-3">
         <PayrollAttendanceSummary payroll={payroll} />
         <PayrollEarningsSummary payroll={payroll} />
         <PayrollDeductionsSummary payroll={payroll} />
       </div>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <PayrollSourceItems
           title="Bonus source items"
           items={payroll.bonuses}

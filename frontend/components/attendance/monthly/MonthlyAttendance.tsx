@@ -4,6 +4,9 @@ import { useMemo, useState } from "react";
 
 import { useMonthlyAttendanceReport } from "@/hooks/attendance/useAttendanceReport";
 import { exportMonthlyAttendanceExcel } from "@/lib/exports/exportMonthlyAttendanceExcel";
+import { Button } from "@/components/ui/Button";
+import { PageContainer } from "@/components/ui/PageHeader";
+import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
 
 import MonthlyAttendanceFilters from "./AttendanceFilters";
 import MonthlyAttendanceStats from "./AttendanceStats";
@@ -36,9 +39,9 @@ export default function MonthlyAttendance() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-        <p className="text-slate-500">Loading monthly attendance...</p>
-      </div>
+      <PageContainer>
+        <LoadingState title="Loading monthly attendance..." />
+      </PageContainer>
     );
   }
 
@@ -48,16 +51,16 @@ export default function MonthlyAttendance() {
 
   if (isError) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-10 text-center">
-        <p className="font-medium text-red-600">{error.message}</p>
-
-        <button
-          onClick={() => refetch()}
-          className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-        >
-          Retry
-        </button>
-      </div>
+      <PageContainer>
+        <ErrorState
+          description={error.message}
+          action={
+            <Button variant="danger-soft" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+        />
+      </PageContainer>
     );
   }
 
@@ -67,9 +70,9 @@ export default function MonthlyAttendance() {
 
   if (!data?.data) {
     return (
-      <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-        <p className="text-slate-500">No attendance found.</p>
-      </div>
+      <PageContainer>
+        <EmptyState title="No attendance found." />
+      </PageContainer>
     );
   }
 
@@ -96,7 +99,7 @@ export default function MonthlyAttendance() {
   // ======================================
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <MonthlyAttendanceFilters
         month={month}
         onMonthChange={setMonth}
@@ -110,6 +113,6 @@ export default function MonthlyAttendance() {
         month={report.month}
         employees={report.employees}
       />
-    </div>
+    </PageContainer>
   );
 }

@@ -30,19 +30,18 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="relative overflow-hidden bg-slate-50 py-20 text-slate-900">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.1),transparent_42%)]" />
+    <section className="relative overflow-hidden bg-slate-50 py-16 text-slate-900 sm:py-20">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-14 text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-blue-600">
+        <div className="mb-10 text-center sm:mb-12">
+          <p className="mb-2 text-sm font-medium text-blue-600">
             Features
           </p>
 
-          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl lg:text-5xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             Everything You Need
           </h2>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {features.map((feature, index) => {
             const Icon = feature.icon;
 
@@ -53,14 +52,13 @@ export default function FeaturesSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.08 }}
                 viewport={{ once: true }}
-                whileHover={{ y: -6, scale: 1.01 }}
-                className="group rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className="group rounded-xl border border-slate-200/80 bg-white p-6 shadow-card transition-colors duration-200 hover:border-slate-300"
               >
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-50 to-red-50 text-blue-600 transition-transform duration-300 group-hover:scale-110">
-                  <Icon className="h-7 w-7" />
+                <div className="mb-5 flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-100">
+                  <Icon className="size-5" />
                 </div>
 
-                <h3 className="text-lg font-semibold text-slate-900">
+                <h3 className="text-base font-semibold text-slate-900">
                   {feature.title}
                 </h3>
 

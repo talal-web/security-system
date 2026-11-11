@@ -145,6 +145,17 @@ Set production environment variables in the hosting platform rather than committ
 
 For the frontend, provide `NEXT_PUBLIC_API_URL` during the build unless the frontend host proxies `/api` to the backend. Ensure the deployed backend allows the frontend origin through `FRONTEND_URLS` and is reachable over HTTPS.
 
+### Deploying the backend as a container
+
+Build from the backend directory:
+
+```powershell
+cd backend
+docker build -t security-company-api .
+```
+
+Run the image with production environment variables configured in your hosting platform. At minimum, set `MONGO_URI`, `JWT_SECRET`, `FRONTEND_URLS`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET`. The container listens on `PORT` (default `5000`) and exposes `/healthz` as its readiness/health check; it returns a failure status until MongoDB is connected. Logs are written to stdout/stderr in production.
+
 ## Project Structure
 
 ```text

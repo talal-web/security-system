@@ -17,28 +17,24 @@ export default function InfoCard({
 }: InfoCardProps) {
   return (
     <div
-      className={`flex h-full gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm ${className}`}
+      className={`flex h-full gap-3 rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 ${className}`}
     >
       {/* Icon */}
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-        <div className="h-4 w-4">{icon}</div>
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 [&_svg]:size-4">
+        {icon}
       </div>
 
       {/* Content */}
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">
-          {label}
-        </p>
+        <p className="text-xs font-medium text-slate-500">{label}</p>
 
         <div
-          className={`mt-1.5 text-sm font-semibold text-slate-900 sm:mt-2 sm:text-[15px] ${
+          className={`mt-0.5 text-sm font-medium text-slate-900 ${
             large ? "whitespace-pre-wrap leading-6" : "truncate"
           }`}
         >
           {value ?? (
-            <span className="font-normal text-sm text-slate-400">
-              Not provided
-            </span>
+            <span className="font-normal text-slate-400">Not provided</span>
           )}
         </div>
       </div>

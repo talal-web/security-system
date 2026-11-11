@@ -2,19 +2,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  AlertCircle,
-  CalendarDays,
-  CircleDollarSign,
-  FileText,
-  Loader2,
-  Search,
-  UserRound,
-  X,
-} from "lucide-react";
+import { AlertCircle, Loader2, Search, X } from "lucide-react";
 
 import { useCreateAdvance, useUpdateAdvance } from "@/hooks/advance/useAdvance";
 import { useSelectedArea } from "@/components/area/AreaContext";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { lookupEmployee } from "@/services/employee.service";
 import { formatText } from "@/utils/employee/employeeFormat";
 
@@ -27,6 +20,14 @@ interface AdvanceFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
+
+const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
+
+const fieldClass =
+  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500";
+
+const textareaClass =
+  "w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-card transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500";
 
 export default function AdvanceForm({
   employeeId = "",
@@ -198,8 +199,11 @@ export default function AdvanceForm({
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* Errors */}
       {(formError || apiError) && (
-        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50/70 px-3 py-2.5 text-sm text-red-700"
+        >
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
           <p>{formError || apiError}</p>
         </div>
       )}
@@ -208,14 +212,11 @@ export default function AdvanceForm({
         {/* Employee Field: Edit Mode (Read-only) */}
         {isEditing && editingEmployee && (
           <div>
-            <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700">
-              <UserRound className="h-4 w-4 text-slate-400" />
-              Employee
-            </label>
+            <label className={labelClass}>Employee</label>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
-              <div className="flex items-center justify-between">
-                <div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900">
                     {editingEmployee.name}
                   </p>
@@ -225,15 +226,14 @@ export default function AdvanceForm({
                   </p>
                 </div>
 
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
-                    editingEmployee.status === "active"
-                      ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
-                      : "bg-red-50 text-red-700 ring-1 ring-red-600/20"
-                  }`}
+                <Badge
+                  tone={
+                    editingEmployee.status === "active" ? "success" : "danger"
+                  }
+                  className="shrink-0 capitalize"
                 >
                   {editingEmployee.status}
-                </span>
+                </Badge>
               </div>
             </div>
           </div>
@@ -242,34 +242,31 @@ export default function AdvanceForm({
         {/* Employee Field: Creation Mode (Lookup by empId) */}
         {!isEditing && !employeeId && (
           <div>
-            <label
-              htmlFor="advance-empId-lookup"
-              className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
-            >
-              <UserRound className="h-4 w-4 text-slate-400" />
+            <label htmlFor="advance-empId-lookup" className={labelClass}>
               Employee
             </label>
 
             {selectedEmployee ? (
-              <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
+              <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold text-slate-900">
                         {selectedEmployee.name}
                       </p>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+                      <Badge
+                        tone={
                           selectedEmployee.status === "active"
-                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
-                            : "bg-red-50 text-red-700 ring-1 ring-red-600/20"
-                        }`}
+                            ? "success"
+                            : "danger"
+                        }
+                        className="capitalize"
                       >
                         {selectedEmployee.status}
-                      </span>
+                      </Badge>
                     </div>
 
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
                       ID:{" "}
                       <span className="font-medium text-slate-700">
                         {selectedEmployee.empId}
@@ -286,20 +283,20 @@ export default function AdvanceForm({
                   </div>
 
                   {!isPending && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={handleClearSelectedEmployee}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
                     >
-                      <X className="h-3 w-3" />
+                      <X />
                       Change
-                    </button>
+                    </Button>
                   )}
                 </div>
 
                 {selectedEmployee.status !== "active" && (
                   <div className="mt-2.5 flex items-center gap-1.5 text-xs text-red-600">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    <AlertCircle className="size-3.5 shrink-0" />
                     <span>
                       Advance cannot be created for an inactive employee.
                     </span>
@@ -309,7 +306,7 @@ export default function AdvanceForm({
             ) : (
               <div>
                 <div className="flex gap-2">
-                  <div className="relative flex-1">
+                  <div className="relative min-w-0 flex-1">
                     <input
                       id="advance-empId-lookup"
                       type="text"
@@ -327,32 +324,33 @@ export default function AdvanceForm({
                       }}
                       disabled={isPending || lookupLoading}
                       placeholder="Enter Employee ID (e.g. BSS-0001)"
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
+                      className={fieldClass}
                     />
                   </div>
 
-                  <button
-                    type="button"
+                  <Button
                     onClick={handleLookup}
                     disabled={isPending || lookupLoading || !searchEmpId.trim()}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-10"
                   >
                     {lookupLoading ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="animate-spin" />
                         <span>Searching...</span>
                       </>
                     ) : (
                       <>
-                        <Search className="h-4 w-4" />
+                        <Search />
                         <span>Lookup</span>
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
 
                 {lookupError && (
-                  <p className="mt-1.5 text-xs text-red-600">{lookupError}</p>
+                  <p className="mt-1.5 text-xs font-medium text-red-600">
+                    {lookupError}
+                  </p>
                 )}
                 <p className="mt-1.5 text-xs text-slate-500">
                   Search by Employee ID to select the employee for this advance.
@@ -363,18 +361,14 @@ export default function AdvanceForm({
         )}
 
         {/* Amount + Date */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label
-              htmlFor="advance-amount"
-              className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
-            >
-              <CircleDollarSign className="h-4 w-4 text-slate-400" />
+            <label htmlFor="advance-amount" className={labelClass}>
               Advance Amount
             </label>
 
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
                 Rs.
               </span>
 
@@ -392,7 +386,7 @@ export default function AdvanceForm({
                 required
                 inputMode="numeric"
                 placeholder="5,000"
-                className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-11 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
+                className={`${fieldClass} pl-11 tabular-nums`}
               />
             </div>
 
@@ -402,11 +396,7 @@ export default function AdvanceForm({
           </div>
 
           <div>
-            <label
-              htmlFor="advance-date"
-              className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
-            >
-              <CalendarDays className="h-4 w-4 text-slate-400" />
+            <label htmlFor="advance-date" className={labelClass}>
               Advance Date
             </label>
 
@@ -420,23 +410,22 @@ export default function AdvanceForm({
               }}
               disabled={isPending}
               required
-              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
+              className={fieldClass}
             />
           </div>
         </div>
 
         {/* Description */}
         <div>
-          <div className="mb-2 flex items-center justify-between gap-3">
+          <div className="mb-1.5 flex items-center justify-between gap-3">
             <label
               htmlFor="advance-description"
-              className="flex items-center gap-2 text-sm font-medium text-slate-700"
+              className="text-sm font-medium text-slate-700"
             >
-              <FileText className="h-4 w-4 text-slate-400" />
               Description
             </label>
 
-            <span className="text-xs text-slate-400">
+            <span className="text-xs tabular-nums text-slate-400">
               {description.length}/500
             </span>
           </div>
@@ -452,34 +441,34 @@ export default function AdvanceForm({
             rows={4}
             disabled={isPending}
             placeholder="Add an optional note about this advance..."
-            className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
+            className={textareaClass}
           />
         </div>
       </div>
 
-      <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:items-center sm:justify-end">
-        <button
-          type="button"
+      <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-end">
+        <Button
+          variant="secondary"
           onClick={onCancel}
           disabled={isPending}
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="w-full sm:w-auto"
         >
           Cancel
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="submit"
           disabled={
             isPending || (!isEditing && selectedEmployee?.status === "inactive")
           }
-          className="w-full rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="w-full sm:w-auto"
         >
           {isPending
             ? "Saving..."
             : isEditing
               ? "Save Correction"
               : "Create Advance"}
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -1,6 +1,11 @@
-import Link from "next/link";
 import { Eye, Pencil, Trash2, UserCheck, UserX } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import type { User } from "@/types/user";
+
+// Keep hover titles working on disabled buttons (Button disables pointer events).
+const disabledWithTitle =
+  "disabled:pointer-events-auto disabled:cursor-not-allowed";
 
 export default function UserCard({
   user,
@@ -18,38 +23,38 @@ export default function UserCard({
   const isSelf = user._id === currentUserId;
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-card">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-semibold text-slate-950">{user.name}</p>
-          <p className="mt-1 text-sm text-slate-500">{user.userId}</p>
+        <div className="min-w-0">
+          <p className="truncate font-medium text-slate-900">{user.name}</p>
+          <p className="mt-0.5 truncate text-sm text-slate-500">
+            {user.userId}
+          </p>
         </div>
-        <span
-          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${user.isActive ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
-        >
+        <Badge tone={user.isActive ? "success" : "danger"} dot>
           {user.isActive ? "Active" : "Inactive"}
-        </span>
+        </Badge>
       </div>
-      <div className="mt-4 flex items-center justify-between border-t pt-3">
+      <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
         <span className="text-sm capitalize text-slate-600">{user.role}</span>
-        <div className="flex gap-2">
-          <Link
+        <div className="flex gap-1.5">
+          <ButtonLink
             href={`/users/${user._id}`}
             aria-label={`View ${user.name}`}
-            className="rounded-lg border p-2 text-slate-600"
+            variant="secondary"
+            size="icon-sm"
           >
-            <Eye className="h-4 w-4" />
-          </Link>
-          <button
-            type="button"
+            <Eye />
+          </ButtonLink>
+          <Button
             onClick={() => onEdit(user)}
             aria-label={`Edit ${user.name}`}
-            className="rounded-lg border p-2 text-slate-600"
+            variant="secondary"
+            size="icon-sm"
           >
-            <Pencil className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
+            <Pencil />
+          </Button>
+          <Button
             onClick={() => onStatusChange(user)}
             disabled={isSelf}
             title={isSelf ? "You cannot change your own status" : undefined}
@@ -58,24 +63,23 @@ export default function UserCard({
                 ? `Deactivate ${user.name}`
                 : `Activate ${user.name}`
             }
-            className="rounded-lg border p-2 text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="secondary"
+            size="icon-sm"
+            className={disabledWithTitle}
           >
-            {user.isActive ? (
-              <UserX className="h-4 w-4" />
-            ) : (
-              <UserCheck className="h-4 w-4" />
-            )}
-          </button>
-          <button
-            type="button"
+            {user.isActive ? <UserX /> : <UserCheck />}
+          </Button>
+          <Button
             onClick={() => onDelete(user)}
             disabled={isSelf}
             title={isSelf ? "You cannot delete your own account" : undefined}
             aria-label={`Delete ${user.name}`}
-            className="rounded-lg border border-red-200 p-2 text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="danger-soft"
+            size="icon-sm"
+            className={disabledWithTitle}
           >
-            <Trash2 className="h-4 w-4" />
-          </button>
+            <Trash2 />
+          </Button>
         </div>
       </div>
     </article>

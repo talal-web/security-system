@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Loader2, MapPin } from "lucide-react";
 
 import Modal from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 import { useCreateArea } from "@/hooks/area/useArea";
 import type { CreateAreaRequest } from "@/types/area";
 
@@ -61,16 +62,13 @@ export default function AreaCreateModal({
         <div>
           <label
             htmlFor="area-name"
-            className="mb-2 block text-sm font-semibold text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Area Name <span className="text-red-500">*</span>
           </label>
 
           <div className="relative">
-            <MapPin
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
+            <MapPin className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
 
             <input
               id="area-name"
@@ -80,16 +78,16 @@ export default function AreaCreateModal({
                 required: "Area name is required",
                 validate: (value) => !!value.trim() || "Area name is required",
               })}
-              className={`w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-2 ${
+              className={`h-9 w-full rounded-lg border bg-white pl-9 pr-3 text-sm text-slate-900 shadow-card transition placeholder:text-slate-400 focus:outline-none focus:ring-3 ${
                 errors.name
-                  ? "border-red-400 focus:ring-red-100"
-                  : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"
+                  ? "border-red-300 focus:border-red-500 focus:ring-red-500/15"
+                  : "border-slate-200 focus:border-blue-500 focus:ring-blue-500/15"
               }`}
             />
           </div>
 
           {errors.name && (
-            <p className="mt-1.5 text-xs text-red-500">{errors.name.message}</p>
+            <p className="mt-1.5 text-xs text-red-600">{errors.name.message}</p>
           )}
         </div>
 
@@ -97,7 +95,7 @@ export default function AreaCreateModal({
         <div>
           <label
             htmlFor="area-description"
-            className="mb-2 block text-sm font-semibold text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Description
           </label>
@@ -107,31 +105,24 @@ export default function AreaCreateModal({
             rows={4}
             placeholder="Enter a short description of this area..."
             {...register("description")}
-            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-card transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15"
           />
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
-          <button
-            type="button"
+        <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+          <Button
+            variant="secondary"
             onClick={handleClose}
             disabled={createArea.isPending}
-            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
           >
             Cancel
-          </button>
+          </Button>
 
-          <button
-            type="submit"
-            disabled={createArea.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {createArea.isPending && (
-              <Loader2 size={16} className="animate-spin" />
-            )}
+          <Button type="submit" disabled={createArea.isPending}>
+            {createArea.isPending && <Loader2 className="animate-spin" />}
             {createArea.isPending ? "Creating..." : "Create Area"}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

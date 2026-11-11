@@ -8,6 +8,8 @@ import { useLocation, useUpdateLocation } from "@/hooks/location/useLocation";
 import { useSelectedArea } from "@/components/area/AreaContext";
 import AreaSelect from "@/components/area/AreaSelect";
 import SectorSelect from "@/components/sectors/SectorSelect";
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 
 import type { LocationSectorId, UpdateLocationPayload } from "@/types/location";
 
@@ -27,6 +29,14 @@ type Props = {
   open?: boolean;
   onClose?: () => void;
 };
+
+const labelClasses = "mb-1.5 block text-sm font-medium text-slate-700";
+
+const inputClasses =
+  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/15";
+
+const selectWrapperClasses =
+  "flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 shadow-card transition-[border-color,box-shadow] hover:border-slate-300 focus-within:border-blue-500 focus-within:ring-3 focus-within:ring-blue-500/15";
 
 export default function UpdateLocationModal({
   id,
@@ -147,40 +157,43 @@ export default function UpdateLocationModal({
       aria-label={isModal ? "Update location" : undefined}
       className={
         isModal
-          ? "fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          ? "fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/40 p-3 backdrop-blur-[2px] animate-in fade-in duration-150 sm:p-6"
           : ""
       }
     >
       <div
-        className={
+        className={cn(
+          "w-full overflow-hidden rounded-xl border bg-white",
           isModal
-            ? "w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200"
-            : "w-full overflow-hidden rounded-3xl bg-white shadow-sm"
-        }
+            ? "relative my-auto max-w-2xl border-slate-200 shadow-pop animate-in fade-in zoom-in-95 duration-200"
+            : "border-slate-200/80 shadow-card",
+        )}
       >
         {/* HEADER */}
-        <div className="relative border-b border-slate-200 bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-6 text-white">
+        <div className="relative border-b border-slate-100 px-5 py-4 pr-14 sm:px-6">
           {isModal && (
             <button
               type="button"
               onClick={handleClose}
               disabled={isPending}
               aria-label="Close update location dialog"
-              className="absolute right-4 top-4 rounded-xl p-2 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+              className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <X size={20} />
+              <X size={16} />
             </button>
           )}
 
-          <div className="flex items-center gap-4">
-            <div className="rounded-2xl bg-white/20 p-3">
-              <MapPin size={28} />
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600">
+              <MapPin className="size-4" />
             </div>
 
-            <div>
-              <h2 className="text-2xl font-bold">Update Location</h2>
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-slate-900">
+                Update Location
+              </h2>
 
-              <p className="mt-1 text-sm text-blue-100">
+              <p className="mt-0.5 text-sm text-slate-500">
                 Modify location details and save your changes.
               </p>
             </div>
@@ -189,146 +202,123 @@ export default function UpdateLocationModal({
 
         {/* BODY */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 size={32} className="animate-spin text-blue-600" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="size-6 animate-spin text-blue-600" />
           </div>
         ) : isLocationError || !data ? (
-          <div className="space-y-4 p-6">
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="space-y-4 p-5 sm:p-6">
+            <div className="rounded-lg border border-red-200 bg-red-50/70 px-4 py-3 text-sm text-red-700">
               {locationError instanceof Error
                 ? locationError.message
                 : "This location is unavailable in the selected area."}
             </div>
             {isModal && (
               <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                >
+                <Button variant="secondary" onClick={handleClose}>
                   Close
-                </button>
+                </Button>
               </div>
             )}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6 p-6">
-            {isUpdateError && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-                {updateError?.message}
-              </div>
-            )}
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-5 p-5 sm:p-6">
+              {isUpdateError && (
+                <div className="rounded-lg border border-red-200 bg-red-50/70 px-4 py-3 text-sm text-red-700">
+                  {updateError?.message}
+                </div>
+              )}
 
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {/* NAME */}
-              <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Location Name *
-                </label>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {/* NAME */}
+                <div className="sm:col-span-2">
+                  <label className={labelClasses}>Location Name *</label>
 
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Enter location name"
-                  value={form.name}
-                  onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
-                  required
-                />
-              </div>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Enter location name"
+                    value={form.name}
+                    onChange={handleChange}
+                    className={inputClasses}
+                    required
+                  />
+                </div>
 
-              {/* ADDRESS */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Address
-                </label>
+                {/* ADDRESS */}
+                <div>
+                  <label className={labelClasses}>Address</label>
 
-                <input
-                  type="text"
-                  name="address"
-                  placeholder="Street / Area"
-                  value={form.address}
-                  onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
+                  <input
+                    type="text"
+                    name="address"
+                    placeholder="Street / Area"
+                    value={form.address}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </div>
 
-              {/* AREA */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Area *
-                </label>
+                {/* AREA */}
+                <div>
+                  <label className={labelClasses}>Area *</label>
 
-                <AreaSelect
-                  showLabel={false}
-                  value={selectedAreaId ?? ""}
-                  useGlobalSelection
-                  disabled
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
-                  required
-                />
-              </div>
+                  <AreaSelect
+                    showLabel={false}
+                    value={selectedAreaId ?? ""}
+                    useGlobalSelection
+                    disabled
+                    wrapperClassName={cn(selectWrapperClasses, "bg-slate-50")}
+                    required
+                  />
+                </div>
 
-              {/* SECTOR */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Sector *
-                </label>
+                {/* SECTOR */}
+                <div>
+                  <label className={labelClasses}>Sector *</label>
 
-                <SectorSelect
-                  showLabel={false}
-                  name="sector"
-                  areaId={selectedAreaId ?? undefined}
-                  value={form.sector}
-                  onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
-                  required
-                  disabled={!selectedAreaId || isPending}
-                />
-              </div>
+                  <SectorSelect
+                    showLabel={false}
+                    name="sector"
+                    areaId={selectedAreaId ?? undefined}
+                    value={form.sector}
+                    onChange={handleChange}
+                    wrapperClassName={selectWrapperClasses}
+                    required
+                    disabled={!selectedAreaId || isPending}
+                  />
+                </div>
 
-              {/* STATUS */}
-              <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Status
-                </label>
+                {/* STATUS */}
+                <div className="sm:col-span-2">
+                  <label className={labelClasses}>Status</label>
 
-                <select
-                  name="isActive"
-                  value={form.isActive ? "true" : "false"}
-                  onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
-                >
-                  <option value="true">Active</option>
-                  <option value="false">Inactive</option>
-                </select>
+                  <select
+                    name="isActive"
+                    value={form.isActive ? "true" : "false"}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  >
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                  </select>
+                </div>
               </div>
             </div>
+
             {/* FOOTER */}
-            <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
-              <button
-                type="button"
+            <div className="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3 sm:flex-row sm:justify-end sm:px-6">
+              <Button
+                variant="secondary"
                 onClick={handleClose}
                 disabled={isPending || !selectedAreaId || !form.sector}
-                className="rounded-2xl border border-slate-300 px-5 py-3 font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
-              </button>
+              </Button>
 
-              <button
-                type="submit"
-                disabled={isPending}
-                className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 size={18} className="mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save Changes"
-                )}
-              </button>
+              <Button type="submit" loading={isPending}>
+                {isPending ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </form>
         )}

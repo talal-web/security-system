@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download } from "lucide-react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/Button";
 import { exportFinesToExcel } from "@/utils/export/fine/fineExport";
 
 import type { Fine, FineFilters } from "@/types/fine";
@@ -38,18 +39,14 @@ export default function FineExportButton({
   };
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="secondary"
       onClick={handleExport}
-      disabled={isExporting || fines.length === 0}
-      className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+      loading={isExporting}
+      disabled={fines.length === 0}
     >
-      {isExporting ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Download className="h-4 w-4" />
-      )}
+      {!isExporting && <Download />}
       {isExporting ? "Exporting..." : "Export Excel"}
-    </button>
+    </Button>
   );
 }

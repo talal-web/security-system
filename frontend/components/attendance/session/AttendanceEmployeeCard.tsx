@@ -65,23 +65,23 @@ function getStatusStyles(status: AttendanceStatus) {
     case "absent":
       return {
         accent: "bg-red-500",
-        avatar: "bg-red-50 text-red-700",
+        avatar: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/15",
         border: "border-red-200",
       };
 
     case "leave":
       return {
         accent: "bg-amber-500",
-        avatar: "bg-amber-50 text-amber-700",
+        avatar: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/15",
         border: "border-amber-200",
       };
 
     case "present":
     default:
       return {
-        accent: "bg-blue-500",
-        avatar: "bg-blue-50 text-blue-700",
-        border: "border-blue-200",
+        accent: "bg-emerald-500",
+        avatar: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/15",
+        border: "border-slate-200/80",
       };
   }
 }
@@ -90,27 +90,27 @@ function getStatusButtonStyles(status: AttendanceStatus, isActive: boolean) {
   if (!isActive) {
     switch (status) {
       case "absent":
-        return "text-red-600 hover:bg-red-50";
+        return "text-slate-500 hover:bg-red-50 hover:text-red-700";
 
       case "leave":
-        return "text-amber-600 hover:bg-amber-50";
+        return "text-slate-500 hover:bg-amber-50 hover:text-amber-700";
 
       case "present":
       default:
-        return "text-blue-600 hover:bg-blue-50";
+        return "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700";
     }
   }
 
   switch (status) {
     case "absent":
-      return "bg-red-500 text-white shadow-sm";
+      return "bg-red-600 text-white shadow-sm";
 
     case "leave":
       return "bg-amber-500 text-white shadow-sm";
 
     case "present":
     default:
-      return "bg-blue-500 text-white shadow-sm";
+      return "bg-emerald-600 text-white shadow-sm";
   }
 }
 
@@ -118,7 +118,7 @@ function getShiftTagStyles(shift: AttendanceShift | null) {
   if (shift === "day") {
     return {
       wrapper:
-        "border-amber-300 bg-amber-100 text-amber-800 shadow-sm hover:border-amber-400 hover:bg-amber-200",
+        "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300 hover:bg-amber-100",
       icon: "text-amber-600",
       label: "Day",
     };
@@ -127,7 +127,7 @@ function getShiftTagStyles(shift: AttendanceShift | null) {
   if (shift === "night") {
     return {
       wrapper:
-        "border-indigo-700 bg-indigo-700 text-white shadow-sm hover:border-indigo-800 hover:bg-indigo-800",
+        "border-indigo-600 bg-indigo-600 text-white hover:border-indigo-700 hover:bg-indigo-700",
       icon: "text-indigo-100",
       label: "Night",
     };
@@ -212,9 +212,9 @@ export default function AttendanceEmployeeCard({
   return (
     <article
       className={[
-        "relative overflow-hidden rounded-lg border bg-white",
-        "shadow-sm transition-shadow duration-150",
-        "hover:shadow-md",
+        "relative overflow-hidden rounded-xl border bg-white",
+        "shadow-card transition-colors duration-150",
+        "hover:border-slate-300",
         styles.border,
       ].join(" ")}
     >
@@ -232,7 +232,7 @@ export default function AttendanceEmployeeCard({
           <div
             className={[
               "flex h-9 w-9 shrink-0 items-center justify-center",
-              "rounded-lg text-xs font-bold",
+              "rounded-lg text-xs font-semibold",
               styles.avatar,
             ].join(" ")}
           >
@@ -243,7 +243,7 @@ export default function AttendanceEmployeeCard({
           <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3">
             {/* Name + Father Name */}
             <div className="min-w-0">
-              <h3 className="truncate text-[13px] font-bold leading-4 text-slate-900">
+              <h3 className="truncate text-[13px] font-semibold leading-4 text-slate-900">
                 {employee.name}
               </h3>
 
@@ -254,7 +254,7 @@ export default function AttendanceEmployeeCard({
 
             {/* Employee ID + Designation */}
             <div className="min-w-0 text-right">
-              <p className="truncate font-mono text-[10px] font-bold leading-4 text-slate-700">
+              <p className="truncate font-mono text-[10px] font-semibold leading-4 text-slate-700">
                 {employee.empId}
               </p>
 
@@ -279,7 +279,7 @@ export default function AttendanceEmployeeCard({
               onChange={handleSectorChange}
               disabled={!isPresent}
               aria-label={`Sector for ${employee.name}`}
-              className="h-9 w-full cursor-pointer appearance-none rounded-md border border-slate-300 bg-white pl-8 pr-2.5 text-[11px] font-medium text-slate-700 outline-none transition hover:border-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+              className="h-9 w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white pl-8 pr-2.5 text-[11px] font-medium text-slate-700 outline-none transition hover:border-slate-300 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400"
             >
               <option value="">Select sector</option>
               {sectors.map((sector) => (
@@ -306,7 +306,7 @@ export default function AttendanceEmployeeCard({
               onChange={handleLocationChange}
               disabled={!isPresent}
               aria-label={`Location for ${employee.name}`}
-              className="h-9 w-full cursor-pointer appearance-none rounded-md border border-slate-300 bg-white pl-8 pr-2.5 text-[11px] font-medium text-slate-700 outline-none transition hover:border-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+              className="h-9 w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white pl-8 pr-2.5 text-[11px] font-medium text-slate-700 outline-none transition hover:border-slate-300 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400"
             >
               <option value="">
                 {isPresent ? "Select location" : "Location not required"}
@@ -329,7 +329,7 @@ export default function AttendanceEmployeeCard({
               STATUS: P / L / A
           ===================== */}
           <div
-            className="flex h-8 min-w-0 flex-1 overflow-hidden rounded-md border border-slate-200 bg-slate-50 p-0.5"
+            className="flex h-8 min-w-0 flex-1 gap-0.5 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-0.5"
             role="group"
             aria-label={`Status for ${employee.name}`}
           >
@@ -346,11 +346,11 @@ export default function AttendanceEmployeeCard({
                   aria-pressed={isActive}
                   className={[
                     "flex flex-1 items-center justify-center",
-                    "rounded-sm",
-                    "text-[11px] font-bold",
+                    "rounded-md",
+                    "text-[11px] font-semibold",
                     "transition-all duration-150",
                     "focus:z-10 focus:outline-none",
-                    "focus:ring-2 focus:ring-blue-200",
+                    "focus-visible:ring-2 focus-visible:ring-blue-500/40",
                     "active:scale-95",
                     getStatusButtonStyles(option.value, isActive),
                   ].join(" ")}
@@ -377,15 +377,15 @@ export default function AttendanceEmployeeCard({
             }
             aria-label={`Current shift: ${employee.shift ?? "not selected"}`}
             className={[
-              "flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-2.5",
-              "text-[10px] font-bold",
+              "flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5",
+              "text-[10px] font-semibold",
               "transition-all duration-150",
               "active:scale-95",
               isPresent
                 ? shiftStyles.wrapper
                 : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-300",
               isPresent
-                ? "focus:outline-none focus:ring-2 focus:ring-blue-200"
+                ? "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                 : "",
             ].join(" ")}
           >

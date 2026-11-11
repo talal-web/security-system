@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/Button";
 import { exportPayrollsToExcel } from "@/utils/export/payroll/PayrollExport";
 import type { Payroll, PayrollFilters } from "@/types/payroll";
 
@@ -35,18 +36,13 @@ export default function PayrollExportButton({
   };
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="secondary"
       onClick={handleExport}
       disabled={isExporting || !payrolls.length}
-      className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
     >
-      {isExporting ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Download className="h-4 w-4" />
-      )}
+      {isExporting ? <Loader2 className="animate-spin" /> : <Download />}
       {isExporting ? "Exporting..." : "Export Excel"}
-    </button>
+    </Button>
   );
 }

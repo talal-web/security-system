@@ -11,6 +11,8 @@ import LoginModal from "@/components/authentication/LoginModal";
 import { useMe } from "@/hooks/auth/useMe";
 import { useAreas } from "@/hooks/area/useArea";
 import { useSelectedArea } from "@/components/area/AreaContext";
+import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
 
 export default function HomePage() {
   return (
@@ -58,64 +60,68 @@ function HomePageContent() {
 
         {userData?.user && accessibleAreas.length > 0 && (
           <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
+                <p className="text-sm font-medium text-blue-600">
                   Area Workspace
                 </p>
-                <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                   Select an Area to continue
                 </h2>
               </div>
 
               {selectedAreaId && (
-                <Link
+                <ButtonLink
                   href={`/dashboard?area=${selectedAreaId}`}
-                  className="inline-flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                  variant="secondary"
                 >
                   Open selected Area
-                </Link>
+                </ButtonLink>
               )}
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {accessibleAreas.map((area) => (
                 <Link
                   key={area._id}
                   href={`/dashboard?area=${area._id}`}
-                  className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"
+                  className="group flex flex-col rounded-xl border border-slate-200/80 bg-white p-5 shadow-card transition-colors duration-200 hover:border-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                 >
-                  <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-blue-600 to-red-500" />
-
                   <div className="flex items-start justify-between gap-4">
-                    <div className="rounded-2xl bg-blue-50 p-3 text-blue-600">
-                      <Building2 className="h-6 w-6" />
+                    <div className="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-100">
+                      <Building2 className="size-5" />
                     </div>
 
-                    <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                    <Badge
+                      tone={
+                        userRole === "admin" || userRole === "developer"
+                          ? "info"
+                          : "neutral"
+                      }
+                    >
                       {userRole === "admin" || userRole === "developer"
                         ? "All Access"
                         : "Assigned"}
-                    </span>
+                    </Badge>
                   </div>
 
-                  <div className="mt-6">
-                    <h3 className="text-2xl font-bold text-slate-900">
+                  <div className="mt-5 flex-1">
+                    <h3 className="text-lg font-semibold tracking-tight text-slate-900">
                       {area.name}
                     </h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                    <p className="mt-1.5 text-sm leading-6 text-slate-500">
                       {area.description ||
                         "Operations area for employees, attendance, sectors, and locations."}
                     </p>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between text-sm font-medium text-slate-700">
+                  <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-sm font-medium text-slate-600">
                     <span className="inline-flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-red-500" />
+                      <MapPin className="h-4 w-4 text-slate-400" />
                       Area workspace
                     </span>
 
-                    <span className="inline-flex items-center gap-2 text-blue-600 transition group-hover:translate-x-1">
+                    <span className="inline-flex items-center gap-1.5 text-blue-600">
                       Open
                       <ShieldCheck className="h-4 w-4" />
                     </span>

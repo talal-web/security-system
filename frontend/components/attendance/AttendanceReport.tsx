@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download } from "lucide-react";
+import { CalendarDays, Download, Users } from "lucide-react";
 
 import { useAttendanceReport } from "@/hooks/attendance/useAttendanceReport";
 import { useAttendanceExport } from "@/hooks/attendance/useAttendanceExport";
@@ -12,6 +12,9 @@ import {
   getStatusStyle,
 } from "@/utils/attendance/attendanceStyles";
 import { getTodayDate } from "@/utils/attendance/date";
+import { Button } from "@/components/ui/Button";
+import { PageContainer, PageHeader } from "@/components/ui/PageHeader";
+import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
 
 import AttendanceEmployeeTable from "./view/AttendanceEmployeeTable";
 import AttendanceFilters from "./view/AttendanceFilters";
@@ -32,47 +35,50 @@ export default function AttendanceReport() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-100 items-center justify-center">
-        <p className="text-sm text-slate-500">Loading attendance report...</p>
-      </div>
+      <PageContainer>
+        <LoadingState title="Loading attendance report..." />
+      </PageContainer>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-        <p className="text-sm font-medium text-red-600">
-          {error.message || "Failed to load attendance."}
-        </p>
-      </div>
+      <PageContainer>
+        <ErrorState
+          description={error.message || "Failed to load attendance."}
+        />
+      </PageContainer>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <PageContainer>
+      <PageHeader
+        title="Attendance Report"
+        description="Workforce snapshot"
+        icon={CalendarDays}
+        actions={
+          <Button
+            onClick={() =>
+              exportAll({
+                globalStats,
+                presentSectors,
+                absentEmployees,
+                leaveEmployees,
+                date: filters.date ?? "",
+              })
+            }
+            disabled={isExporting}
+          >
+            <Download />
+            {isExporting ? "Exporting..." : "Export All"}
+          </Button>
+        }
+      />
+
       {globalStats && <AttendanceStats stats={globalStats} />}
 
       <AttendanceFilters filters={filters} setFilters={setFilters} />
-
-      <div className="flex items-center justify-end">
-        <button
-          type="button"
-          onClick={() =>
-            exportAll({
-              globalStats,
-              presentSectors,
-              absentEmployees,
-              leaveEmployees,
-              date: filters.date ?? "",
-            })
-          }
-          disabled={isExporting}
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-indigo-600 px-3 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Download className="size-3.5" />
-          {isExporting ? "Exporting..." : "Export All"}
-        </button>
-      </div>
 
       {presentSectors.length > 0 ? (
         <div className="space-y-4">
@@ -87,9 +93,10 @@ export default function AttendanceReport() {
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
-          No present employees found.
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No present employees found."
+        />
       )}
 
       {absentEmployees.length > 0 && (
@@ -107,6 +114,6 @@ export default function AttendanceReport() {
           employees={leaveEmployees}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

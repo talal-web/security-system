@@ -1,6 +1,9 @@
 "use client";
 
+import { Users } from "lucide-react";
+
 import AttendanceSectorCard from "./AttendanceSectorCard";
+import { EmptyState } from "@/components/ui/States";
 
 import type {
   AttendanceFormEmployee,
@@ -34,11 +37,11 @@ export default function AttendanceSectorList({
 }: AttendanceSectorListProps) {
   if (sectors.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-        <p className="text-sm text-slate-500">
-          No present employees matched the current filters.
-        </p>
-      </div>
+      <EmptyState
+        icon={Users}
+        title="No present employees"
+        description="No present employees matched the current filters."
+      />
     );
   }
 

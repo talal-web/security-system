@@ -1,3 +1,4 @@
+import { Card, CardHeader } from "@/components/ui/Card";
 import type { PayrollItem } from "@/types/payroll";
 
 export default function PayrollSourceItems({
@@ -9,23 +10,23 @@ export default function PayrollSourceItems({
 }) {
   if (!items.length) return null;
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="font-semibold text-slate-900">{title}</h2>
-      <ul className="mt-3 divide-y divide-slate-100">
+    <Card className="overflow-hidden">
+      <CardHeader title={title} />
+      <ul className="divide-y divide-slate-100">
         {items.map((item) => (
           <li
             key={item.source}
-            className="flex items-center justify-between py-2 text-sm"
+            className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm sm:px-5"
           >
-            <span className="font-mono text-xs text-slate-500">
+            <span className="min-w-0 truncate font-mono text-xs text-slate-500">
               {item.source}
             </span>
-            <span className="font-semibold text-slate-900">
+            <span className="shrink-0 text-right font-medium tabular-nums text-slate-900">
               Rs. {item.amount.toLocaleString()}
             </span>
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }

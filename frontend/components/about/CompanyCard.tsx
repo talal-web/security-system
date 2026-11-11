@@ -27,21 +27,17 @@ export default function CompanyCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="group relative overflow-hidden rounded-4xl border border-slate-200 bg-white shadow-lg shadow-slate-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group relative overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-card"
     >
-      {/* Background Glow */}
-      <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-blue-100/50 blur-3xl" />
-      <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-red-100/40 blur-3xl" />
-
       <div
-        className={`relative grid gap-8 p-6 sm:p-8 ${
+        className={`relative grid gap-6 p-4 sm:gap-8 sm:p-6 lg:p-8 ${
           reverse
             ? "lg:grid-cols-[1.05fr_0.95fr]"
             : "lg:grid-cols-[0.95fr_1.05fr]"
         } lg:items-center`}
       >
         <div
-          className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 ${
+          className={`relative overflow-hidden rounded-lg border border-slate-200 bg-slate-100 ${
             reverse ? "lg:order-2" : ""
           }`}
         >
@@ -50,18 +46,17 @@ export default function CompanyCard({
               src={company.coverImage}
               alt={company.companyName}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover"
             />
           </div>
 
-          <div className="absolute left-4 top-4 rounded-full border border-emerald-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-600">
-              {company.status}
-            </span>
+          <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-md bg-white/95 px-2 py-0.5 text-xs font-medium text-emerald-700 shadow-card ring-1 ring-inset ring-emerald-600/20 backdrop-blur sm:left-4 sm:top-4">
+            <span className="size-1.5 rounded-full bg-emerald-500" />
+            {company.status}
           </div>
 
           {/* Logo */}
-          <div className="absolute bottom-3 left-3 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-md sm:bottom-4 sm:left-4 sm:h-14 sm:w-14 sm:rounded-2xl lg:h-16 lg:w-16">
+          <div className="absolute bottom-3 left-3 flex h-12 w-12 items-center justify-center rounded-lg border border-slate-200 bg-white shadow-card sm:bottom-4 sm:left-4 sm:h-14 sm:w-14 lg:h-16 lg:w-16">
             <Image
               src={company.logo}
               alt={`${company.companyName} Logo`}
@@ -73,21 +68,21 @@ export default function CompanyCard({
         </div>
 
         <div className={reverse ? "lg:order-1" : ""}>
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-blue-600">
-            <ShieldCheck className="h-4 w-4" />
+          <div className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+            <ShieldCheck className="h-3.5 w-3.5" />
             Active Client
           </div>
 
-          <h2 className="mt-5 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
             {company.companyName}
           </h2>
 
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
             {company.description}
           </p>
 
           {/* Company Info */}
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <InfoItem
               icon={<MapPin className="h-5 w-5" />}
               title="Location"
@@ -114,12 +109,12 @@ export default function CompanyCard({
           </div>
 
           {/* Services */}
-          <div className="mt-8">
+          <div className="mt-6">
             <div className="flex flex-wrap gap-2">
               {company.services.map((service) => (
                 <span
                   key={service}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50"
+                  className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-500/15"
                 >
                   {service}
                 </span>
@@ -128,15 +123,17 @@ export default function CompanyCard({
           </div>
 
           {/* Statistics */}
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {company.stats.map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-2xl border border-slate-200 bg-white p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-md"
+                className="min-w-0 rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 text-center sm:p-4"
               >
-                <p className="text-sm font-black text-blue-600">{stat.value}</p>
+                <p className="break-words text-sm font-semibold text-slate-900">
+                  {stat.value}
+                </p>
 
-                <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">
+                <p className="mt-0.5 break-words text-xs text-slate-500">
                   {stat.label}
                 </p>
               </div>
@@ -158,15 +155,15 @@ function InfoItem({
   value: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-linear-to-br from-white to-slate-50 p-4 shadow-sm transition-all duration-300 hover:border-blue-200 hover:shadow-md">
-      <div className="rounded-xl bg-blue-100 p-2 text-blue-600">{icon}</div>
+    <div className="flex items-start gap-3 rounded-lg border border-slate-200/80 bg-white p-3 sm:p-4">
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-600 ring-1 ring-inset ring-slate-200 [&_svg]:size-4">
+        {icon}
+      </div>
 
-      <div>
-        <p className="text-xs uppercase tracking-wider text-slate-500">
-          {title}
-        </p>
+      <div className="min-w-0">
+        <p className="text-xs text-slate-500">{title}</p>
 
-        <p className="mt-1 font-medium text-slate-900">{value}</p>
+        <p className="mt-0.5 text-sm font-medium text-slate-900">{value}</p>
       </div>
     </div>
   );

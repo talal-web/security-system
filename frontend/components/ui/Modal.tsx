@@ -43,7 +43,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/55 p-3 backdrop-blur-sm sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/40 p-3 backdrop-blur-[2px] animate-in fade-in duration-150 sm:p-6"
       onClick={onClose}
     >
       <div
@@ -51,20 +51,20 @@ export default function Modal({
         aria-modal="true"
         aria-label={title ?? "Dialog"}
         onClick={(e) => e.stopPropagation()}
-        className={`relative my-auto max-h-[calc(100dvh-1.5rem)] w-full overflow-y-auto ${size === "2xl" ? "max-w-xl" : "max-w-md"} rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:max-h-[calc(100dvh-3rem)] sm:rounded-3xl`}
+        className={`relative my-auto max-h-[calc(100dvh-1.5rem)] w-full overflow-y-auto ${size === "2xl" ? "max-w-xl" : "max-w-md"} rounded-xl border border-slate-200 bg-white shadow-pop animate-in fade-in zoom-in-95 duration-200 sm:max-h-[calc(100dvh-3rem)]`}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="Close dialog"
-          className="absolute right-4 top-4 rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-black"
+          className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
         >
-          <X size={20} />
+          <X size={16} />
         </button>
 
         {title && (
-          <div className="border-b border-slate-100 px-5 py-4 pr-14 sm:px-6 sm:py-5">
-            <h2 className="text-lg font-bold leading-6 text-slate-950 sm:text-xl">{title}</h2>
+          <div className="border-b border-slate-100 px-5 py-4 pr-14 sm:px-6">
+            <h2 className="text-base font-semibold leading-6 text-slate-900">{title}</h2>
           </div>
         )}
 

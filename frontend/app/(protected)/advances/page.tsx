@@ -10,6 +10,8 @@ import AdvanceFilters from "@/components/advance/AdvanceFilters";
 import AdvanceHistory from "@/components/advance/AdvanceHistory";
 import AdvanceSummary from "@/components/advance/AdvanceSummary";
 import AdvanceHeader from "@/components/advance/AdvanceHeader";
+import { PageContainer } from "@/components/ui/PageHeader";
+import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
 
 import { useMe } from "@/hooks/auth/useMe";
 import { useAdvances, useCancelAdvance } from "@/hooks/advance/useAdvance";
@@ -73,7 +75,7 @@ export default function AdvancesPage() {
     <ProtectedRoute
       allowedRoles={["developer", "admin", "clerk", "supervisor"]}
     >
-      <main className="space-y-6 p-4 sm:p-6">
+      <PageContainer>
         <AdvanceHeader
           advances={advances}
           filters={filters}
@@ -85,18 +87,10 @@ export default function AdvancesPage() {
         <AdvanceFilters filters={filters} onChange={setFilters} />
 
         {/* Loading */}
-        {isLoading && (
-          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <p className="text-sm text-slate-500">Loading advances...</p>
-          </div>
-        )}
+        {isLoading && <LoadingState title="Loading advances..." />}
 
         {/* Error */}
-        {isError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-            <p className="text-sm text-red-600">{error.message}</p>
-          </div>
-        )}
+        {isError && <ErrorState title={error.message} />}
 
         {/* Results */}
         {!isLoading && !isError && (
@@ -104,11 +98,7 @@ export default function AdvancesPage() {
             <AdvanceSummary advances={advances} />
 
             {advances.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-white p-8 text-center shadow-sm">
-                <p className="text-sm text-slate-500">
-                  No advance records found.
-                </p>
-              </div>
+              <EmptyState title="No advance records found." />
             ) : (
               <AdvanceHistory
                 advances={advances}
@@ -144,7 +134,7 @@ export default function AdvancesPage() {
           onConfirm={confirmCancel}
           onClose={() => setCancellingAdvance(null)}
         />
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

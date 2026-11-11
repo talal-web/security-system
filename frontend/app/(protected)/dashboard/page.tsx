@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useMe } from "@/hooks/auth/useMe";
 import { useSelectedArea } from "@/components/area/AreaContext";
+import { FullPageLoader } from "@/components/ui/States";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -59,13 +60,5 @@ export default function DashboardPage() {
     router,
   ]);
 
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center px-4">
-      <div className="rounded-2xl border border-slate-200 bg-white px-6 py-6 text-center shadow-sm">
-        <p className="text-lg font-semibold text-slate-900">
-          Loading area dashboard...
-        </p>
-      </div>
-    </div>
-  );
+  return <FullPageLoader label="Loading area dashboard..." />;
 }

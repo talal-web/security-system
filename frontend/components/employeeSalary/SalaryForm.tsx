@@ -13,6 +13,20 @@ import type {
   SalaryChangeReason,
 } from "@/types/employeeSalary";
 import { getApiErrorMessage } from "@/lib/apiError";
+import { Pencil, Plus } from "lucide-react";
+
+import { Button } from "@/components/ui/Button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/Card";
+
+const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
+
+const fieldClass =
+  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card outline-none transition-[border-color,box-shadow] hover:border-slate-300 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15";
 
 interface SalaryFormProps {
   employeeId: string;
@@ -131,25 +145,22 @@ export default function SalaryForm({
   const isPending = mutation.isPending;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="rounded-xl border bg-white p-5 shadow-sm"
-    >
-      <div className="mb-5">
-        <h2 className="text-lg font-semibold text-slate-900">
-          {isEditing ? "Correct Salary" : "Add Salary"}
-        </h2>
-
-        <p className="mt-1 text-sm text-slate-500">
-          {isEditing
+    <form onSubmit={handleSubmit}>
+      <Card>
+      <CardHeader
+        icon={isEditing ? Pencil : Plus}
+        title={isEditing ? "Correct Salary" : "Add Salary"}
+        description={
+          isEditing
             ? "Correct an existing salary record."
-            : "Add a new salary effective from a future month."}
-        </p>
-      </div>
+            : "Add a new salary effective from a future month."
+        }
+      />
 
+      <CardContent>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label className={labelClass}>
             Monthly Salary
           </label>
 
@@ -160,12 +171,12 @@ export default function SalaryForm({
             value={monthlySalary}
             onChange={(e) => setMonthlySalary(e.target.value)}
             required
-            className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className={fieldClass}
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label className={labelClass}>
             Effective From
           </label>
 
@@ -174,7 +185,7 @@ export default function SalaryForm({
             value={effectiveFrom}
             onChange={(e) => setEffectiveFrom(e.target.value)}
             required
-            className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className={fieldClass}
           />
 
           <p className="mt-1 text-xs text-slate-500">
@@ -183,12 +194,12 @@ export default function SalaryForm({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Reason</label>
+          <label className={labelClass}>Reason</label>
 
           <select
             value={reason}
             onChange={(e) => setReason(e.target.value as SalaryChangeReason)}
-            className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className={fieldClass}
           >
             {reasons.map((item) => (
               <option key={item.value} value={item.value}>
@@ -199,45 +210,42 @@ export default function SalaryForm({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Notes</label>
+          <label className={labelClass}>Notes</label>
 
           <input
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             maxLength={500}
-            className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className={fieldClass}
           />
         </div>
       </div>
+      </CardContent>
 
-      <div className="mt-5 flex justify-end gap-3">
+      <CardFooter className="flex-wrap rounded-b-xl">
         {formError && (
-          <p className="mr-auto self-center text-sm text-red-600" role="alert">
+          <p
+            className="mr-auto basis-full self-center text-sm font-medium text-red-600 sm:basis-auto"
+            role="alert"
+          >
             {formError}
           </p>
         )}
 
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-slate-50"
-        >
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isPending}>
           {isPending
             ? "Saving..."
             : isEditing
               ? "Save Correction"
               : "Add Salary"}
-        </button>
-      </div>
+        </Button>
+      </CardFooter>
+      </Card>
     </form>
   );
 }

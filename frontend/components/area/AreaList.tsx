@@ -1,7 +1,13 @@
 "use client";
 
+import { MapPin } from "lucide-react";
+
 import { useAreas } from "@/hooks/area/useArea";
 import AreaActions from "@/components/area/AreaActions";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
 import type { Area } from "@/types/area";
 
 export default function AreaList() {
@@ -10,89 +16,71 @@ export default function AreaList() {
   const areas: Area[] = Array.isArray(data) ? data : [];
 
   if (isPending) {
-    return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6">
-        <p className="text-sm text-slate-500">Loading areas...</p>
-      </div>
-    );
+    return <LoadingState title="Loading areas..." />;
   }
 
   if (isError) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <p className="text-sm text-red-600">
-          {error instanceof Error ? error.message : "Failed to load areas."}
-        </p>
-
-        <button
-          onClick={() => refetch()}
-          className="mt-3 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-        >
-          Try again
-        </button>
-      </div>
+      <ErrorState
+        title={error instanceof Error ? error.message : "Failed to load areas."}
+        action={
+          <Button variant="danger" size="sm" onClick={() => refetch()}>
+            Try again
+          </Button>
+        }
+      />
     );
   }
 
   if (areas.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-        <h3 className="font-semibold text-slate-800">No areas found</h3>
-        <p className="mt-1 text-sm text-slate-500">
-          Add your first area to get started.
-        </p>
-      </div>
+      <EmptyState
+        icon={MapPin}
+        title="No areas found"
+        description="Add your first area to get started."
+      />
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <Card className="overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">Areas</h2>
-          <p className="text-sm text-slate-500">Manage your operational areas</p>
-        </div>
-
-        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
-          {areas.length} total
-        </span>
-      </div>
+      <CardHeader
+        className="items-center"
+        title="Areas"
+        description="Manage your operational areas"
+        icon={MapPin}
+        actions={<Badge tone="info">{areas.length} total</Badge>}
+      />
 
       {/* Area list */}
       <div className="divide-y divide-slate-100">
         {areas.map((area: Area) => (
           <div
             key={area._id}
-            className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-3 px-4 py-3.5 transition-colors hover:bg-slate-50/60 sm:flex-row sm:items-center sm:justify-between sm:px-5"
           >
             {/* Area details */}
             <div className="min-w-0">
-              <h3 className="truncate font-medium text-slate-900">
+              <h3 className="truncate text-sm font-medium text-slate-900">
                 {area.name}
               </h3>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-0.5 text-sm text-slate-500">
                 {area.description || "No description provided"}
               </p>
             </div>
 
             {/* Status and actions */}
-            <div className="flex flex-wrap items-center gap-3">
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  area.isActive
-                    ? "bg-green-50 text-green-700"
-                    : "bg-slate-100 text-slate-600"
-                }`}
-              >
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
+              <Badge tone={area.isActive ? "success" : "neutral"} dot>
                 {area.isActive ? "Active" : "Inactive"}
-              </span>
+              </Badge>
               <AreaActions area={area} />
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

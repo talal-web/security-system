@@ -1,12 +1,13 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /*
- * Semantic color tokens. The app's primary accent is blue (the color most
- * forms/dialogs/buttons already use); Payroll was migrated off emerald to
- * match it. Status tones here mirror utils/ui/statusColors.ts — keep both in
- * sync when changing a tone. These generate bg-brand-NAME, text-brand-NAME,
- * border-brand-NAME, etc. utility classes for new code to use instead of
- * hardcoding a palette color.
+ * Design tokens.
+ *
+ * The app's primary accent is blue; neutrals are slate. Status tones here
+ * mirror utils/ui/statusColors.ts — keep both in sync when changing a tone.
+ * These generate bg-brand-NAME, text-brand-NAME, border-brand-NAME, etc.
+ * utility classes. See DESIGN.md for how the components use them.
  */
 /* Tailwind CSS v4 theme directive; not a standard CSS at-rule. */
 /* stylelint-disable at-rule-no-unknown */
@@ -18,4 +19,54 @@
   --color-brand-danger: var(--color-red-600);
   --color-brand-info: var(--color-blue-600);
   --color-brand-neutral: var(--color-slate-600);
+
+  /* App surfaces */
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-sidebar: #0b1220;
+  --color-sidebar-muted: #131c2e;
+
+  /* Soft, layered elevation (Linear/Stripe-like) */
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.03);
+  --shadow-pop: 0 10px 30px -10px rgb(15 23 42 / 0.25), 0 4px 10px -6px rgb(15 23 42 / 0.12);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::selection {
+    background-color: rgb(37 99 235 / 0.18);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-blue-500);
+    outline-offset: 2px;
+  }
+
+  /* Numbers in tables line up column-wise */
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Thin, unobtrusive scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 0.5) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }

@@ -1,8 +1,7 @@
 "use client";
 
-import { Clock3 } from "lucide-react";
+import { Activity, CalendarDays, UserPlus, WalletCards } from "lucide-react";
 
-import CardHeading from "@/components/admin/shared/CardHeading";
 import CompactLink from "@/components/admin/cards/CompactLink";
 import StatusItem from "@/components/admin/cards/StatusItem";
 import {
@@ -12,90 +11,70 @@ import {
   systemStatus,
 } from "@/components/admin/dashboard.config";
 import { useSelectedArea } from "@/components/area/AreaContext";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import type { DashboardSidebarLink } from "@/components/admin/dashboard.types";
 
-export default function DashboardSidebar() {
+function LinkCard({
+  title,
+  description,
+  icon,
+  links,
+}: {
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  links: DashboardSidebarLink[];
+}) {
   const { getAreaAwareHref } = useSelectedArea();
 
   return (
+    <Card>
+      <CardHeader title={title} description={description} icon={icon} />
+      <CardContent className="p-2 sm:p-2">
+        {links.map((link) => (
+          <CompactLink key={link.label} {...link} href={getAreaAwareHref(link.href)} />
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function DashboardSidebar() {
+  return (
     <aside className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">System Status</h2>
+      <LinkCard
+        title="Attendance"
+        description="Operations & reporting"
+        icon={CalendarDays}
+        links={attendanceLinks}
+      />
 
-            <p className="mt-0.5 text-[11px] text-slate-500">
-              Core platform services
-            </p>
-          </div>
+      <LinkCard
+        title="Payroll & finance"
+        description="Salary-related operations"
+        icon={WalletCards}
+        links={payrollLinks}
+      />
 
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-            <Clock3 className="h-4 w-4" />
-          </div>
-        </div>
+      <LinkCard
+        title="Quick admin"
+        description="Common creation actions"
+        icon={UserPlus}
+        links={quickAdminLinks}
+      />
 
-        <div className="mt-4 space-y-1.5">
+      <Card>
+        <CardHeader
+          title="System status"
+          description="Core platform services"
+          icon={Activity}
+        />
+        <CardContent className="py-2 sm:py-2">
           {systemStatus.map((label) => (
             <StatusItem key={label} label={label} />
           ))}
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <CardHeading
-          title="Attendance"
-          description="Operations & reporting"
-          icon={attendanceLinks[0].icon}
-          tone="blue"
-        />
-
-        <div className="mt-3 space-y-1.5">
-          {attendanceLinks.map((link) => (
-            <CompactLink
-              key={link.label}
-              {...link}
-              href={getAreaAwareHref(link.href)}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <CardHeading
-          title="Payroll & Finance"
-          description="Salary-related operations"
-          icon={payrollLinks[0].icon}
-          tone="violet"
-        />
-
-        <div className="mt-3 space-y-1.5">
-          {payrollLinks.map((link) => (
-            <CompactLink
-              key={link.label}
-              {...link}
-              href={getAreaAwareHref(link.href)}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <CardHeading
-          title="Quick Admin"
-          description="Common creation actions"
-          icon={quickAdminLinks[0].icon}
-          tone="slate"
-        />
-
-        <div className="mt-3 space-y-1.5">
-          {quickAdminLinks.map((link) => (
-            <CompactLink
-              key={link.label}
-              {...link}
-              href={getAreaAwareHref(link.href)}
-            />
-          ))}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </aside>
   );
 }

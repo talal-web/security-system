@@ -12,6 +12,22 @@ import { getApiErrorMessage } from "@/lib/apiError";
 import AreaSelect from "@/components/area/AreaSelect";
 import { useSelectedArea } from "@/components/area/AreaContext";
 import type { CreateSectorPayload } from "@/types/sector";
+import { Layers } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/Card";
+
+const labelClasses = "mb-1.5 block text-sm font-medium text-slate-700";
+
+const inputClasses =
+  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/15";
+
+const textareaClasses =
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-card outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/15";
+
+const selectWrapperClasses =
+  "flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 shadow-card transition-[border-color,box-shadow] hover:border-slate-300 focus-within:border-blue-500 focus-within:ring-3 focus-within:ring-blue-500/15";
+
+const errorClasses = "mt-1 text-xs font-medium text-red-600";
 
 const sectorSchema = z.object({
   area: z.string().min(1, "Area is required"),
@@ -89,76 +105,86 @@ export default function CreateSectorForm() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-2xl rounded-xl border bg-white p-6 shadow-sm">
-      <h1 className="mb-6 text-2xl font-bold">Create Sector</h1>
+    <Card className="mx-auto w-full max-w-2xl">
+      <CardHeader title="Create Sector" icon={Layers} />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <AreaSelect
-          showLabel={true}
-          label="Area"
-          placeholder="Select an area"
-          useGlobalSelection
-          value={area ?? ""}
-          onChange={(event) => setValue("area", event.target.value)}
-          className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"
-        />
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardContent className="space-y-5">
+          <div>
+            <AreaSelect
+              showLabel={true}
+              label="Area"
+              placeholder="Select an area"
+              useGlobalSelection
+              value={area ?? ""}
+              onChange={(event) => setValue("area", event.target.value)}
+              wrapperClassName={selectWrapperClasses}
+            />
 
-        {errors.area && (
-          <p className="text-sm text-red-500">{errors.area.message}</p>
-        )}
+            {errors.area && (
+              <p className={errorClasses}>{errors.area.message}</p>
+            )}
+          </div>
 
-        {/* Name */}
-        <div>
-          <label className="mb-2 block text-sm font-medium">Sector Name</label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Name */}
+            <div>
+              <label className={labelClasses}>Sector Name</label>
 
-          <input
-            {...register("name")}
-            className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"
-            placeholder="Zone 1 A"
-          />
+              <input
+                {...register("name")}
+                className={inputClasses}
+                placeholder="Zone 1 A"
+              />
 
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
-          )}
-        </div>
+              {errors.name && (
+                <p className={errorClasses}>{errors.name.message}</p>
+              )}
+            </div>
 
-        {/* Code */}
-        <div>
-          <label className="mb-2 block text-sm font-medium">Sector Code</label>
+            {/* Code */}
+            <div>
+              <label className={labelClasses}>Sector Code</label>
 
-          <input {...register("code")} placeholder="ZONE_1_A" />
+              <input
+                {...register("code")}
+                className={`${inputClasses} font-mono`}
+                placeholder="ZONE_1_A"
+              />
 
-          {errors.code && (
-            <p className="mt-1 text-sm text-red-500">{errors.code.message}</p>
-          )}
-        </div>
+              {errors.code && (
+                <p className={errorClasses}>{errors.code.message}</p>
+              )}
+            </div>
+          </div>
 
-        {/* Description */}
-        <div>
-          <label className="mb-2 block text-sm font-medium">Description</label>
+          {/* Description */}
+          <div>
+            <label className={labelClasses}>Description</label>
 
-          <textarea
-            {...register("description")}
-            rows={4}
-            className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"
-            placeholder="Optional description..."
-          />
+            <textarea
+              {...register("description")}
+              rows={4}
+              className={textareaClasses}
+              placeholder="Optional description..."
+            />
 
-          {errors.description && (
-            <p className="mt-1 text-sm text-red-500">
-              {errors.description.message}
-            </p>
-          )}
-        </div>
+            {errors.description && (
+              <p className={errorClasses}>{errors.description.message}</p>
+            )}
+          </div>
+        </CardContent>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isPending ? "Creating..." : "Create Sector"}
-        </button>
+        <CardFooter>
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full sm:w-auto"
+          >
+            {isPending ? "Creating..." : "Create Sector"}
+          </Button>
+        </CardFooter>
       </form>
-    </div>
+    </Card>
   );
 }

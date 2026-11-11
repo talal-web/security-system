@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 
-import { Phone, ShieldCheck, BadgeCheck, User } from "lucide-react";
+import { Phone, ShieldCheck, User, Eye, Pencil } from "lucide-react";
 
 import { useSelectedArea } from "@/components/area/AreaContext";
+import { ButtonLink } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { Employee } from "@/types/employee";
 import { formatText } from "@/utils/employee/employeeFormat";
 
@@ -16,89 +17,86 @@ type EmployeeCardProps = {
 export default function EmployeeCard({ employee }: EmployeeCardProps) {
   const { getAreaAwareHref } = useSelectedArea();
 
+  const statusTone = employee.status === "active" ? "success" : "danger";
+
   return (
-    <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-lg">
+    <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-card transition-colors hover:border-slate-300">
       {/* ================= DESKTOP CARD ================= */}
-      <div className="hidden sm:block">
+      <div className="hidden h-full flex-col p-5 sm:flex">
         {/* TOP */}
-        <div className="relative h-28 bg-linear-to-r from-slate-900 to-slate-800">
-          {/* STATUS */}
-          <div className="absolute right-3 top-3">
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-                employee.status === "active"
-                  ? "bg-green-500/20 text-green-300"
-                  : "bg-red-500/20 text-red-300"
-              }`}
-            >
-              <BadgeCheck className="h-3 w-3" />
-              {formatText(employee.status)}
-            </span>
+        <div className="flex items-start justify-between gap-3">
+          {/* IMAGE */}
+          <div className="size-14 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+            {employee.profileImage ? (
+              <Image
+                src={employee.profileImage}
+                alt={employee.name}
+                width={80}
+                height={80}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <User className="size-6 text-slate-400" />
+              </div>
+            )}
           </div>
 
-          {/* IMAGE */}
-          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
-            <div className="h-20 w-20 overflow-hidden rounded-2xl border-4 border-white bg-slate-100">
-              {employee.profileImage ? (
-                <Image
-                  src={employee.profileImage}
-                  alt={employee.name}
-                  width={80}
-                  height={80}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <User className="h-8 w-8 text-slate-400" />
-                </div>
-              )}
-            </div>
-          </div>
+          {/* STATUS */}
+          <Badge tone={statusTone} dot>
+            {formatText(employee.status)}
+          </Badge>
         </div>
 
         {/* BODY */}
-        <div className="px-5 pb-5 pt-12 text-center">
-          <h2 className="text-lg font-bold text-slate-900">
+        <div className="mt-4 min-w-0">
+          <h2 className="truncate text-sm font-semibold text-slate-900">
             {formatText(employee.name)}
           </h2>
 
-          <p className="text-sm text-slate-500">
+          <p className="mt-0.5 truncate text-xs text-slate-500">
             S/O {formatText(employee.fatherName)}
           </p>
+        </div>
 
-          <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-1.5 text-sm font-medium">
-            <ShieldCheck className="h-4 w-4" />
-            {formatText(employee.designation)}
+        <div className="mt-4 space-y-2 text-sm text-slate-600">
+          <div className="flex min-w-0 items-center gap-2">
+            <ShieldCheck className="size-4 shrink-0 text-slate-400" />
+            <span className="truncate">{formatText(employee.designation)}</span>
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-2 text-sm text-slate-600">
-            <Phone className="h-4 w-4" />
-            {employee.phone1}
+          <div className="flex min-w-0 items-center gap-2">
+            <Phone className="size-4 shrink-0 text-slate-400" />
+            <span className="truncate tabular-nums">{employee.phone1}</span>
           </div>
+        </div>
 
-          {/* ACTIONS */}
-          <div className="mt-5 flex gap-2">
-            <Link
-              href={getAreaAwareHref(`/employees/${employee._id}`)}
-              className="flex-1 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
-            >
-              View
-            </Link>
+        {/* ACTIONS */}
+        <div className="mt-5 flex gap-2 border-t border-slate-100 pt-4">
+          <ButtonLink
+            href={getAreaAwareHref(`/employees/${employee._id}`)}
+            variant="secondary"
+            size="sm"
+            className="flex-1"
+          >
+            View
+          </ButtonLink>
 
-            <Link
-              href={getAreaAwareHref(`/employees/${employee._id}/edit`)}
-              className="flex-1 rounded-xl border px-3 py-2 text-sm font-semibold"
-            >
-              Edit
-            </Link>
-          </div>
+          <ButtonLink
+            href={getAreaAwareHref(`/employees/${employee._id}/edit`)}
+            variant="secondary"
+            size="sm"
+            className="flex-1"
+          >
+            Edit
+          </ButtonLink>
         </div>
       </div>
 
       {/* ================= MOBILE CARD ================= */}
-      <div className="flex items-center gap-2.5 p-2.5 sm:hidden">
+      <div className="flex items-center gap-3 p-3 sm:hidden">
         {/* AVATAR */}
-        <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+        <div className="size-10 shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
           {employee.profileImage ? (
             <Image
               src={employee.profileImage}
@@ -109,7 +107,7 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <User className="h-5 w-5 text-slate-400" />
+              <User className="size-5 text-slate-400" />
             </div>
           )}
         </div>
@@ -118,13 +116,13 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
         <div className="min-w-0 flex-1">
           {/* NAME + STATUS */}
           <div className="flex min-w-0 items-center gap-1.5">
-            <h2 className="min-w-0 truncate text-xs font-semibold text-slate-900">
+            <h2 className="min-w-0 truncate text-sm font-medium text-slate-900">
               {formatText(employee.name)}
             </h2>
           </div>
 
           {/* DESIGNATION + PHONE */}
-          <div className="mt-0.5 flex min-w-0 items-center gap-2 text-[9px] text-slate-500">
+          <div className="mt-0.5 flex min-w-0 items-center gap-2 text-xs text-slate-500">
             <span className="truncate">{formatText(employee.designation)}</span>
           </div>
         </div>
@@ -132,44 +130,26 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
         {/* ACTION ICONS */}
         <div className="flex shrink-0 items-center gap-1">
           {/* VIEW */}
-          <Link
+          <ButtonLink
             href={getAreaAwareHref(`/employees/${employee._id}`)}
             title="View Employee"
             aria-label="View Employee"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
+            variant="secondary"
+            size="icon-sm"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="h-3.5 w-3.5"
-            >
-              <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-              <circle cx="12" cy="12" r="2.5" />
-            </svg>
-          </Link>
+            <Eye />
+          </ButtonLink>
 
           {/* EDIT */}
-          <Link
+          <ButtonLink
             href={getAreaAwareHref(`/employees/${employee._id}/edit`)}
             title="Edit Employee"
             aria-label="Edit Employee"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800"
+            variant="ghost"
+            size="icon-sm"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="h-3.5 w-3.5"
-            >
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
-            </svg>
-          </Link>
+            <Pencil />
+          </ButtonLink>
         </div>
       </div>
     </div>

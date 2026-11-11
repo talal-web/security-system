@@ -9,6 +9,7 @@ import type { Area } from "@/types/area";
 
 import AreaEditModal from "@/components/area/AreaEditModal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import { Button } from "@/components/ui/Button";
 
 interface AreaActionsProps {
   area: Area;
@@ -35,26 +36,26 @@ export default function AreaActions({ area }: AreaActionsProps) {
   return (
     <>
       <div className="flex items-center gap-2">
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => setEditOpen(true)}
           aria-label={`Edit ${area.name}`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
-          <Pencil size={15} />
+          <Pencil />
           <span>Edit</span>
-        </button>
+        </Button>
 
-        <button
-          type="button"
+        <Button
+          variant="danger-soft"
+          size="sm"
           onClick={() => setConfirmOpen(true)}
           disabled={deleteMutation.isPending}
           aria-label={`Delete ${area.name}`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Trash2 size={15} />
+          <Trash2 />
           <span>Delete</span>
-        </button>
+        </Button>
       </div>
 
       <AreaEditModal

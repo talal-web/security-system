@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import type { Fine } from "@/types/fine";
 
@@ -29,38 +30,40 @@ export default function FineConfirmModal({
       <div className="space-y-5">
         <p className="text-sm leading-6 text-slate-600">
           Are you sure you want to cancel this fine of{" "}
-          <span className="font-semibold text-slate-900">
+          <span className="font-semibold tabular-nums text-slate-900">
             Rs. {fine.amount.toLocaleString()}
           </span>
           ?
         </p>
 
-        <div className="rounded-xl bg-slate-50 p-4 text-sm">
-          <p className="font-medium text-slate-900">{fine.reason}</p>
+        <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+          <p className="break-words text-sm font-medium text-slate-900">
+            {fine.reason}
+          </p>
 
-          <p className="mt-1 text-slate-500">
+          <p className="mt-1 text-xs leading-5 text-slate-500">
             This action is only available before any deduction.
           </p>
         </div>
 
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button
-            type="button"
+        <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+          <Button
+            variant="secondary"
             onClick={onClose}
             disabled={loading}
-            className="w-full rounded-xl border px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:w-auto"
+            className="w-full sm:w-auto"
           >
             Keep Fine
-          </button>
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="danger"
             onClick={onConfirm}
             disabled={loading}
-            className="w-full rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 sm:w-auto"
+            className="w-full sm:w-auto"
           >
             {loading ? "Cancelling..." : "Cancel Fine"}
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

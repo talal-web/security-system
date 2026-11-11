@@ -3,8 +3,12 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import Modal from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 import { useMarkPayrollAsPaid } from "@/hooks/payroll/usePayroll";
 import type { PayrollPaymentMethod } from "@/types/payroll";
+
+const fieldClass =
+  "mt-1.5 h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-900 shadow-card placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15";
 
 export default function MarkPayrollPaidDialog({
   open,
@@ -51,7 +55,7 @@ export default function MarkPayrollPaidDialog({
             onChange={(event) =>
               setPaymentMethod(event.target.value as PayrollPaymentMethod)
             }
-            className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+            className={fieldClass}
           >
             <option value="cash">Cash</option>
             <option value="bank_transfer">Bank transfer</option>
@@ -67,17 +71,14 @@ export default function MarkPayrollPaidDialog({
               setError("");
             }}
             required
-            className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+            className={fieldClass}
             placeholder="Receipt, transfer, or voucher number"
           />
         </label>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          disabled={mutation.isPending}
-          className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-        >
+        <Button type="submit" disabled={mutation.isPending} className="w-full">
           {mutation.isPending ? "Saving..." : "Mark paid"}
-        </button>
+        </Button>
       </form>
     </Modal>
   );

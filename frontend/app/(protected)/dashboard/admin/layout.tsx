@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useMe } from "@/hooks/auth/useMe";
+import { FullPageLoader } from "@/components/ui/States";
 
 export default function AdminLayout({
   children,
@@ -28,13 +29,7 @@ export default function AdminLayout({
   }, [isLoading, role, router, unauthorizedUrl]);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm font-medium text-slate-600">
-          Loading admin panel...
-        </p>
-      </div>
-    );
+    return <FullPageLoader label="Loading admin panel..." />;
   }
 
   if (role !== "admin" && role !== "developer") {

@@ -37,13 +37,13 @@ export default function Select({
 }: SelectProps) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-slate-700">
+      <label className="mb-1.5 block text-sm font-medium text-slate-700">
         {label}
       </label>
 
       <div
-        className={`flex h-11 items-center gap-2 rounded-xl border px-3 transition-colors focus-within:border-orange-500 ${
-          error ? "border-red-500 bg-red-50" : "border-slate-200 bg-slate-50"
+        className={`flex h-10 items-center gap-2 rounded-lg border bg-white px-3 shadow-card transition-[border-color,box-shadow] focus-within:border-blue-500 focus-within:ring-3 focus-within:ring-blue-500/15 ${
+          error ? "border-red-400 focus-within:border-red-500 focus-within:ring-red-500/15" : "border-slate-200 hover:border-slate-300"
         }`}
       >
         {icon && (

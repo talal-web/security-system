@@ -4,6 +4,7 @@ import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/Button";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { useRecalculateMonthlyPayroll } from "@/hooks/payroll/usePayroll";
 
@@ -57,17 +58,14 @@ export default function RecalculateMonthlyPayrollButton({
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        variant="secondary"
         onClick={() => setConfirmOpen(true)}
         disabled={mutation.isPending}
-        className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <RefreshCw
-          className={`h-4 w-4 ${mutation.isPending ? "animate-spin" : ""}`}
-        />
+        <RefreshCw className={mutation.isPending ? "animate-spin" : undefined} />
         {mutation.isPending ? "Recalculating..." : "Recalculate All"}
-      </button>
+      </Button>
 
       <ConfirmationModal
         open={confirmOpen}

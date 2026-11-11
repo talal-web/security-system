@@ -14,12 +14,12 @@ interface EmployeeHeaderProps {
 
 export default function EmployeeHeader({ employee }: EmployeeHeaderProps) {
   return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <div className="grid gap-5 lg:grid-cols-[auto_1fr] lg:items-start">
+    <header className="rounded-xl border border-slate-200/80 bg-white shadow-card">
+      <div className="p-4 sm:p-5 lg:p-6">
+        <div className="grid gap-5 sm:grid-cols-[auto_1fr] sm:items-start">
           {/* Avatar */}
-          <div className="flex justify-center lg:block">
-            <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-slate-100 bg-slate-100 shadow-sm sm:h-28 sm:w-28">
+          <div className="flex justify-center sm:block">
+            <div className="relative size-20 overflow-hidden rounded-full border border-slate-200 bg-slate-100 sm:size-24">
               {employee.profileImage ? (
                 <Image
                   src={employee.profileImage}
@@ -31,7 +31,7 @@ export default function EmployeeHeader({ employee }: EmployeeHeaderProps) {
                 />
               ) : (
                 <div className="flex h-full items-center justify-center">
-                  <User className="h-10 w-10 text-slate-400" />
+                  <User className="size-9 text-slate-400" />
                 </div>
               )}
             </div>
@@ -39,15 +39,15 @@ export default function EmployeeHeader({ employee }: EmployeeHeaderProps) {
 
           {/* Info */}
           <div className="min-w-0">
-            <h1 className="text-center text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-left">
+            <h1 className="text-center text-xl font-semibold tracking-tight text-slate-900 sm:text-left sm:text-2xl">
               {formatText(employee.name)}
             </h1>
 
-            <p className="mt-1 text-center text-sm text-slate-500 lg:text-left">
+            <p className="mt-0.5 text-center text-sm text-slate-500 sm:text-left">
               S/O {formatText(employee.fatherName)}
             </p>
 
-            <div className="mt-4 flex flex-wrap justify-center gap-2 lg:justify-start">
+            <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">
               <Tag icon={<User className="h-4 w-4" />} text={employee.empId} />
 
               <Tag

@@ -8,6 +8,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { Badge } from "@/components/ui/Badge";
+import { StatCard, type StatTone } from "@/components/ui/StatCard";
+
 interface AttendanceStatsProps {
   total: number;
   present: number;
@@ -24,115 +27,93 @@ export default function AttendanceStats({
   const presentPercentage =
     total === 0 ? 0 : Math.round((present / total) * 100);
 
-  const cards = [
+  const cards: {
+    title: string;
+    value: number;
+    subtitle: string;
+    icon: React.ElementType;
+    tone: StatTone;
+  }[] = [
     {
       title: "Total Employees",
       value: total,
       subtitle: "Active workforce",
       icon: Users,
-      bg: "from-blue-50 to-white",
-      iconBg: "bg-blue-600",
-      text: "text-blue-700",
+      tone: "blue",
     },
     {
       title: "Present",
       value: present,
       subtitle: `${presentPercentage}% Attendance`,
       icon: CheckCircle2,
-      bg: "from-green-50 to-white",
-      iconBg: "bg-green-600",
-      text: "text-green-700",
+      tone: "emerald",
     },
     {
       title: "Absent",
       value: absent,
       subtitle: "Not Reported",
       icon: XCircle,
-      bg: "from-red-50 to-white",
-      iconBg: "bg-red-600",
-      text: "text-red-700",
+      tone: "red",
     },
     {
       title: "Leave",
       value: leave,
       subtitle: "Approved Leave",
       icon: CalendarClock,
-      bg: "from-amber-50 to-white",
-      iconBg: "bg-amber-500",
-      text: "text-amber-700",
+      tone: "amber",
     },
   ];
 
   return (
-    <div className="space-y-5">
+    <section className="space-y-3">
       {/* Top Summary */}
-      <div className="flex items-center justify-between rounded-2xl border border-blue-100 bg-linear-to-r from-blue-50 to-white p-5">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-slate-900">
             Attendance Overview
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
-            Live summary of today `&apos;`s attendance session.
+          <p className="mt-0.5 text-xs text-slate-500">
+            Live summary of today&apos;s attendance session.
           </p>
         </div>
 
-        <div className="hidden items-center gap-2 rounded-xl bg-green-100 px-4 py-2 md:flex">
-          <TrendingUp className="h-5 w-5 text-green-700" />
-
-          <span className="text-lg font-bold text-green-700">
-            {presentPercentage}%
-          </span>
-        </div>
+        <Badge tone="success" className="hidden gap-1.5 md:inline-flex">
+          <TrendingUp className="size-3.5" />
+          <span className="tabular-nums">{presentPercentage}%</span>
+          Present
+        </Badge>
       </div>
 
       {/* Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-4">
-        {cards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <div
-              key={card.title}
-              className={`group rounded-2xl border bg-linear-to-br ${card.bg} p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    {card.title}
-                  </p>
-
-                  <h3 className={`mt-2 text-2xl font-bold ${card.text}`}>
-                    {card.value}
-                  </h3>
-
-                  <p className="mt-2 text-sm text-slate-500">{card.subtitle}</p>
-                </div>
-
-                <div
-                  className={`flex h-5 w-6 items-center justify-center rounded-2xl ${card.iconBg} text-white shadow-md transition-transform duration-300 group-hover:scale-110`}
-                >
-                  <Icon className="h-4 w-4" />
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              {card.title === "Present" && (
-                <div className="mt-5">
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                    <div
-                      className="h-full rounded-full bg-green-500 transition-all duration-500"
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {cards.map((card) => (
+          <StatCard
+            key={card.title}
+            label={card.title}
+            value={card.value}
+            icon={card.icon}
+            tone={card.tone}
+            hint={
+              card.title === "Present" ? (
+                <span className="block space-y-1.5">
+                  <span className="block">{card.subtitle}</span>
+                  <span className="block h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <span
+                      className="block h-full rounded-full bg-emerald-500 transition-all duration-500"
                       style={{
                         width: `${presentPercentage}%`,
                       }}
                     />
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+                  </span>
+                </span>
+              ) : (
+                card.subtitle
+              )
+            }
+          />
+        ))}
       </div>
-    </div>
+    </section>
   );
 }

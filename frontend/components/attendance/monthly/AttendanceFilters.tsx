@@ -1,5 +1,10 @@
 "use client";
 
+import { BarChart3, Download } from "lucide-react";
+
+import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/PageHeader";
+
 interface MonthlyAttendanceFiltersProps {
   month: string;
   onMonthChange: (month: string) => void;
@@ -14,29 +19,16 @@ export default function MonthlyAttendanceFilters({
   isExporting = false,
 }: MonthlyAttendanceFiltersProps) {
   return (
-    <div className="rounded-xl border bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        {/* ========================= */}
-        {/* LEFT */}
-        {/* ========================= */}
-
-        <div>
-          <h2 className="text-lg font-semibold">Monthly Attendance Report</h2>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Select a month to view attendance.
-          </p>
-        </div>
-
-        {/* ========================= */}
-        {/* RIGHT */}
-        {/* ========================= */}
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div>
+    <PageHeader
+      title="Monthly Attendance Report"
+      description="Select a month to view attendance."
+      icon={BarChart3}
+      actions={
+        <>
+          <div className="flex items-center gap-2">
             <label
               htmlFor="month"
-              className="mb-1 block text-sm font-medium text-slate-700"
+              className="text-xs font-medium text-slate-600"
             >
               Month
             </label>
@@ -46,20 +38,16 @@ export default function MonthlyAttendanceFilters({
               type="month"
               value={month}
               onChange={(e) => onMonthChange(e.target.value)}
-              className="rounded-lg border px-3 py-2 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-card focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15 sm:w-auto"
             />
           </div>
 
-          <button
-            type="button"
-            onClick={onExport}
-            disabled={isExporting}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-          >
+          <Button onClick={onExport} disabled={isExporting}>
+            <Download />
             {isExporting ? "Exporting..." : "Export Excel"}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </>
+      }
+    />
   );
 }

@@ -1,14 +1,14 @@
 "use client";
 
-import {
-  CalendarDays,
-  Pencil,
-  UserRound,
-  WalletCards,
-  XCircle,
-} from "lucide-react";
+import { Gift, Pencil, WalletCards, XCircle } from "lucide-react";
+
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/States";
 
 import type { Bonus } from "@/types/bonus";
+import type { StatusTone } from "@/utils/ui/statusColors";
 
 interface BonusHistoryProps {
   bonuses: Bonus[];
@@ -17,20 +17,12 @@ interface BonusHistoryProps {
   onCancel?: (bonus: Bonus) => void;
 }
 
-const statusConfig = {
-  pending: {
-    label: "Pending",
-    className: "bg-blue-50 text-blue-700",
-  },
-  paid: {
-    label: "Paid",
-    className: "bg-emerald-50 text-emerald-700",
-  },
-  cancelled: {
-    label: "Cancelled",
-    className: "bg-slate-100 text-slate-600",
-  },
-} as const;
+const statusConfig: Record<Bonus["status"], { label: string; tone: StatusTone }> =
+  {
+    pending: { label: "Pending", tone: "info" },
+    paid: { label: "Paid", tone: "success" },
+    cancelled: { label: "Cancelled", tone: "neutral" },
+  };
 
 function formatCurrency(value: number) {
   return `Rs. ${value.toLocaleString()}`;
@@ -68,61 +60,66 @@ export default function BonusHistory({
 }: BonusHistoryProps) {
   if (!bonuses.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-          <WalletCards className="h-5 w-5 text-slate-500" />
-        </div>
-
-        <h3 className="mt-4 text-sm font-semibold text-slate-900">
-          No bonus records
-        </h3>
-
-        <p className="mt-1 text-sm text-slate-500">
-          No bonuses have been recorded yet.
-        </p>
-      </div>
+      <EmptyState
+        icon={WalletCards}
+        title="No bonus records"
+        description="No bonuses have been recorded yet."
+      />
     );
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      {/* Header */}
-      <div className="border-b border-slate-200 px-4 py-4 sm:px-6">
-        <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
-          Bonus History
-        </h2>
-
-        <p className="mt-1 text-sm text-slate-500">
-          {bonuses.length} record
-          {bonuses.length !== 1 ? "s" : ""}
-        </p>
-      </div>
+    <Card className="overflow-hidden">
+      <CardHeader
+        title="Bonus History"
+        description={`${bonuses.length} record${
+          bonuses.length !== 1 ? "s" : ""
+        }`}
+        icon={Gift}
+      />
 
       {/* Desktop / Tablet */}
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
-          <thead className="border-b bg-slate-50/80">
-            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <th className="px-6 py-3">Employee</th>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Amount</th>
-              <th className="px-4 py-3">Reason</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Created By</th>
+          <thead className="bg-slate-50/80 text-left text-xs font-medium text-slate-500">
+            <tr>
+              <th className="whitespace-nowrap px-4 py-3 font-medium">
+                Employee
+              </th>
+              <th className="whitespace-nowrap px-4 py-3 font-medium">Date</th>
+              <th className="whitespace-nowrap px-4 py-3 text-right font-medium">
+                Amount
+              </th>
+              <th className="whitespace-nowrap px-4 py-3 font-medium">
+                Reason
+              </th>
+              <th className="whitespace-nowrap px-4 py-3 font-medium">
+                Status
+              </th>
+              <th className="whitespace-nowrap px-4 py-3 font-medium">
+                Created By
+              </th>
 
-              {canEdit && <th className="px-6 py-3 text-right">Actions</th>}
+              {canEdit && (
+                <th className="whitespace-nowrap px-4 py-3 text-right font-medium">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 border-t border-slate-100">
             {bonuses.map((bonus) => {
               const config = statusConfig[bonus.status];
               const canModify = bonus.status === "pending";
 
               return (
-                <tr key={bonus._id} className="transition hover:bg-slate-50/70">
+                <tr
+                  key={bonus._id}
+                  className="transition-colors hover:bg-slate-50/60"
+                >
                   {/* Employee */}
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3">
                     <div className="font-medium text-slate-900">
                       {getEmployeeName(bonus)}
                     </div>
@@ -135,61 +132,59 @@ export default function BonusHistory({
                   </td>
 
                   {/* Date */}
-                  <td className="whitespace-nowrap px-4 py-4 text-slate-600">
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                     {formatDate(bonus.bonusDate)}
                   </td>
 
                   {/* Amount */}
-                  <td className="whitespace-nowrap px-4 py-4 font-semibold text-slate-900">
+                  <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums text-slate-900">
                     {formatCurrency(bonus.amount)}
                   </td>
 
                   {/* Reason */}
-                  <td className="max-w-65 px-4 py-4">
+                  <td className="max-w-65 px-4 py-3">
                     <span className="block truncate text-slate-600">
                       {bonus.reason}
                     </span>
                   </td>
 
                   {/* Status */}
-                  <td className="px-4 py-4">
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${config.className}`}
-                    >
+                  <td className="px-4 py-3">
+                    <Badge tone={config.tone} dot>
                       {config.label}
-                    </span>
+                    </Badge>
                   </td>
 
                   {/* Created By */}
-                  <td className="px-4 py-4 text-slate-600">
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                     {getCreatedBy(bonus)}
                   </td>
 
                   {/* Actions */}
                   {canEdit && (
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3">
                       {canModify && (
                         <div className="flex justify-end gap-2">
                           {onEdit && (
-                            <button
-                              type="button"
+                            <Button
+                              variant="secondary"
+                              size="sm"
                               onClick={() => onEdit(bonus)}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                             >
-                              <Pencil className="h-3.5 w-3.5" />
+                              <Pencil />
                               Edit
-                            </button>
+                            </Button>
                           )}
 
                           {onCancel && (
-                            <button
-                              type="button"
+                            <Button
+                              variant="danger-soft"
+                              size="sm"
                               onClick={() => onCancel(bonus)}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-50"
                             >
-                              <XCircle className="h-3.5 w-3.5" />
+                              <XCircle />
                               Cancel
-                            </button>
+                            </Button>
                           )}
                         </div>
                       )}
@@ -210,103 +205,90 @@ export default function BonusHistory({
 
           return (
             <article key={bonus._id} className="p-4">
-              {/* Top */}
+              {/* Employee / Status */}
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-slate-900">
+                  <h3 className="truncate text-sm font-semibold text-slate-900">
                     {getEmployeeName(bonus)}
                   </h3>
 
                   {typeof bonus.employee !== "string" && (
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="mt-0.5 truncate text-xs text-slate-500">
                       {bonus.employee.fatherName}
                     </p>
                   )}
                 </div>
 
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${config.className}`}
-                >
+                <Badge tone={config.tone} dot className="shrink-0">
                   {config.label}
-                </span>
+                </Badge>
               </div>
 
               {/* Details */}
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">Bonus</p>
-
-                  <p className="mt-1 font-semibold text-slate-900">
+              <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-slate-100 bg-slate-50/60 p-3">
+                <div className="min-w-0">
+                  <dt className="text-xs text-slate-500">Bonus</dt>
+                  <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums text-slate-900">
                     {formatCurrency(bonus.amount)}
-                  </p>
+                  </dd>
                 </div>
 
-                <div className="rounded-xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">Date</p>
-
-                  <p className="mt-1 font-medium text-slate-900">
+                <div className="min-w-0">
+                  <dt className="text-xs text-slate-500">Date</dt>
+                  <dd className="mt-0.5 truncate text-sm text-slate-700">
                     {formatDate(bonus.bonusDate)}
-                  </p>
+                  </dd>
                 </div>
-              </div>
+              </dl>
 
               {/* Reason */}
-              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3">
-                <div className="flex items-start gap-2">
-                  <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+              <div className="mt-3">
+                <p className="text-xs font-medium text-slate-500">Reason</p>
 
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-500">Reason</p>
-
-                    <p className="mt-1 text-sm leading-5 text-slate-700">
-                      {bonus.reason}
-                    </p>
-                  </div>
-                </div>
+                <p className="mt-0.5 break-words text-sm leading-5 text-slate-700">
+                  {bonus.reason}
+                </p>
               </div>
 
-              {/* Actions */}
-              {canEdit && canModify && (
-                <div className="mt-3 flex justify-end gap-2">
-                  {onEdit && (
-                    <button
-                      type="button"
-                      onClick={() => onEdit(bonus)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                      Edit
-                    </button>
-                  )}
-
-                  {onCancel && (
-                    <button
-                      type="button"
-                      onClick={() => onCancel(bonus)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-50"
-                    >
-                      <XCircle className="h-3.5 w-3.5" />
-                      Cancel
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Creator */}
-              <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-                <UserRound className="h-3.5 w-3.5" />
-
-                <span>
+              {/* Footer */}
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="min-w-0 truncate text-xs text-slate-500">
                   Created by{" "}
                   <span className="font-medium text-slate-700">
                     {getCreatedBy(bonus)}
                   </span>
-                </span>
+                </p>
+
+                {canEdit && canModify && (
+                  <div className="flex shrink-0 gap-2">
+                    {onEdit && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => onEdit(bonus)}
+                      >
+                        <Pencil />
+                        Edit
+                      </Button>
+                    )}
+
+                    {onCancel && (
+                      <Button
+                        variant="danger-soft"
+                        size="sm"
+                        onClick={() => onCancel(bonus)}
+                      >
+                        <XCircle />
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </article>
           );
         })}
       </div>
-    </section>
+    </Card>
   );
 }

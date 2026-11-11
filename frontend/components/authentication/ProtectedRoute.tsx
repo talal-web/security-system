@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMe } from "@/hooks/auth/useMe";
 import { ApiError } from "@/lib/apiError";
 import type { UserRole } from "@/types/user";
+import { FullPageLoader } from "@/components/ui/States";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -63,11 +64,7 @@ export default function ProtectedRoute({
   ]);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-lg font-medium">Checking permissions...</p>
-      </div>
-    );
+    return <FullPageLoader label="Checking permissions..." />;
   }
 
   if (isError || !user || !allowedRoles.includes(role!)) {

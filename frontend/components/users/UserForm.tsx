@@ -6,8 +6,13 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { useAreas } from "@/hooks/area/useArea";
 import type { CreateUserPayload, UpdateUserPayload, User } from "@/types/user";
+
+const fieldClass =
+  "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500";
 
 const schema = z.object({
   userId: z.string().trim().min(1, "User ID is required"),
@@ -146,22 +151,22 @@ export default function UserForm({
       onSubmit={handleSubmit(submit)}
       className={
         embedded
-          ? "space-y-4"
-          : "space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          ? "space-y-5"
+          : "space-y-5 rounded-xl border border-slate-200/80 bg-white p-4 shadow-card sm:p-6"
       }
     >
       {!user && (
-        <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2.5">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50/60 px-3 py-2.5">
           <p className="text-sm text-slate-700">
             Set up login details and choose the right access.
           </p>
-          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-medium capitalize text-blue-700">
+          <Badge tone="info" className="capitalize">
             {selectedRole}
-          </span>
+          </Badge>
         </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         {/* User ID */}
         <Field label="User ID" error={errors.userId?.message}>
           <input
@@ -169,7 +174,7 @@ export default function UserForm({
             disabled={Boolean(user)}
             placeholder="e.g. supervisor01"
             autoComplete="username"
-            className="field"
+            className={fieldClass}
           />
         </Field>
 
@@ -179,7 +184,7 @@ export default function UserForm({
             {...register("name")}
             placeholder="Full name"
             autoComplete="name"
-            className="field"
+            className={fieldClass}
           />
         </Field>
 
@@ -192,13 +197,13 @@ export default function UserForm({
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
                 placeholder="At least 6 characters"
-                className="field pr-11"
+                className={`${fieldClass} pr-11`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((visible) => !visible)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-500 hover:text-slate-800"
+                className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-lg text-slate-400 transition-colors hover:text-slate-700"
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -215,7 +220,7 @@ export default function UserForm({
           <Field label="Role" error={errors.role?.message}>
             <select
               {...register("role")}
-              className="field"
+              className={fieldClass}
               disabled={user?.role === "developer"}
             >
               <option value="developer">Developer</option>
@@ -242,7 +247,7 @@ export default function UserForm({
               : "Choose the areas this account can access."}
           </div>
           {areaOptions.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-500">
+            <p className="rounded-lg border border-dashed border-slate-300 px-3 py-3 text-center text-sm text-slate-500">
               No active areas available.
             </p>
           ) : (
@@ -254,7 +259,7 @@ export default function UserForm({
                 return (
                   <label
                     key={area._id}
-                    className={`flex min-h-10 cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-300 bg-blue-50 text-blue-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"} ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+                    className={`flex min-h-9 cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-sm transition-colors ${checked ? "border-blue-300 bg-blue-50 text-blue-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"} ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
                   >
                     <input
                       type="checkbox"
@@ -297,39 +302,38 @@ export default function UserForm({
 
       {/* Self information */}
       {user && isSelf && (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <div>
               <span className="text-slate-500">Role: </span>
-              <span className="font-semibold capitalize text-slate-800">
+              <span className="font-medium capitalize text-slate-900">
                 {user.role}
               </span>
             </div>
 
-            <div>
+            <div className="flex items-center gap-1.5">
               <span className="text-slate-500">Status: </span>
-              <span
-                className={`font-semibold ${
-                  user.isActive ? "text-green-600" : "text-red-600"
-                }`}
-              >
+              <Badge tone={user.isActive ? "success" : "danger"} dot>
                 {user.isActive ? "Active" : "Inactive"}
-              </span>
+              </Badge>
             </div>
           </div>
         </div>
       )}
 
       {/* Submit */}
-      <button
-        type="submit"
-        disabled={isPending}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <Save className="h-4 w-4" />
+      <div className="flex justify-end border-t border-slate-100 pt-4">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={isPending}
+          className="w-full sm:w-auto"
+        >
+          <Save />
 
-        {isPending ? "Saving..." : user ? "Save Changes" : "Create User"}
-      </button>
+          {isPending ? "Saving..." : user ? "Save Changes" : "Create User"}
+        </Button>
+      </div>
     </form>
   );
 }
@@ -351,7 +355,7 @@ function Field({
 
       {children}
 
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
     </div>
   );
 }

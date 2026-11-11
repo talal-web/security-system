@@ -1,24 +1,22 @@
-import { ClipboardList } from "lucide-react";
+import { Zap } from "lucide-react";
 
 import PrimaryAction from "@/components/admin/cards/PrimaryAction";
 import { primaryActions } from "@/components/admin/dashboard.config";
-import SectionHeading from "@/components/admin/shared/SectionHeading";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
 export default function QuickActions() {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-      <SectionHeading
-        title="Quick Actions"
+    <Card>
+      <CardHeader
+        title="Quick actions"
         description="Frequently used administration tasks"
-        icon={ClipboardList}
-        className="mb-4"
+        icon={Zap}
       />
-
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+      <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {primaryActions.map((item) => (
           <PrimaryAction key={item.title} item={item} />
         ))}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

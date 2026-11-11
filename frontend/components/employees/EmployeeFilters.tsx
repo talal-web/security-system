@@ -21,6 +21,7 @@ import { useSectors } from "@/hooks/sector/useSector";
 import { shiftOptions } from "@/constants/shiftOptions";
 
 import type { EmployeeFilters } from "@/types/employee-filters";
+import { Button } from "@/components/ui/Button";
 
 type Props = {
   filters: EmployeeFilters;
@@ -47,35 +48,29 @@ export default function EmployeeFilters({ filters, onChange, onClear }: Props) {
   );
 
   const inputClass =
-    "h-9 w-full appearance-none rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-2 text-[11px] text-slate-700 outline-none transition focus:border-orange-500 focus:bg-white sm:h-10 sm:rounded-xl sm:pl-10 sm:pr-4 sm:text-sm";
+    "h-9 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 shadow-card outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15";
 
   const iconClass =
-    "absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 sm:left-3 sm:h-4 sm:w-4";
+    "pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400";
 
   return (
     <div>
       {/* ================= FILTER HEADER ================= */}
-      <div className="mb-2 flex items-center justify-between sm:mb-3">
-        <h2 className="text-xs font-semibold text-slate-900 sm:text-base">
-          Filters
-        </h2>
+      <div className="mb-3 flex min-h-8 items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-900">Filters</h2>
 
         {hasFilters && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="inline-flex h-7 items-center gap-1 rounded-lg border border-slate-200 px-2 text-[10px] font-medium text-slate-600 transition hover:bg-slate-50 sm:h-auto sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs"
-          >
-            <X className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+          <Button type="button" variant="ghost" size="sm" onClick={onClear}>
+            <X />
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
       {/* ================= FILTER GRID ================= */}
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-2 sm:gap-2.5 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {/* SEARCH */}
-        <div className="relative col-span-2">
+        <div className="relative sm:col-span-2 xl:col-span-3">
           <Search className={iconClass} />
 
           <input

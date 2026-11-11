@@ -4,6 +4,7 @@ import { use } from "react";
 
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
 import UpdateSectorForm from "@/components/sectors/UpdateSectorForm";
+import { PageContainer } from "@/components/ui/PageHeader";
 
 export default function EditSectorPage({
   params,
@@ -14,9 +15,9 @@ export default function EditSectorPage({
 
   return (
     <ProtectedRoute allowedRoles={["developer", "admin", "clerk"]}>
-      <main className="min-h-screen bg-slate-50 px-4 py-10">
+      <PageContainer>
         <UpdateSectorForm id={id} />
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

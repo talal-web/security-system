@@ -1,9 +1,12 @@
 "use client";
 
 import { use, useState } from "react";
-import { Plus } from "lucide-react";
+import { ClipboardMinus, Plus } from "lucide-react";
 
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
+import { Button } from "@/components/ui/Button";
+import { PageContainer, PageHeader } from "@/components/ui/PageHeader";
+import { ErrorState, LoadingState } from "@/components/ui/States";
 import DeductionSummary from "@/components/deduction/DeductionSummary";
 import DeductionHistory from "@/components/deduction/DeductionHistory";
 import DeductionModal from "@/components/deduction/DeductionModal";
@@ -81,55 +84,39 @@ export default function EmployeeDeductionsPage({
     <ProtectedRoute
       allowedRoles={["developer", "admin", "clerk", "supervisor"]}
     >
-      <main className="space-y-6 p-4 sm:p-6">
+      <PageContainer>
         {/* Loading */}
-        {isLoading && (
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <p className="text-sm text-slate-500">Loading deductions...</p>
-          </div>
-        )}
+        {isLoading && <LoadingState title="Loading deductions..." />}
 
         {/* Error */}
         {isError && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-            <p className="text-sm font-semibold text-red-700">
-              Failed to load deductions.
-            </p>
-
-            <p className="mt-1 text-sm text-red-600">
-              {error instanceof Error
+          <ErrorState
+            title="Failed to load deductions."
+            description={
+              error instanceof Error
                 ? error.message
-                : "Something went wrong while loading deductions."}
-            </p>
-          </div>
+                : "Something went wrong while loading deductions."
+            }
+          />
         )}
 
         {/* Content */}
         {!isLoading && !isError && employee && (
           <>
             {/* Header */}
-            <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                  Employee Deductions
-                </h1>
-
-                <p className="mt-1 truncate text-sm text-slate-500">
-                  {employee.name} · {employee.empId} · {employee.designation}
-                </p>
-              </div>
-
-              {canEdit && (
-                <button
-                  type="button"
-                  onClick={handleAdd}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 sm:w-auto"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Deduction
-                </button>
-              )}
-            </header>
+            <PageHeader
+              title="Employee Deductions"
+              description={`${employee.name} · ${employee.empId} · ${employee.designation}`}
+              icon={ClipboardMinus}
+              actions={
+                canEdit && (
+                  <Button onClick={handleAdd}>
+                    <Plus />
+                    Add Deduction
+                  </Button>
+                )
+              }
+            />
 
             {/* Summary */}
             <DeductionSummary deductions={deductions} />
@@ -164,7 +151,7 @@ export default function EmployeeDeductionsPage({
             }
           }}
         />
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

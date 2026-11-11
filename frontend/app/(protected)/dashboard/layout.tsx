@@ -7,7 +7,7 @@ export default function DashboardLayout({
 }) {
   return (
     <RoleBasedRedirect>
-      <div className="min-h-screen bg-slate-50">{children}</div>
+      {children}
     </RoleBasedRedirect>
   );
 }

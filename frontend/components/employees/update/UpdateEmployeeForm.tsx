@@ -42,7 +42,13 @@ import {
   ImageUp,
   Plus,
   Trash2,
+  UserPen,
 } from "lucide-react";
+
+import { Button, buttonVariants } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 import { Employee } from "@/types/employee";
 import {
@@ -391,38 +397,42 @@ export default function UpdateEmployeeForm({ employee }: Props) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl overflow-hidden rounded-2xl border bg-white shadow-xl">
-      <div className="bg-linear-to-r from-orange-500 to-amber-500 px-4 py-6 sm:px-8 sm:py-10">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs text-white">
-              <ShieldCheck className="h-4 w-4" />
-              Employee Management
-            </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Update Employee"
+        description="Manage employee data easily and securely"
+        icon={UserPen}
+      />
 
-            <h2 className="mt-2 text-2xl font-bold text-white">
-              Update Employee
-            </h2>
-
-            <p className="text-sm text-orange-100">
-              Manage employee data easily and securely
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            <TopStat label="Age" value={`${age} Years`} />
-            <TopStat label="Created" value={formatDate(employee.createdAt)} />
-            <TopStat label="Status" value={employee.status} />
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <TopStat label="Age" value={`${age} Years`} />
+        <TopStat label="Created" value={formatDate(employee.createdAt)} />
+        <TopStat
+          label="Status"
+          value={
+            <Badge
+              tone={employee.status === "active" ? "success" : "danger"}
+              dot
+              className="capitalize"
+            >
+              {employee.status}
+            </Badge>
+          }
+        />
       </div>
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-1 gap-4 px-4 py-6 sm:px-8 md:grid-cols-2 lg:grid-cols-3"
-      >
-        <div className="flex items-center gap-5 md:col-span-2 lg:col-span-3">
-          <div className="relative h-24 w-24 overflow-hidden rounded-2xl border bg-slate-100">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* PERSONAL INFORMATION */}
+        <Card>
+          <CardHeader
+            icon={User}
+            title="Personal Information"
+            description="Profile picture and basic details"
+          />
+
+          <CardContent className="space-y-5">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="relative size-20 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
             {preview ? (
               <Image
                 src={preview}
@@ -433,13 +443,20 @@ export default function UpdateEmployeeForm({ employee }: Props) {
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
-                <User className="h-8 w-8 text-slate-400" />
+                <User className="size-7 text-slate-400" />
               </div>
             )}
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="cursor-pointer rounded-xl bg-orange-100 px-4 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-200">
+          <div className="flex flex-wrap gap-2">
+            <label
+              className={buttonVariants({
+                variant: "secondary",
+                size: "sm",
+                className: "cursor-pointer",
+              })}
+            >
+              <ImageUp />
               Change Picture
               <input
                 type="file"
@@ -449,16 +466,18 @@ export default function UpdateEmployeeForm({ employee }: Props) {
               />
             </label>
 
-            <button
-              type="button"
+            <Button
+              variant="danger-soft"
+              size="sm"
               onClick={handleRemoveImage}
-              className="rounded-xl bg-red-100 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-200"
             >
+              <Trash2 />
               Remove Picture
-            </button>
+            </Button>
           </div>
         </div>
 
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Input icon={<User />} label="Name" {...register("name")} />
 
         <Input
@@ -478,11 +497,31 @@ export default function UpdateEmployeeForm({ employee }: Props) {
 
         <Input icon={<MapPin />} label="Address" {...register("address")} />
 
-        <div className="space-y-3 md:col-span-2 lg:col-span-3">
+        <Input
+          icon={<Cake />}
+          type="date"
+          label="Birth Date"
+          {...register("birthDate")}
+        />
+        </div>
+          </CardContent>
+        </Card>
+
+        {/* CONTACTS */}
+        <Card>
+          <CardHeader
+            icon={Phone}
+            title="Contacts"
+            description="Emergency contacts and references"
+          />
+
+          <CardContent className="space-y-5">
+        <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-slate-800">Emergency Contacts</h3>
-            <button
-              type="button"
+            <h3 className="text-sm font-semibold text-slate-900">Emergency Contacts</h3>
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() =>
                 appendEmergencyContact({
                   name: "",
@@ -492,18 +531,17 @@ export default function UpdateEmployeeForm({ employee }: Props) {
                   isPrimary: false,
                 })
               }
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              <Plus className="h-4 w-4" /> Add contact
-            </button>
+              <Plus /> Add contact
+            </Button>
           </div>
           {emergencyContactFields.length === 0 && (
-            <p className="text-sm text-slate-500">No emergency contacts added.</p>
+            <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-500">No emergency contacts added.</p>
           )}
           {emergencyContactFields.map((field, index) => (
             <div
               key={field.id}
-              className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-5"
+              className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-slate-50/50 p-3 sm:grid-cols-2 lg:grid-cols-5"
             >
               <Input
                 label="Name"
@@ -530,11 +568,11 @@ export default function UpdateEmployeeForm({ employee }: Props) {
                 error={errors.emergencyContacts?.[index]?.address?.message}
                 {...register(`emergencyContacts.${index}.address`)}
               />
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-end justify-between gap-3 sm:items-center lg:items-end lg:pb-1">
                 <label className="flex items-center gap-2 text-sm text-slate-700">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 accent-orange-600"
+                    className="size-4 rounded accent-blue-600"
                     {...(() => {
                       const field = register(
                         `emergencyContacts.${index}.isPrimary`,
@@ -560,45 +598,46 @@ export default function UpdateEmployeeForm({ employee }: Props) {
                   />
                   Primary
                 </label>
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   aria-label="Remove emergency contact"
                   title="Remove emergency contact"
                   onClick={() => removeEmergencyContact(index)}
-                  className="rounded-md p-2 text-red-600 hover:bg-red-50"
+                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                  <Trash2 />
+                </Button>
               </div>
             </div>
           ))}
           {errors.emergencyContacts?.message && (
-            <p className="text-sm text-red-600">
+            <p className="text-sm font-medium text-red-600">
               {errors.emergencyContacts.message}
             </p>
           )}
         </div>
 
-        <div className="space-y-3 md:col-span-2 lg:col-span-3">
+        <div className="space-y-3 border-t border-slate-100 pt-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-slate-800">References</h3>
-            <button
-              type="button"
+            <h3 className="text-sm font-semibold text-slate-900">References</h3>
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() =>
                 appendReference({ name: "", relation: "", contact: "", address: "" })
               }
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              <Plus className="h-4 w-4" /> Add reference
-            </button>
+              <Plus /> Add reference
+            </Button>
           </div>
           {referenceFields.length === 0 && (
-            <p className="text-sm text-slate-500">No references added.</p>
+            <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-500">No references added.</p>
           )}
           {referenceFields.map((field, index) => (
             <div
               key={field.id}
-              className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-5"
+              className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-slate-50/50 p-3 sm:grid-cols-2 lg:grid-cols-5"
             >
               <Input
                 label="Name"
@@ -625,19 +664,32 @@ export default function UpdateEmployeeForm({ employee }: Props) {
                 error={errors.references?.[index]?.address?.message}
                 {...register(`references.${index}.address`)}
               />
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 aria-label="Remove reference"
                 title="Remove reference"
                 onClick={() => removeReference(index)}
-                className="justify-self-end rounded-md p-2 text-red-600 hover:bg-red-50"
+                className="self-end justify-self-end text-red-600 hover:bg-red-50 hover:text-red-700 lg:mb-1"
               >
-                <Trash2 className="h-4 w-4" />
-              </button>
+                <Trash2 />
+              </Button>
             </div>
           ))}
         </div>
+          </CardContent>
+        </Card>
 
+        {/* JOB DETAILS */}
+        <Card>
+          <CardHeader
+            icon={BadgeCheck}
+            title="Job Details"
+            description="Designation, location, shift and employment status"
+          />
+
+          <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Select
           icon={<GraduationCap />}
           label="Education"
@@ -746,13 +798,6 @@ export default function UpdateEmployeeForm({ employee }: Props) {
           />
         )}
 
-        <Input
-          icon={<Cake />}
-          type="date"
-          label="Birth Date"
-          {...register("birthDate")}
-        />
-
         <Select
           icon={<BadgeCheck />}
           label="Status"
@@ -760,31 +805,27 @@ export default function UpdateEmployeeForm({ employee }: Props) {
           options={["active", "inactive"]}
           {...register("status")}
         />
+        </div>
 
         {locationStatusMessage && (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 md:col-span-2 lg:col-span-3">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
             {locationStatusMessage}
           </div>
         )}
+          </CardContent>
+        </Card>
 
-        <div className="md:col-span-2 lg:col-span-3">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="rounded-lg bg-orange-100 p-2 text-orange-600">
-                <ImageUp className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-slate-900">
-                  CNIC Documents
-                </h3>
-                <p className="text-sm text-slate-500">
-                  Update front and back CNIC images
-                </p>
-              </div>
-            </div>
+        {/* CNIC DOCUMENTS */}
+        <Card>
+          <CardHeader
+            icon={ImageUp}
+            title="CNIC Documents"
+            description="Update front and back CNIC images"
+          />
 
+          <CardContent>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <label className="cursor-pointer rounded-xl border border-slate-200 bg-white p-3 transition hover:border-orange-300 hover:bg-orange-50">
+              <label className="cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50/60 p-3 transition-colors hover:border-blue-300 hover:bg-blue-50/40">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <span className="text-sm font-medium text-slate-700">
                     CNIC Front
@@ -792,7 +833,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
                   <span className="text-xs text-slate-500">PNG, JPG, WEBP</span>
                 </div>
 
-                <div className="relative h-28 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                <div className="relative h-28 overflow-hidden rounded-lg border border-slate-200 bg-white">
                   {cnicFrontPreview ? (
                     <Image
                       src={cnicFrontPreview}
@@ -816,7 +857,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
                 />
               </label>
 
-              <label className="cursor-pointer rounded-xl border border-slate-200 bg-white p-3 transition hover:border-orange-300 hover:bg-orange-50">
+              <label className="cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50/60 p-3 transition-colors hover:border-blue-300 hover:bg-blue-50/40">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <span className="text-sm font-medium text-slate-700">
                     CNIC Back
@@ -824,7 +865,7 @@ export default function UpdateEmployeeForm({ employee }: Props) {
                   <span className="text-xs text-slate-500">PNG, JPG, WEBP</span>
                 </div>
 
-                <div className="relative h-28 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                <div className="relative h-28 overflow-hidden rounded-lg border border-slate-200 bg-white">
                   {cnicBackPreview ? (
                     <Image
                       src={cnicBackPreview}
@@ -848,29 +889,30 @@ export default function UpdateEmployeeForm({ employee }: Props) {
                 />
               </label>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="md:col-span-2 lg:col-span-3">
-          <button
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+          <Button
             type="submit"
-            disabled={loading}
-            className="flex w-full items-center justify-center rounded-xl bg-orange-600 py-4 font-bold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+            size="lg"
+            loading={loading}
+            className="w-full sm:w-auto sm:min-w-45"
           >
-            <Save className="mr-2 h-5 w-5" />
+            {!loading && <Save />}
             {loading ? "Updating..." : "Update Employee"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>
   );
 }
 
-function TopStat({ label, value }: { label: string; value: string }) {
+function TopStat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-lg bg-white/20 p-2 text-white">
-      <p className="text-xs opacity-80">{label}</p>
-      <p className="text-sm font-bold">{value}</p>
+    <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-card">
+      <p className="truncate text-xs font-medium text-slate-500">{label}</p>
+      <div className="mt-1 truncate text-sm font-semibold text-slate-900">{value}</div>
     </div>
   );
 }

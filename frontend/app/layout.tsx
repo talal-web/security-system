@@ -7,14 +7,8 @@ import { Toaster } from "sonner";
 
 import "./globals.css";
 
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-
 import QueryProvider from "@/providers/QueryProvider";
 import { AreaProvider } from "@/components/area/AreaContext";
-import { Geist } from "next/font/google";
-
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Baidar Security Service",
@@ -27,13 +21,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geist.variable}>
-      <body className="bg-slate-100 text-slate-900 font-sans antialiased">
+    <html lang="en">
+      <body className="bg-canvas font-sans text-slate-900 antialiased">
         <QueryProvider>
           <Suspense
             fallback={
               <div
-                className="flex min-h-screen items-center justify-center bg-slate-100 text-sm text-slate-500"
+                className="flex min-h-screen items-center justify-center bg-canvas text-sm text-slate-500"
                 role="status"
               >
                 Loading application...
@@ -48,18 +42,13 @@ export default function RootLayout({
                 closeButton
                 duration={3000}
                 toastOptions={{
-                  className: "!rounded-2xl !border !border-slate-800",
+                  className: "!rounded-xl !shadow-pop",
                 }}
               />
 
-              {/* NAVBAR */}
-              <Navbar />
-
-              {/* PAGE CONTENT */}
-              <main className="min-h-screen pt-20">{children}</main>
-
-              {/* FOOTER */}
-              <Footer />
+              {/* Public pages render the site navbar/footer via (public)/layout;
+                  authenticated pages render the app shell via (protected)/layout. */}
+              {children}
             </AreaProvider>
           </Suspense>
         </QueryProvider>

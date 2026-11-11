@@ -29,27 +29,27 @@ export default function EmployeeQuickStats({ employee }: Props) {
         : undefined;
 
   return (
-    <section className="border-b border-slate-200 bg-slate-50 px-4 py-4 sm:px-6 lg:px-8">
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+    <section>
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <StatCard
           title="Current Location"
           value={location || "—"}
           icon={<MapPin className="h-5 w-5" />}
-          iconBg="bg-blue-50 text-blue-600"
+          iconBg="bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-100"
         />
 
         <StatCard
           title="Sector"
           value={sector || "—"}
           icon={<Building2 className="h-5 w-5" />}
-          iconBg="bg-indigo-50 text-indigo-600"
+          iconBg="bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
         />
 
         <StatCard
           title="Designation"
           value={formatText(employee.designation)}
           icon={<BriefcaseBusiness className="h-5 w-5" />}
-          iconBg="bg-violet-50 text-violet-600"
+          iconBg="bg-violet-50 text-violet-600 ring-1 ring-inset ring-violet-100"
         />
 
         <StatCard
@@ -58,8 +58,8 @@ export default function EmployeeQuickStats({ employee }: Props) {
           icon={<ShieldCheck className="h-5 w-5" />}
           iconBg={
             employee.status === "active"
-              ? "bg-emerald-50 text-emerald-600"
-              : "bg-red-50 text-red-600"
+              ? "bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-100"
+              : "bg-red-50 text-red-600 ring-1 ring-inset ring-red-100"
           }
         />
       </div>

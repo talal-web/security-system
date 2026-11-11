@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 
 import type { Deduction } from "@/types/deduction";
@@ -28,18 +29,16 @@ export default function DeductionConfirmModal({
       title="Cancel Deduction"
     >
       <div className="space-y-5">
-        <div>
-          <p className="text-sm leading-6 text-slate-600">
-            Are you sure you want to cancel this deduction of{" "}
-            <span className="font-semibold text-slate-900">
-              Rs. {deduction.amount.toLocaleString()}
-            </span>
-            ?
-          </p>
-        </div>
+        <p className="text-sm leading-6 text-slate-600">
+          Are you sure you want to cancel this deduction of{" "}
+          <span className="font-semibold tabular-nums text-slate-900">
+            Rs. {deduction.amount.toLocaleString()}
+          </span>
+          ?
+        </p>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-sm font-medium text-slate-900">
+        <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+          <p className="break-words text-sm font-medium text-slate-900">
             {deduction.reason}
           </p>
 
@@ -49,24 +48,24 @@ export default function DeductionConfirmModal({
           </p>
         </div>
 
-        <div className="flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-end">
-          <button
-            type="button"
+        <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+          <Button
+            variant="secondary"
             onClick={onClose}
             disabled={loading}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="w-full sm:w-auto"
           >
             Keep Deduction
-          </button>
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="danger"
             onClick={onConfirm}
             disabled={loading}
-            className="w-full rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="w-full sm:w-auto"
           >
             {loading ? "Cancelling..." : "Cancel Deduction"}
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

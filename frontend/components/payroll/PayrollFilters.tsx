@@ -2,6 +2,8 @@
 
 import { CalendarDays, Search, ShieldCheck, UserCheck, X } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import type { PayrollFilters as PayrollFilterValues } from "@/types/payroll";
 
 interface PayrollFiltersProps {
@@ -47,30 +49,32 @@ export default function PayrollFilters({
   };
 
   const inputClass =
-    "h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10";
+    "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-card transition focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15";
+  const iconClass =
+    "pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400";
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 sm:p-4">
+    <Card className="p-4 sm:p-5">
       {/* Header */}
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-800">Filters</h2>
+      <div className="mb-3 flex min-h-8 items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-900">Filters</h2>
 
         {hasChangedFromDefault && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => onChange(defaultFilters)}
-            className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 transition hover:text-slate-800"
           >
-            <X className="h-3.5 w-3.5" />
+            <X />
             Reset
-          </button>
+          </Button>
         )}
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {/* Search */}
         <label className="relative lg:col-span-1">
-          <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <Search className={iconClass} />
 
           <input
             type="text"
@@ -84,7 +88,7 @@ export default function PayrollFilters({
 
         {/* Year */}
         <label className="relative">
-          <CalendarDays className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <CalendarDays className={iconClass} />
 
           <select
             aria-label="Payroll year"
@@ -104,7 +108,7 @@ export default function PayrollFilters({
 
         {/* Month */}
         <label className="relative">
-          <CalendarDays className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <CalendarDays className={iconClass} />
 
           <select
             aria-label="Payroll month"
@@ -130,7 +134,7 @@ export default function PayrollFilters({
 
         {/* Status */}
         <label className="relative">
-          <ShieldCheck className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <ShieldCheck className={iconClass} />
 
           <select
             aria-label="Payroll status"
@@ -152,7 +156,7 @@ export default function PayrollFilters({
 
         {/* Employee Status */}
         <label className="relative">
-          <UserCheck className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <UserCheck className={iconClass} />
 
           <select
             aria-label="Employee status"
@@ -172,6 +176,6 @@ export default function PayrollFilters({
           </select>
         </label>
       </div>
-    </section>
+    </Card>
   );
 }

@@ -1,36 +1,35 @@
-import Link from "next/link";
+"use client";
 
-import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 
 import { toneStyles } from "@/components/admin/dashboard.config";
 import type { ActionItem } from "@/components/admin/dashboard.types";
+import { useSelectedArea } from "@/components/area/AreaContext";
 
+/** Compact navigation tile: tinted icon, title, one-line description. */
 export default function PrimaryAction({ item }: { item: ActionItem }) {
+  const { getAreaAwareHref } = useSelectedArea();
   const Icon = item.icon;
   const styles = toneStyles[item.tone];
 
   return (
     <Link
-      href={item.href}
-      className={`group flex items-center gap-3 rounded-xl border border-slate-200 px-3.5 py-3 transition duration-200 ${styles.hover}`}
+      href={getAreaAwareHref(item.href)}
+      className="group flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 transition hover:border-slate-300 hover:bg-slate-50/70"
     >
       <div
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${styles.icon}`}
+        className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${styles.icon}`}
       >
-        <Icon className="h-4 w-4" />
+        <Icon className="size-4" />
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-bold text-slate-800">
-          {item.title}
-        </p>
-
-        <p className="mt-0.5 truncate text-[10px] text-slate-400">
-          {item.description}
-        </p>
+        <p className="truncate text-sm font-medium text-slate-900">{item.title}</p>
+        <p className="truncate text-xs text-slate-500">{item.description}</p>
       </div>
 
-      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
+      <ArrowUpRight className="size-4 shrink-0 text-slate-300 transition group-hover:text-slate-600" />
     </Link>
   );
 }

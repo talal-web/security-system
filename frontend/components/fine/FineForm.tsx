@@ -2,19 +2,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  AlertCircle,
-  CalendarDays,
-  FileText,
-  Gavel,
-  Loader2,
-  Search,
-  UserRound,
-  X,
-} from "lucide-react";
+import { AlertCircle, Loader2, Search, X } from "lucide-react";
 
 import { useCreateFine, useUpdateFine } from "@/hooks/fine/useFine";
 import { useSelectedArea } from "@/components/area/AreaContext";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { lookupEmployee } from "@/services/employee.service";
 import { formatText } from "@/utils/employee/employeeFormat";
 
@@ -27,6 +20,14 @@ interface FineFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
+
+const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
+
+const fieldClass =
+  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500";
+
+const textareaClass =
+  "w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-card transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500";
 
 export default function FineForm({
   employeeId = "",
@@ -234,32 +235,26 @@ export default function FineForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* ======================================
-          Errors
-      ====================================== */}
-
+      {/* Errors */}
       {(formError || apiError) && (
-        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50/70 px-3 py-2.5 text-sm text-red-700"
+        >
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
 
           <p>{formError || apiError}</p>
         </div>
       )}
 
-      {/* ======================================
-          Employee
-      ====================================== */}
-
+      {/* Employee */}
       <div>
         {/* Edit mode */}
         {isEditing && editingEmployee && (
           <>
-            <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700">
-              <UserRound className="h-4 w-4 text-slate-400" />
-              Employee
-            </label>
+            <label className={labelClass}>Employee</label>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900">
@@ -272,15 +267,14 @@ export default function FineForm({
                   </p>
                 </div>
 
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
-                    editingEmployee.status === "active"
-                      ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
-                      : "bg-red-50 text-red-700 ring-1 ring-red-600/20"
-                  }`}
+                <Badge
+                  tone={
+                    editingEmployee.status === "active" ? "success" : "danger"
+                  }
+                  className="shrink-0 capitalize"
                 >
                   {editingEmployee.status}
-                </span>
+                </Badge>
               </div>
             </div>
           </>
@@ -289,16 +283,12 @@ export default function FineForm({
         {/* Global create mode */}
         {!isEditing && !employeeId && (
           <>
-            <label
-              htmlFor="fine-empId-lookup"
-              className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
-            >
-              <UserRound className="h-4 w-4 text-slate-400" />
+            <label htmlFor="fine-empId-lookup" className={labelClass}>
               Employee
             </label>
 
             {selectedEmployee ? (
-              <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
+              <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -306,15 +296,16 @@ export default function FineForm({
                         {selectedEmployee.name}
                       </p>
 
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+                      <Badge
+                        tone={
                           selectedEmployee.status === "active"
-                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
-                            : "bg-red-50 text-red-700 ring-1 ring-red-600/20"
-                        }`}
+                            ? "success"
+                            : "danger"
+                        }
+                        className="capitalize"
                       >
                         {selectedEmployee.status}
-                      </span>
+                      </Badge>
                     </div>
 
                     <p className="mt-1 text-xs leading-5 text-slate-500">
@@ -334,20 +325,20 @@ export default function FineForm({
                   </div>
 
                   {!isPending && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={handleClearSelectedEmployee}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
                     >
-                      <X className="h-3 w-3" />
+                      <X />
                       Change
-                    </button>
+                    </Button>
                   )}
                 </div>
 
                 {selectedEmployee.status !== "active" && (
                   <div className="mt-2.5 flex items-center gap-1.5 text-xs text-red-600">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    <AlertCircle className="size-3.5 shrink-0" />
 
                     <span>
                       Fine cannot be created for an inactive employee.
@@ -359,7 +350,7 @@ export default function FineForm({
               <div>
                 <div className="flex gap-2">
                   <div className="relative min-w-0 flex-1">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
 
                     <input
                       id="fine-empId-lookup"
@@ -378,32 +369,33 @@ export default function FineForm({
                       }}
                       disabled={isPending || lookupLoading}
                       placeholder="Employee ID (e.g. BSS-0001)"
-                      className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
+                      className={`${fieldClass} pl-9`}
                     />
                   </div>
 
-                  <button
-                    type="button"
+                  <Button
                     onClick={handleLookup}
                     disabled={isPending || lookupLoading || !searchEmpId.trim()}
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-10"
                   >
                     {lookupLoading ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="animate-spin" />
                         <span className="hidden sm:inline">Searching...</span>
                       </>
                     ) : (
                       <>
-                        <Search className="h-4 w-4" />
+                        <Search />
                         <span>Lookup</span>
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
 
                 {lookupError && (
-                  <p className="mt-1.5 text-xs text-red-600">{lookupError}</p>
+                  <p className="mt-1.5 text-xs font-medium text-red-600">
+                    {lookupError}
+                  </p>
                 )}
 
                 <p className="mt-1.5 text-xs leading-5 text-slate-500">
@@ -415,22 +407,15 @@ export default function FineForm({
         )}
       </div>
 
-      {/* ======================================
-          Amount + Date
-      ====================================== */}
-
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      {/* Amount + Date */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label
-            htmlFor="fine-amount"
-            className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
-          >
-            <Gavel className="h-4 w-4 text-slate-400" />
+          <label htmlFor="fine-amount" className={labelClass}>
             Fine Amount
           </label>
 
           <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
               Rs.
             </span>
 
@@ -448,7 +433,7 @@ export default function FineForm({
               disabled={isPending}
               inputMode="numeric"
               placeholder="5,000"
-              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-11 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
+              className={`${fieldClass} pl-11 tabular-nums`}
             />
           </div>
 
@@ -458,11 +443,7 @@ export default function FineForm({
         </div>
 
         <div>
-          <label
-            htmlFor="fine-date"
-            className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700"
-          >
-            <CalendarDays className="h-4 w-4 text-slate-400" />
+          <label htmlFor="fine-date" className={labelClass}>
             Fine Date
           </label>
 
@@ -476,26 +457,24 @@ export default function FineForm({
             }}
             required
             disabled={isPending}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
+            className={fieldClass}
           />
         </div>
       </div>
 
-      {/* ======================================
-          Reason
-      ====================================== */}
-
+      {/* Reason */}
       <div>
-        <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="mb-1.5 flex items-center justify-between gap-3">
           <label
             htmlFor="fine-reason"
-            className="flex items-center gap-2 text-sm font-medium text-slate-700"
+            className="text-sm font-medium text-slate-700"
           >
-            <FileText className="h-4 w-4 text-slate-400" />
             Reason
           </label>
 
-          <span className="text-xs text-slate-400">{reason.length}/500</span>
+          <span className="text-xs tabular-nums text-slate-400">
+            {reason.length}/500
+          </span>
         </div>
 
         <textarea
@@ -510,37 +489,34 @@ export default function FineForm({
           required
           disabled={isPending}
           placeholder="Enter the reason for this fine..."
-          className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50"
+          className={textareaClass}
         />
       </div>
 
-      {/* ======================================
-          Actions
-      ====================================== */}
-
-      <div className="flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-end">
-        <button
-          type="button"
+      {/* Actions */}
+      <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-end">
+        <Button
+          variant="secondary"
           onClick={onCancel}
           disabled={isPending}
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="w-full sm:w-auto"
         >
           Cancel
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="submit"
           disabled={
             isPending || (!isEditing && selectedEmployee?.status === "inactive")
           }
-          className="w-full rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="w-full sm:w-auto"
         >
           {isPending
             ? "Saving..."
             : isEditing
               ? "Save Correction"
               : "Create Fine"}
-        </button>
+        </Button>
       </div>
     </form>
   );

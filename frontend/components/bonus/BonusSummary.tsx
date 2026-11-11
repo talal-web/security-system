@@ -2,6 +2,8 @@
 
 import { CheckCircle2, Clock3, Gift } from "lucide-react";
 
+import { StatCard, type StatTone } from "@/components/ui/StatCard";
+
 import type { Bonus } from "@/types/bonus";
 
 interface BonusSummaryProps {
@@ -18,13 +20,19 @@ export default function BonusSummary({ bonuses }: BonusSummaryProps) {
     0,
   );
 
-  const summary = [
+  const summary: {
+    label: string;
+    value: string;
+    description: string;
+    icon: React.ElementType;
+    tone: StatTone;
+  }[] = [
     {
       label: "Total Bonuses",
       value: bonuses.length.toLocaleString(),
       description: `${pendingBonuses.length} pending`,
       icon: Gift,
-      iconWrapper: "bg-slate-100 text-slate-600",
+      tone: "slate",
     },
     {
       label: "Pending",
@@ -32,7 +40,7 @@ export default function BonusSummary({ bonuses }: BonusSummaryProps) {
       description:
         pendingBonuses.length > 0 ? "Awaiting payroll" : "No pending bonuses",
       icon: Clock3,
-      iconWrapper: "bg-amber-50 text-amber-600",
+      tone: "amber",
     },
     {
       label: "Total Paid",
@@ -44,47 +52,28 @@ export default function BonusSummary({ bonuses }: BonusSummaryProps) {
             }`
           : "No bonuses paid yet",
       icon: CheckCircle2,
-      iconWrapper: "bg-emerald-50 text-emerald-600",
+      tone: "emerald",
     },
   ];
 
   return (
     <section
       aria-label="Bonus summary"
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
+      className="grid grid-cols-2 gap-3 lg:grid-cols-3"
     >
-      {summary.map((item) => {
-        const Icon = item.icon;
-
-        return (
-          <div
-            key={item.label}
-            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-500">
-                  {item.label}
-                </p>
-
-                <p className="mt-1 truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-                  {item.value}
-                </p>
-
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  {item.description}
-                </p>
-              </div>
-
-              <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.iconWrapper}`}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-            </div>
-          </div>
-        );
-      })}
+      {summary.map((item, index) => (
+        <StatCard
+          key={item.label}
+          label={item.label}
+          value={item.value}
+          hint={item.description}
+          icon={item.icon}
+          tone={item.tone}
+          className={
+            index === summary.length - 1 ? "col-span-2 lg:col-span-1" : ""
+          }
+        />
+      ))}
     </section>
   );
 }

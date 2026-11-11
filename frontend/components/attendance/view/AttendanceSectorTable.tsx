@@ -1,6 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { Building2, MapPin } from "lucide-react";
+
+import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
 
 import type { AttendanceShift, AttendanceStatus } from "@/types/attendance";
 import type { AttendanceReportSector } from "@/types/attendance-report";
@@ -31,26 +35,23 @@ export default function AttendanceSectorTable({
   const sectorTitle = sector.sector?.trim() ? sector.sector : "No Sector";
 
   return (
-    <div className="rounded-xl border bg-white shadow-sm">
+    <Card className="overflow-hidden">
       {/* Sector Header */}
-      <div className="flex flex-col gap-1 border-b bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-semibold text-slate-900">{sectorTitle}</h2>
-
-          <p className="text-xs text-slate-500">
-            {sector.sectorId || "Unassigned"} • Employee Attendance Records
-          </p>
-        </div>
-
-        <span className="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-          {totalEmployees} Employees • {sector.locations.length} Locations
-        </span>
-      </div>
+      <CardHeader
+        icon={Building2}
+        title={sectorTitle}
+        description={`${sector.sectorId || "Unassigned"} • Employee Attendance Records`}
+        actions={
+          <Badge tone="info" className="tabular-nums">
+            {totalEmployees} Employees • {sector.locations.length} Locations
+          </Badge>
+        }
+      />
 
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-237.5 w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-600">
+          <thead className="bg-slate-50/80 text-left text-xs font-medium text-slate-500">
             <tr>
               <th className="w-16 px-4 py-3 text-center">#</th>
               <th className="px-4 py-3">Employee Name</th>
@@ -63,7 +64,7 @@ export default function AttendanceSectorTable({
             </tr>
           </thead>
 
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-slate-100">
             {(() => {
               let serial = 1;
 
@@ -72,23 +73,23 @@ export default function AttendanceSectorTable({
 
                 return [
                   // Location Header
-                  <tr key={`location-${location._id}`} className="bg-blue-50">
-                    <td
-                      colSpan={7}
-                      className="border-y border-blue-200 px-4 py-2"
-                    >
+                  <tr
+                    key={`location-${location._id}`}
+                    className="bg-slate-50/60"
+                  >
+                    <td colSpan={8} className="px-4 py-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-base">📍</span>
+                          <MapPin className="size-3.5 text-slate-400" />
 
-                          <span className="font-semibold text-blue-900">
+                          <span className="text-xs font-semibold text-slate-700">
                             {locationName}
                           </span>
                         </div>
 
-                        <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                        <Badge tone="neutral" className="tabular-nums">
                           {location.totalEmployees} Employees
-                        </span>
+                        </Badge>
                       </div>
                     </td>
                   </tr>,
@@ -100,9 +101,9 @@ export default function AttendanceSectorTable({
                     return (
                       <tr
                         key={record.attendanceId}
-                        className="transition hover:bg-slate-50"
+                        className="transition-colors hover:bg-slate-50/60"
                       >
-                        <td className="px-4 py-3 text-center font-medium text-slate-600">
+                        <td className="px-4 py-3 text-center text-slate-500 tabular-nums">
                           {serial++}
                         </td>
 
@@ -115,38 +116,39 @@ export default function AttendanceSectorTable({
                         </td>
 
                         <td className="px-4 py-3">
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                            {locationName}
-                          </span>
+                          <Badge tone="neutral">{locationName}</Badge>
                         </td>
 
                         <td className="px-4 py-3">
                           <span
-                            className={getShiftStyle(
+                            className={`${getShiftStyle(
                               record.shift || ("" as AttendanceShift),
-                            )}
+                            )} capitalize`}
                           >
                             {shiftText}
                           </span>
                         </td>
 
                         <td className="px-4 py-3">
-                          <span className={getStatusStyle(record.status)}>
+                          <span
+                            className={`${getStatusStyle(record.status)} capitalize`}
+                          >
                             {record.status}
                           </span>
                         </td>
 
-                        <td className="px-4 py-3 text-slate-600">
+                        <td className="px-4 py-3 text-slate-600 tabular-nums">
                           {new Date(record.date).toLocaleDateString()}
                         </td>
 
                         <td className="px-4 py-3 text-right">
-                          <Link
+                          <ButtonLink
                             href={`/attendance/${record.attendanceId}`}
-                            className="inline-flex h-8 items-center rounded-lg border px-3 text-xs font-medium transition-colors hover:bg-muted"
+                            variant="secondary"
+                            size="sm"
                           >
                             View
-                          </Link>
+                          </ButtonLink>
                         </td>
                       </tr>
                     );
@@ -157,6 +159,6 @@ export default function AttendanceSectorTable({
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   );
 }

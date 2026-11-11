@@ -5,6 +5,7 @@ import { CheckCircle2, CreditCard } from "lucide-react";
 import RecalculatePayrollButton from "./RecalculatePayrollButton";
 import FinalizePayrollDialog from "./FinalizePayrollDialog";
 import MarkPayrollPaidDialog from "./MarkPayrollPaidDialog";
+import { Button } from "@/components/ui/Button";
 import type { Payroll } from "@/types/payroll";
 
 export default function PayrollActions({
@@ -23,25 +24,17 @@ export default function PayrollActions({
         {payroll.status === "draft" && (
           <>
             <RecalculatePayrollButton payrollId={payroll._id} />
-            <button
-              type="button"
-              onClick={() => setFinalizeOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              <CheckCircle2 className="h-4 w-4" />
+            <Button size="sm" onClick={() => setFinalizeOpen(true)}>
+              <CheckCircle2 />
               Finalize
-            </button>
+            </Button>
           </>
         )}
         {payroll.status === "finalized" && (
-          <button
-            type="button"
-            onClick={() => setPaymentOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            <CreditCard className="h-4 w-4" />
+          <Button size="sm" onClick={() => setPaymentOpen(true)}>
+            <CreditCard />
             Mark paid
-          </button>
+          </Button>
         )}
       </div>
       <FinalizePayrollDialog

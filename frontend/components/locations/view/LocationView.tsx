@@ -11,6 +11,8 @@ import LocationSector from "./LocationSector";
 
 import { MapPinned } from "lucide-react";
 
+import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
+
 import { useSelectedArea } from "@/components/area/AreaContext";
 import { useLocationView } from "@/hooks/location/useLocationView";
 
@@ -83,28 +85,15 @@ function LocationViewContent() {
 
   // Initial loading only
   if (isLoading && locations.length === 0) {
-    return (
-      <div className="flex min-h-100 items-center justify-center rounded-3xl border bg-white shadow-sm">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-          <p className="mt-3 text-sm text-slate-500">Loading locations...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState title="Loading locations..." className="min-h-100" />;
   }
 
   if (isError) {
-    return (
-      <div className="rounded-3xl border border-red-200 bg-red-50 p-6">
-        <p className="text-sm font-medium text-red-600">
-          {error?.message || "Something went wrong"}
-        </p>
-      </div>
-    );
+    return <ErrorState title={error?.message || "Something went wrong"} />;
   }
 
   return (
-    <div className="min-h-150 space-y-6">
+    <div className="space-y-6">
       {/* Create */}
       <CreateLocationModal
         key={area ?? "no-area"}
@@ -144,19 +133,13 @@ function LocationViewContent() {
       {/* Results */}
       <div className="min-h-125">
         {locations.length === 0 && !isFetching ? (
-          <div className="rounded-3xl border border-dashed bg-white py-16 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
-              <MapPinned size={32} className="text-slate-400" />
-            </div>
-
-            <h2 className="mt-5 text-xl font-semibold">No Locations Found</h2>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Try changing filters or search keyword.
-            </p>
-          </div>
+          <EmptyState
+            icon={MapPinned}
+            title="No Locations Found"
+            description="Try changing filters or search keyword."
+          />
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {Object.entries(groupedLocations).map(([sectorId, items]) => (
               <LocationSector
                 key={sectorId}

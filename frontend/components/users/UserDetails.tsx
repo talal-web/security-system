@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, KeyRound, Pencil, Shield } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { useAreas } from "@/hooks/area/useArea";
 import type { User } from "@/types/user";
 export default function UserDetails({
@@ -24,31 +27,35 @@ export default function UserDetails({
   });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="space-y-6">
       <Link
         href="/users"
-        className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600"
+        className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to users
+        <ArrowLeft className="size-4" /> Back to users
       </Link>
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-lg font-bold text-blue-700">
+      <Card>
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+          <div className="flex min-w-0 items-center gap-3.5">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-lg font-semibold text-blue-700 ring-1 ring-inset ring-blue-100">
               {user.name.slice(0, 1).toUpperCase()}
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-950">{user.name}</h1>
-              <p className="text-sm text-slate-500">{user.userId}</p>
+            <div className="min-w-0">
+              <h1 className="truncate text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                {user.name}
+              </h1>
+              <p className="truncate text-sm text-slate-500">{user.userId}</p>
             </div>
           </div>
-          <span
-            className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${user.isActive ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
+          <Badge
+            tone={user.isActive ? "success" : "danger"}
+            dot
+            className="w-fit"
           >
             {user.isActive ? "Active" : "Inactive"}
-          </span>
+          </Badge>
         </div>
-        <dl className="mt-8 grid gap-5 border-t pt-5 sm:grid-cols-2">
+        <dl className="grid gap-5 border-t border-slate-100 p-4 sm:grid-cols-2 sm:p-6">
           <Info label="Role" value={user.role} />
           <Info
             label="Areas"
@@ -75,59 +82,46 @@ export default function UserDetails({
             value={new Date(user.updatedAt).toLocaleDateString()}
           />
         </dl>
-        <div className="mt-8 flex flex-wrap gap-3 border-t pt-5">
-          <Link
-            href={`/users/${user._id}/edit`}
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white"
-          >
-            <Pencil className="h-4 w-4" /> Edit profile
-          </Link>
-          <button
-            type="button"
+        <div className="flex flex-wrap gap-2 rounded-b-xl border-t border-slate-100 bg-slate-50/60 px-4 py-3 sm:px-6">
+          <ButtonLink href={`/users/${user._id}/edit`}>
+            <Pencil /> Edit profile
+          </ButtonLink>
+          <Button
+            variant="secondary"
             onClick={onRole}
             disabled={isSelf}
             title={isSelf ? "You cannot change your own role" : undefined}
-            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="disabled:pointer-events-auto disabled:cursor-not-allowed"
           >
-            <Shield className="h-4 w-4" /> Change role
-          </button>
-          <button
-            type="button"
-            onClick={onPassword}
-            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold text-slate-700"
-          >
-            <KeyRound className="h-4 w-4" /> Change password
-          </button>
+            <Shield /> Change role
+          </Button>
+          <Button variant="secondary" onClick={onPassword}>
+            <KeyRound /> Change password
+          </Button>
           {!isSelf && (
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               onClick={onStatus}
-              className="rounded-xl border border-amber-200 px-4 py-2.5 text-sm font-semibold text-amber-700"
+              className="border-amber-200 text-amber-700 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800"
             >
               {user.isActive ? "Deactivate" : "Activate"}
-            </button>
+            </Button>
           )}
           {!isSelf && (
-            <button
-              type="button"
-              onClick={onDelete}
-              className="rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-700"
-            >
+            <Button variant="danger-soft" onClick={onDelete}>
               Delete user
-            </button>
+            </Button>
           )}
         </div>
-      </section>
+      </Card>
     </div>
   );
 }
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-        {label}
-      </dt>
-      <dd className="mt-1 capitalize text-sm font-medium text-slate-800">
+    <div className="min-w-0">
+      <dt className="text-xs font-medium text-slate-500">{label}</dt>
+      <dd className="mt-1 break-words text-sm font-medium capitalize text-slate-900">
         {value}
       </dd>
     </div>

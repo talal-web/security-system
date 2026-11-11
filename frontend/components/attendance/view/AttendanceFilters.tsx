@@ -9,6 +9,14 @@ import type {
 } from "@/types/attendance";
 
 import { getTodayDate } from "@/utils/attendance/date";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
+
+const labelClass =
+  "mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600";
+
+const controlClass =
+  "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-card focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15";
 
 interface AttendanceFiltersProps {
   filters: AttendanceFilters;
@@ -33,21 +41,21 @@ export default function AttendanceFilters({
   };
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+    <Card>
+      <CardContent className="flex flex-col gap-3 lg:flex-row lg:items-end">
         <div className="flex h-9 shrink-0 items-center gap-2 text-slate-700">
-          <div className="flex size-8 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+          <div className="flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600">
             <Filter className="size-4" />
           </div>
-          <span className="text-xs font-semibold uppercase tracking-wide">
+          <span className="text-sm font-semibold text-slate-900">
             Filters
           </span>
         </div>
 
-        <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
+        <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
           {/* Status */}
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          <div>
+            <label className={labelClass}>
               <UserCheck className="h-3.5 w-3.5" />
               Status
             </label>
@@ -60,7 +68,7 @@ export default function AttendanceFilters({
                   status: (e.target.value as AttendanceStatus) || undefined,
                 }))
               }
-              className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm font-medium text-slate-700 transition hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className={controlClass}
             >
               <option value="">All Status</option>
               <option value="present">Present</option>
@@ -70,8 +78,8 @@ export default function AttendanceFilters({
           </div>
 
           {/* Shift */}
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          <div>
+            <label className={labelClass}>
               <Sun className="h-3.5 w-3.5" />
               Shift
             </label>
@@ -84,7 +92,7 @@ export default function AttendanceFilters({
                   shift: (e.target.value as AttendanceShift) || undefined,
                 }))
               }
-              className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm font-medium text-slate-700 transition hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className={controlClass}
             >
               <option value="">All Shifts</option>
               <option value="day">Day Shift</option>
@@ -93,8 +101,8 @@ export default function AttendanceFilters({
           </div>
 
           {/* Date */}
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          <div>
+            <label className={labelClass}>
               <CalendarDays className="h-3.5 w-3.5" />
               Date
             </label>
@@ -108,22 +116,18 @@ export default function AttendanceFilters({
                   date: e.target.value || undefined,
                 }))
               }
-              className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm font-medium text-slate-700 transition hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className={controlClass}
             />
           </div>
         </div>
 
         {hasFilters && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 transition hover:bg-red-100"
-          >
-            <RotateCcw className="size-3.5" />
+          <Button variant="ghost" onClick={clearFilters}>
+            <RotateCcw />
             Reset
-          </button>
+          </Button>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

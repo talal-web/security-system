@@ -3,6 +3,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Modal from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+
+const fieldClass =
+  "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15";
 const schema = z
   .object({
     password: z.string().min(6, "Password must be at least 6 characters"),
@@ -42,32 +46,37 @@ export default function ChangePasswordDialog({
         <p className="text-sm text-slate-500">
           The password is never displayed after submission.
         </p>
-        <input
-          {...register("password")}
-          type="password"
-          autoComplete="new-password"
-          placeholder="New password"
-          className="field"
-        />
-        {errors.password && (
-          <p className="text-xs text-red-600">{errors.password.message}</p>
-        )}
-        <input
-          {...register("confirm")}
-          type="password"
-          autoComplete="new-password"
-          placeholder="Confirm new password"
-          className="field"
-        />
-        {errors.confirm && (
-          <p className="text-xs text-red-600">{errors.confirm.message}</p>
-        )}
-        <button
-          disabled={isPending}
-          className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
-        >
+        <div>
+          <input
+            {...register("password")}
+            type="password"
+            autoComplete="new-password"
+            placeholder="New password"
+            className={fieldClass}
+          />
+          {errors.password && (
+            <p className="mt-1.5 text-xs text-red-600">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
+        <div>
+          <input
+            {...register("confirm")}
+            type="password"
+            autoComplete="new-password"
+            placeholder="Confirm new password"
+            className={fieldClass}
+          />
+          {errors.confirm && (
+            <p className="mt-1.5 text-xs text-red-600">
+              {errors.confirm.message}
+            </p>
+          )}
+        </div>
+        <Button type="submit" disabled={isPending} className="w-full">
           {isPending ? "Updating..." : "Update password"}
-        </button>
+        </Button>
       </form>
     </Modal>
   );

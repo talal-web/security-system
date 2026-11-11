@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
+
 export default function UpdateAttendanceButton({
   attendanceId,
 }: {
@@ -12,5 +14,9 @@ export default function UpdateAttendanceButton({
     );
   };
 
-  return <button onClick={handleUpdate}>Update</button>;
+  return (
+    <Button variant="secondary" size="sm" onClick={handleUpdate}>
+      Update
+    </Button>
+  );
 }

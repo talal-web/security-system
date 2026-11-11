@@ -1,7 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { UserX } from "lucide-react";
 
+import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
 import type { AttendanceStatus } from "@/types/attendance";
 import type { AttendanceReportAbsentLeaveEmployee } from "@/types/attendance-report";
 
@@ -18,39 +21,27 @@ export default function AttendanceEmployeeTable({
 }: AttendanceEmployeeTableProps) {
   const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
 
-  const getStatusStyle = () => {
-    switch (status) {
-      case "absent":
-        return "inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700";
-
-      case "leave":
-        return "inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700";
-
-      default:
-        return "inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700";
-    }
-  };
+  const statusTone =
+    status === "absent" ? "danger" : status === "leave" ? "warning" : "neutral";
 
   return (
-    <div className="rounded-xl border bg-white shadow-sm">
+    <Card className="overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between border-b bg-slate-50 px-4 py-3">
-        <div>
-          <h2 className="font-semibold text-slate-900">{title}</h2>
-          <p className="text-xs text-slate-500">
-            {employees.length} Employee{employees.length !== 1 && "s"}
-          </p>
-        </div>
-
-        <span className={getStatusStyle()}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </span>
-      </div>
+      <CardHeader
+        icon={UserX}
+        title={title}
+        description={`${employees.length} Employee${employees.length !== 1 ? "s" : ""}`}
+        actions={
+          <Badge tone={statusTone} dot>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </Badge>
+        }
+      />
 
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-212.5 text-sm">
-          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-600">
+          <thead className="bg-slate-50/80 text-left text-xs font-medium text-slate-500">
             <tr>
               <th scope="col" className="w-16 px-4 py-3 text-center">
                 #
@@ -82,17 +73,17 @@ export default function AttendanceEmployeeTable({
             </tr>
           </thead>
 
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-slate-100">
             {employees.map((employee, index) => (
               <tr
                 key={employee.attendanceId}
-                className="transition hover:bg-slate-50"
+                className="transition-colors hover:bg-slate-50/60"
               >
-                <td className="px-4 py-3 text-center font-medium text-slate-600">
+                <td className="px-4 py-3 text-center text-slate-500 tabular-nums">
                   {index + 1}
                 </td>
 
-                <td className="px-4 py-3 font-medium text-slate-700">
+                <td className="px-4 py-3 font-mono text-xs text-slate-600">
                   {employee.empId}
                 </td>
 
@@ -109,24 +100,25 @@ export default function AttendanceEmployeeTable({
                 </td>
 
                 <td className="px-4 py-3">
-                  <span className={getStatusStyle()}>{statusLabel}</span>
+                  <Badge tone={statusTone}>{statusLabel}</Badge>
                 </td>
 
                 <td className="px-4 py-3 text-slate-600">
                   {employee.remarks || "-"}
                 </td>
 
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-4 py-3 text-slate-600 tabular-nums">
                   {new Date(employee.date).toLocaleDateString()}
                 </td>
 
                 <td className="px-4 py-3 text-right">
-                  <Link
+                  <ButtonLink
                     href={`/attendance/${employee.attendanceId}`}
-                    className="inline-flex h-8 items-center rounded-lg border px-3 text-xs font-medium transition-colors hover:bg-muted"
+                    variant="secondary"
+                    size="sm"
                   >
                     View
-                  </Link>
+                  </ButtonLink>
                 </td>
               </tr>
             ))}
@@ -141,6 +133,6 @@ export default function AttendanceEmployeeTable({
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   );
 }

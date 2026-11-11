@@ -9,6 +9,8 @@ import ChangePasswordDialog from "@/components/users/ChangePasswordDialog";
 import ChangeStatusDialog from "@/components/users/ChangeStatusDialog";
 import DeleteUserDialog from "@/components/users/DeleteUserDialog";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
+import { PageContainer } from "@/components/ui/PageHeader";
+import { ErrorState, LoadingState } from "@/components/ui/States";
 import { useMe } from "@/hooks/auth/useMe";
 import {
   useChangeUserPassword,
@@ -43,16 +45,27 @@ export default function UserDetailsPage() {
     onError: (error: unknown) =>
       toast.error(getApiErrorMessage(error) || failure),
   });
-  if (query.isLoading) return <main className="p-6">Loading user...</main>;
+  if (query.isLoading)
+    return (
+      <PageContainer className="max-w-3xl">
+        <LoadingState title="Loading user..." />
+      </PageContainer>
+    );
   if (query.isError || !user)
     return (
-      <main className="p-6 text-red-600">
-        {query.error instanceof Error ? query.error.message : "User not found."}
-      </main>
+      <PageContainer className="max-w-3xl">
+        <ErrorState
+          title={
+            query.error instanceof Error
+              ? query.error.message
+              : "User not found."
+          }
+        />
+      </PageContainer>
     );
   return (
     <ProtectedRoute allowedRoles={["developer", "admin"]}>
-      <main className="min-h-full bg-slate-50 p-4 sm:p-6">
+      <PageContainer className="max-w-3xl">
         <UserDetails
           user={user}
           isSelf={me?.user?.id === user._id}
@@ -118,7 +131,7 @@ export default function UserDetailsPage() {
             )
           }
         />
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

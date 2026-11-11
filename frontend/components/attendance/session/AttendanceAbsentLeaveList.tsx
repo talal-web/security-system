@@ -1,6 +1,10 @@
 "use client";
 
+import { UserX } from "lucide-react";
+
 import AttendanceAbsentLeaveCard from "./AttendanceAbsentLeaveCard";
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
 import type { AttendanceFormEmployee } from "@/types/attendance-session";
 
@@ -26,26 +30,20 @@ export default function AttendanceAbsentLeaveList({
   }
 
   return (
-    <section className="space-y-4">
-      <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-red-700">
-              Absent & Leave
-            </h2>
-
-            <p className="text-sm text-red-600">
-              Employees marked absent or on leave
-            </p>
-          </div>
-
-          <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-red-700">
+    <Card className="overflow-hidden">
+      <CardHeader
+        icon={UserX}
+        title="Absent & Leave"
+        description="Employees marked absent or on leave"
+        className="bg-slate-50/60"
+        actions={
+          <Badge tone="danger" className="tabular-nums">
             {employees.length} Employees
-          </span>
-        </div>
-      </div>
+          </Badge>
+        }
+      />
 
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <CardContent className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {employees.map((employee) => (
           <AttendanceAbsentLeaveCard
             key={employee.employeeId}
@@ -53,7 +51,7 @@ export default function AttendanceAbsentLeaveList({
             onUpdate={onEmployeeChange}
           />
         ))}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

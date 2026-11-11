@@ -22,6 +22,8 @@ import bonusRoutes from "./bonusRoutes.js";
 import payrollRoutes from "./payrollRoutes.js";
 import areaRoutes from "./areaRoutes.js";
 import authRoutes from "./authRoutes.js";
+import invoiceRoutes from "./invoiceRoutes.js";
+import notificationRoutes from "./notificationRoutes.js";
 
 const router = express.Router();
 
@@ -68,5 +70,7 @@ router.use("/deductions", protect, deductionRoutes);
 router.use("/bonuses", protect, bonusRoutes);
 router.use("/payroll", protect, payrollRoutes);
 router.use("/area", protect, areaRoutes);
+router.use("/invoices", protect, invoiceRoutes);
+router.use("/notifications", protect, notificationRoutes);
 
 export default router;

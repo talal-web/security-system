@@ -1,5 +1,6 @@
 "use client";
 import Modal from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 import type { User, UserRole } from "@/types/user";
 
 const ASSIGNABLE_ROLES: UserRole[] = ["admin", "clerk", "supervisor"];
@@ -44,7 +45,7 @@ export default function ChangeRoleDialog({
           name="role"
           defaultValue={user.role}
           disabled={isDeveloper}
-          className="field disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
         >
           {isDeveloper && <option value="developer">Developer</option>}
           {ASSIGNABLE_ROLES.map((role) => (
@@ -58,12 +59,13 @@ export default function ChangeRoleDialog({
             Developer role cannot be changed.
           </p>
         )}
-        <button
+        <Button
+          type="submit"
           disabled={isPending || isDeveloper}
-          className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          className="w-full"
         >
           {isPending ? "Updating..." : "Update role"}
-        </button>
+        </Button>
       </form>
     </Modal>
   );

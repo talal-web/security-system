@@ -2,8 +2,12 @@
 
 import { use, useState } from "react";
 
+import { Landmark } from "lucide-react";
+
 import { useMe } from "@/hooks/auth/useMe";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
+import { PageContainer, PageHeader } from "@/components/ui/PageHeader";
+import { ErrorState, LoadingState } from "@/components/ui/States";
 
 import EmployeeSalaryCard from "@/components/employeeSalary/EmployeeSalaryCard";
 import SalaryHistory from "@/components/employeeSalary/SalaryHistory";
@@ -85,31 +89,28 @@ export default function EmployeeSalaryPage({
 
   if (isLoading) {
     return (
-      <main className="p-6">
-        <div className="rounded-xl border bg-white p-6">
-          <p className="text-sm text-slate-500">Loading salary information...</p>
-        </div>
-      </main>
+      <PageContainer>
+        <LoadingState title="Loading salary information..." />
+      </PageContainer>
     );
   }
 
   if (!employee) {
     return (
-      <main className="p-6">
-        <div className="rounded-xl border bg-white p-6">
-          <h2 className="text-lg font-semibold text-slate-900">
-            {queryError
+      <PageContainer>
+        <ErrorState
+          title={
+            queryError
               ? "Unable to load salary information"
-              : "Employee not found"}
-          </h2>
-
-          <p className="mt-1 text-sm text-slate-500">
-            {queryError instanceof Error
+              : "Employee not found"
+          }
+          description={
+            queryError instanceof Error
               ? queryError.message
-              : "Unable to load employee salary information."}
-          </p>
-        </div>
-      </main>
+              : "Unable to load employee salary information."
+          }
+        />
+      </PageContainer>
     );
   }
 
@@ -117,15 +118,17 @@ export default function EmployeeSalaryPage({
     <ProtectedRoute
       allowedRoles={["developer", "admin", "clerk", "supervisor"]}
     >
-      <main className="space-y-6 p-6">
+      <PageContainer>
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Employee Salary</h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            {employee.name} · {employee.empId} · {employee.designation}
-          </p>
-        </div>
+        <PageHeader
+          title="Employee Salary"
+          icon={Landmark}
+          description={
+            <>
+              {employee.name} · {employee.empId} · {employee.designation}
+            </>
+          }
+        />
 
         {/* Current Salary */}
         <EmployeeSalaryCard
@@ -151,7 +154,7 @@ export default function EmployeeSalaryPage({
           onEdit={canEditSalary ? handleEditSalary : undefined}
           canEdit={canEditSalary}
         />
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

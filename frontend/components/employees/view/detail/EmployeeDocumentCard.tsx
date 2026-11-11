@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { Download, Eye, FileImage, X } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
+
 type Props = {
   title: string;
   imageUrl?: string;
@@ -56,14 +58,14 @@ export default function EmployeeDocumentCard({
   return (
     <>
       {/* Card */}
-      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-        <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-            <FileImage className="h-4 w-4" />
+      <div className="rounded-lg border border-slate-200/80 bg-slate-50/60 p-3">
+        <div className="mb-3 flex items-center gap-2.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500">
+            <FileImage className="size-4" />
           </div>
 
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-semibold text-slate-800">
+            <h3 className="truncate text-sm font-medium text-slate-900">
               {title}
             </h3>
 
@@ -75,28 +77,28 @@ export default function EmployeeDocumentCard({
 
         <div className="grid grid-cols-2 gap-2">
           {/* Preview */}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={handlePreview}
             disabled={!imageUrl}
             aria-label={`Preview ${title}`}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Eye className="h-4 w-4 shrink-0" />
+            <Eye />
             <span>Preview</span>
-          </button>
+          </Button>
 
           {/* Download */}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={handleDownload}
             disabled={!imageUrl}
             aria-label={`Download ${title}`}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-emerald-600 bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Download className="h-4 w-4 shrink-0" />
+            <Download />
             <span>Download</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -106,22 +108,23 @@ export default function EmployeeDocumentCard({
           role="dialog"
           aria-modal="true"
           aria-label={`${title} preview`}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-3 sm:p-6"
           onClick={handleClose}
         >
           <div
-            className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-2xl sm:h-[90vh]"
+            className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-pop sm:h-[90vh]"
             onClick={(event) => event.stopPropagation()}
           >
             {/* Close Button */}
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="icon"
               onClick={handleClose}
               aria-label="Close preview"
-              className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-700"
+              className="absolute right-3 top-3 z-20"
             >
-              <X className="h-4 w-4" />
-            </button>
+              <X />
+            </Button>
 
             {/* Image */}
             <div className="relative h-full w-full">

@@ -1,19 +1,17 @@
 type StatusItemProps = {
   label: string;
+  status?: string;
 };
 
-export default function StatusItem({ label }: StatusItemProps) {
+export default function StatusItem({ label, status = "Online" }: StatusItemProps) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-2.5 py-2">
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+    <div className="flex h-8 items-center justify-between px-1">
+      <span className="truncate text-sm text-slate-600">{label}</span>
 
-        <span className="truncate text-[11px] font-medium text-slate-600">
-          {label}
-        </span>
-      </div>
-
-      <span className="text-[9px] font-semibold text-emerald-600">Online</span>
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+        <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden />
+        {status}
+      </span>
     </div>
   );
 }

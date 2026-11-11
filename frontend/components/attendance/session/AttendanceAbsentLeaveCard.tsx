@@ -52,23 +52,24 @@ function getStatusStyles(status: AttendanceStatus) {
     case "absent":
       return {
         accent: "bg-red-500",
-        avatar: "bg-red-50 text-red-700",
+        avatar: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/15",
         border: "border-red-200",
       };
 
     case "leave":
       return {
         accent: "bg-amber-500",
-        avatar: "bg-amber-50 text-amber-700",
+        avatar: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/15",
         border: "border-amber-200",
       };
 
     case "present":
     default:
       return {
-        accent: "bg-blue-500",
-        avatar: "bg-blue-50 text-blue-700",
-        border: "border-blue-200",
+        accent: "bg-emerald-500",
+        avatar:
+          "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/15",
+        border: "border-slate-200/80",
       };
   }
 }
@@ -77,27 +78,27 @@ function getStatusButtonStyles(status: AttendanceStatus, isActive: boolean) {
   if (!isActive) {
     switch (status) {
       case "absent":
-        return "text-red-600 hover:bg-red-50";
+        return "text-slate-500 hover:bg-red-50 hover:text-red-700";
 
       case "leave":
-        return "text-amber-600 hover:bg-amber-50";
+        return "text-slate-500 hover:bg-amber-50 hover:text-amber-700";
 
       case "present":
       default:
-        return "text-blue-600 hover:bg-blue-50";
+        return "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700";
     }
   }
 
   switch (status) {
     case "absent":
-      return "bg-red-500 text-white shadow-sm";
+      return "bg-red-600 text-white shadow-sm";
 
     case "leave":
       return "bg-amber-500 text-white shadow-sm";
 
     case "present":
     default:
-      return "bg-blue-500 text-white shadow-sm";
+      return "bg-emerald-600 text-white shadow-sm";
   }
 }
 
@@ -115,9 +116,9 @@ export default function AttendanceAbsentLeaveCard({
   return (
     <article
       className={[
-        "relative overflow-hidden rounded-lg border bg-white",
-        "shadow-sm transition-shadow duration-150",
-        "hover:shadow-md",
+        "relative overflow-hidden rounded-xl border bg-white",
+        "shadow-card transition-colors duration-150",
+        "hover:border-slate-300",
         styles.border,
       ].join(" ")}
     >
@@ -135,7 +136,7 @@ export default function AttendanceAbsentLeaveCard({
           <div
             className={[
               "flex h-9 w-9 shrink-0 items-center justify-center",
-              "rounded-lg text-xs font-bold",
+              "rounded-lg text-xs font-semibold",
               styles.avatar,
             ].join(" ")}
           >
@@ -146,7 +147,7 @@ export default function AttendanceAbsentLeaveCard({
           <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3">
             {/* LEFT: Name + Father Name */}
             <div className="min-w-0">
-              <h3 className="truncate text-[13px] font-bold leading-4 text-slate-900">
+              <h3 className="truncate text-[13px] font-semibold leading-4 text-slate-900">
                 {employee.name}
               </h3>
 
@@ -157,7 +158,7 @@ export default function AttendanceAbsentLeaveCard({
 
             {/* RIGHT: Employee ID + Designation */}
             <div className="min-w-0 text-right">
-              <p className="truncate font-mono text-[10px] font-bold leading-4 text-slate-700">
+              <p className="truncate font-mono text-[10px] font-semibold leading-4 text-slate-700">
                 {employee.empId}
               </p>
 
@@ -172,7 +173,7 @@ export default function AttendanceAbsentLeaveCard({
             STATUS: P / L / A
         ========================= */}
         <div
-          className="mt-2.5 flex h-8 overflow-hidden rounded-md border border-slate-200 bg-slate-50 p-0.5"
+          className="mt-2.5 flex h-8 gap-0.5 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-0.5"
           role="group"
           aria-label={`Status for ${employee.name}`}
         >
@@ -189,11 +190,11 @@ export default function AttendanceAbsentLeaveCard({
                 aria-pressed={isActive}
                 className={[
                   "flex flex-1 items-center justify-center",
-                  "rounded-sm",
-                  "text-[11px] font-bold",
+                  "rounded-md",
+                  "text-[11px] font-semibold",
                   "transition-all duration-150",
                   "focus:z-10 focus:outline-none",
-                  "focus:ring-2 focus:ring-blue-200",
+                  "focus-visible:ring-2 focus-visible:ring-blue-500/40",
                   "active:scale-95",
                   getStatusButtonStyles(option.value, isActive),
                 ].join(" ")}
@@ -215,7 +216,7 @@ export default function AttendanceAbsentLeaveCard({
           }
           placeholder="Remark..."
           autoComplete="off"
-          className="mt-2 h-8 w-full rounded-md border border-slate-300 bg-white px-2.5 text-[11px] text-slate-700 outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
+          className="mt-2 h-8 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] text-slate-700 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/15"
         />
       </div>
     </article>

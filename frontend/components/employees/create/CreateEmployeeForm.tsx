@@ -26,7 +26,12 @@ import {
   Clock3,
   Plus,
   Trash2,
+  UserPlus,
 } from "lucide-react";
+
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 import { useCreateEmployee } from "@/hooks/employee/create/useCreateEmployee";
 import { useEmployeeLocations } from "@/hooks/employee/create/useEmployeeLocations";
@@ -176,88 +181,66 @@ export default function CreateEmployeeForm() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-3 py-4 sm:px-4 sm:py-6 lg:px-8 lg:py-10">
-      <div className="mx-auto max-w-7xl">
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          {/* HEADER */}
-          <div className="relative overflow-hidden bg-linear-to-r from-orange-500 via-amber-500 to-yellow-500 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur">
-                  <ShieldCheck className="h-4 w-4" />
-                  Employee Management
-                </div>
+    <div className="space-y-6">
+      {/* HEADER */}
+      <PageHeader
+        title="Create Employee"
+        description="Add a new employee and securely manage their information."
+        icon={UserPlus}
+      />
 
-                <div className="space-y-1">
-                  <h1 className="text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
-                    Create Employee
-                  </h1>
-                  <p className="max-w-2xl text-sm text-orange-50 sm:text-base">
-                    Add a new employee and securely manage their information.
-                  </p>
-                </div>
-              </div>
-
-              {/* PROFILE IMAGE */}
-              <label className="flex items-center gap-3 self-start rounded-2xl border border-white/20 bg-white/10 p-3 backdrop-blur sm:self-auto">
-                <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-white/30 bg-white/10 sm:h-24 sm:w-24">
-                  {profilePreviewUrl ? (
-                    <Image
-                      src={profilePreviewUrl}
-                      alt="Selected employee profile preview"
-                      fill
-                      unoptimized
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full flex-col items-center justify-center text-white">
-                      <User className="h-8 w-8" />
-                      <span className="mt-1 text-[10px]">Upload</span>
-                    </div>
-                  )}
-
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                    className="hidden"
-                    onChange={(e) => {
-                      setProfileImage(e.target.files?.[0] || null);
-                      setImageErrors((current) => ({ ...current, profileImage: undefined }));
-                    }}
-                  />
-                </div>
-
-                <div className="text-white">
-                  <p className="text-sm font-semibold">Profile Image (Required)</p>
-                  <p className="text-xs text-white/80">PNG, JPG or WEBP</p>
-                  {imageErrors.profileImage && (
-                    <p className="text-xs text-red-100">{imageErrors.profileImage}</p>
-                  )}
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* FORM */}
-          <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 lg:p-8">
-            <div className="space-y-8">
+      {/* FORM */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* PERSONAL INFORMATION */}
-              <section className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-orange-100 p-2 text-orange-600">
-                    <User className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-slate-900">
-                      Personal Information
-                    </h2>
-                    <p className="text-sm text-slate-500">
-                      Basic employee details
-                    </p>
-                  </div>
+              <Card>
+                <CardHeader
+                  icon={User}
+                  title="Personal Information"
+                  description="Basic employee details"
+                />
+
+                <CardContent className="space-y-5">
+                {/* PROFILE IMAGE */}
+                <div>
+                  <label className="flex cursor-pointer items-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50/60 p-3 transition-colors hover:border-blue-300 hover:bg-blue-50/40 sm:max-w-md">
+                    <div className="relative size-16 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white sm:size-20">
+                      {profilePreviewUrl ? (
+                        <Image
+                          src={profilePreviewUrl}
+                          alt="Selected employee profile preview"
+                          fill
+                          unoptimized
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full flex-col items-center justify-center text-slate-400">
+                          <User className="size-6" />
+                          <span className="mt-1 text-[10px] font-medium">Upload</span>
+                        </div>
+                      )}
+
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          setProfileImage(e.target.files?.[0] || null);
+                          setImageErrors((current) => ({ ...current, profileImage: undefined }));
+                        }}
+                      />
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-700">Profile Image (Required)</p>
+                      <p className="text-xs text-slate-500">PNG, JPG or WEBP</p>
+                    </div>
+                  </label>
+                  {imageErrors.profileImage && (
+                    <p className="mt-1 text-xs font-medium text-red-500">{imageErrors.profileImage}</p>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <Input
                     icon={<User />}
                     label="Name"
@@ -310,42 +293,36 @@ export default function CreateEmployeeForm() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
                     Address
                   </label>
                   <textarea
                     rows={4}
                     placeholder="House No. 12, Street 54, G-10/3, Islamabad, Pakistan"
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-100"
+                    className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 shadow-card outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/15 ${
+                      errors.address?.message ? "border-red-400" : "border-slate-200 hover:border-slate-300"
+                    }`}
                     {...register("address")}
                   />
                   {errors.address?.message && (
-                    <p className="mt-1 text-xs text-red-600">
+                    <p className="mt-1 text-xs font-medium text-red-500">
                       {errors.address.message}
                     </p>
                   )}
                 </div>
-              </section>
-
-              <div className="border-t border-slate-200" />
+                </CardContent>
+              </Card>
 
               {/* CONTACT INFORMATION */}
-              <section className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-orange-100 p-2 text-orange-600">
-                    <Phone className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-slate-900">
-                      Contact Information
-                    </h2>
-                    <p className="text-sm text-slate-500">
-                      Phone numbers and emergency contact
-                    </p>
-                  </div>
-                </div>
+              <Card>
+                <CardHeader
+                  icon={Phone}
+                  title="Contact Information"
+                  description="Phone numbers and emergency contact"
+                />
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <CardContent className="space-y-5">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <Input
                     icon={<Phone />}
                     label="Personal Number"
@@ -355,18 +332,19 @@ export default function CreateEmployeeForm() {
                   />
                 </div>
                 {errors.emergencyContacts?.message && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-sm font-medium text-red-600">
                     {errors.emergencyContacts.message}
                   </p>
                 )}
 
-                <div className="space-y-3">
+                <div className="space-y-3 border-t border-slate-100 pt-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-slate-800">
+                    <h3 className="text-sm font-semibold text-slate-900">
                       Emergency Contacts
                     </h3>
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() =>
                         appendEmergencyContact({
                           name: "",
@@ -376,18 +354,17 @@ export default function CreateEmployeeForm() {
                           isPrimary: false,
                         })
                       }
-                      className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
-                      <Plus className="h-4 w-4" /> Add contact
-                    </button>
+                      <Plus /> Add contact
+                    </Button>
                   </div>
                   {emergencyContactFields.length === 0 && (
-                    <p className="text-sm text-slate-500">No emergency contacts added.</p>
+                    <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-500">No emergency contacts added.</p>
                   )}
                   {emergencyContactFields.map((field, index) => (
                     <div
                       key={field.id}
-                      className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-5"
+                      className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-slate-50/50 p-3 sm:grid-cols-2 lg:grid-cols-5"
                     >
                       <Input
                         label="Name"
@@ -414,11 +391,11 @@ export default function CreateEmployeeForm() {
                         error={errors.emergencyContacts?.[index]?.address?.message}
                         {...register(`emergencyContacts.${index}.address`)}
                       />
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-end justify-between gap-3 sm:items-center lg:items-end lg:pb-1">
                         <label className="flex items-center gap-2 text-sm text-slate-700">
                           <input
                             type="checkbox"
-                            className="h-4 w-4 accent-orange-600"
+                            className="size-4 rounded accent-blue-600"
                             {...(() => {
                               const field = register(
                                 `emergencyContacts.${index}.isPrimary`,
@@ -444,27 +421,29 @@ export default function CreateEmployeeForm() {
                           />
                           Primary
                         </label>
-                        <button
-                          type="button"
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
                           aria-label="Remove emergency contact"
                           title="Remove emergency contact"
                           onClick={() => removeEmergencyContact(index)}
-                          className="rounded-md p-2 text-red-600 hover:bg-red-50"
+                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                          <Trash2 />
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 border-t border-slate-100 pt-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-slate-800">
+                    <h3 className="text-sm font-semibold text-slate-900">
                       References
                     </h3>
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() =>
                         appendReference({
                           name: "",
@@ -473,18 +452,17 @@ export default function CreateEmployeeForm() {
                           address: "",
                         })
                       }
-                      className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
-                      <Plus className="h-4 w-4" /> Add reference
-                    </button>
+                      <Plus /> Add reference
+                    </Button>
                   </div>
                   {referenceFields.length === 0 && (
-                    <p className="text-sm text-slate-500">No references added.</p>
+                    <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-500">No references added.</p>
                   )}
                   {referenceFields.map((field, index) => (
                     <div
                       key={field.id}
-                      className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-5"
+                      className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-slate-50/50 p-3 sm:grid-cols-2 lg:grid-cols-5"
                     >
                       <Input
                         label="Name"
@@ -511,39 +489,32 @@ export default function CreateEmployeeForm() {
                         error={errors.references?.[index]?.address?.message}
                         {...register(`references.${index}.address`)}
                       />
-                      <button
-                        type="button"
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
                         aria-label="Remove reference"
                         title="Remove reference"
                         onClick={() => removeReference(index)}
-                        className="justify-self-end rounded-md p-2 text-red-600 hover:bg-red-50"
+                        className="self-end justify-self-end text-red-600 hover:bg-red-50 hover:text-red-700 lg:mb-1"
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                        <Trash2 />
+                      </Button>
                     </div>
                   ))}
                 </div>
-              </section>
-
-              <div className="border-t border-slate-200" />
+                </CardContent>
+              </Card>
 
               {/* JOB DETAILS */}
-              <section className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-orange-100 p-2 text-orange-600">
-                    <BadgeCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-slate-900">
-                      Job Details
-                    </h2>
-                    <p className="text-sm text-slate-500">
-                      Location, shift, salary, and employment status
-                    </p>
-                  </div>
-                </div>
+              <Card>
+                <CardHeader
+                  icon={BadgeCheck}
+                  title="Job Details"
+                  description="Location, shift, salary, and employment status"
+                />
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <AreaSelect
                     label="Area"
                     placeholder="Select Area"
@@ -619,38 +590,30 @@ export default function CreateEmployeeForm() {
                 </div>
 
                 {locationStatusMessage && (
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
                     {locationStatusMessage}
                   </div>
                 )}
-              </section>
-
-              <div className="border-t border-slate-200" />
+                </CardContent>
+              </Card>
 
               {/* DOCUMENTS */}
-              <section className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-orange-100 p-2 text-orange-600">
-                    <ImageUp className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-slate-900">
-                      Documents
-                    </h2>
-                    <p className="text-sm text-slate-500">
-                      Upload CNIC front and back images
-                    </p>
-                  </div>
-                </div>
+              <Card>
+                <CardHeader
+                  icon={ImageUp}
+                  title="Documents"
+                  description="Upload CNIC front and back images"
+                />
 
+                <CardContent>
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-700">
                       CNIC Front Picture (Required)
                     </label>
 
-                    <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-orange-300 hover:bg-orange-50">
-                      <div className="relative h-24 w-32 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    <label className="flex cursor-pointer items-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50/60 p-3 transition-colors hover:border-blue-300 hover:bg-blue-50/40">
+                      <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white sm:h-24 sm:w-32">
                         {cnicFrontPreviewUrl ? (
                           <Image
                             src={cnicFrontPreviewUrl}
@@ -688,17 +651,17 @@ export default function CreateEmployeeForm() {
                       />
                     </label>
                     {imageErrors.cnicFrontImage && (
-                      <p className="text-sm text-red-600">{imageErrors.cnicFrontImage}</p>
+                      <p className="text-xs font-medium text-red-500">{imageErrors.cnicFrontImage}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-700">
                       CNIC Back Picture (Required)
                     </label>
 
-                    <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-orange-300 hover:bg-orange-50">
-                      <div className="relative h-24 w-32 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    <label className="flex cursor-pointer items-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50/60 p-3 transition-colors hover:border-blue-300 hover:bg-blue-50/40">
+                      <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white sm:h-24 sm:w-32">
                         {cnicBackPreviewUrl ? (
                           <Image
                             src={cnicBackPreviewUrl}
@@ -736,27 +699,26 @@ export default function CreateEmployeeForm() {
                       />
                     </label>
                     {imageErrors.cnicBackImage && (
-                      <p className="text-sm text-red-600">{imageErrors.cnicBackImage}</p>
+                      <p className="text-xs font-medium text-red-500">{imageErrors.cnicBackImage}</p>
                     )}
                   </div>
                 </div>
-              </section>
-            </div>
+                </CardContent>
+              </Card>
 
-            {/* ACTION BAR */}
-            <div className="sticky bottom-0 mt-8 border-t border-slate-200 bg-white/95 pt-4 backdrop-blur sm:flex sm:items-center sm:justify-end">
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 text-sm font-semibold text-white transition hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-200 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto sm:min-w-45"
-              >
-                <Save className="h-4 w-4" />
-                {loading ? "Creating..." : "Create Employee"}
-              </button>
-            </div>
-          </form>
+        {/* ACTION BAR */}
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+          <Button
+            type="submit"
+            size="lg"
+            loading={loading}
+            className="w-full sm:w-auto sm:min-w-45"
+          >
+            {!loading && <Save />}
+            {loading ? "Creating..." : "Create Employee"}
+          </Button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

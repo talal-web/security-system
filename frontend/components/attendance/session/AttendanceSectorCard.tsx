@@ -1,6 +1,9 @@
 "use client";
 
+import { Building2 } from "lucide-react";
+
 import AttendanceEmployeeCard from "./AttendanceEmployeeCard";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
 import type {
   AttendanceFormEmployee,
@@ -50,26 +53,21 @@ export default function AttendanceSectorCard({
   );
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+    <Card className="overflow-hidden">
       {/* ================================
           SECTOR HEADER
       ================================= */}
-      <div className="border-b bg-slate-50 px-4 py-3">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">
-            {sector.sector.name}
-          </h2>
-
-          <p className="text-sm text-slate-500">
-            {totalEmployees} Employees • {sector.totalLocations} Locations
-          </p>
-        </div>
-      </div>
+      <CardHeader
+        icon={Building2}
+        title={sector.sector.name}
+        description={`${totalEmployees} Employees • ${sector.totalLocations} Locations`}
+        className="bg-slate-50/60"
+      />
 
       {/* ================================
           LOCATIONS
       ================================= */}
-      <div className="p-4">
+      <CardContent>
         {locationsWithEmployees.length === 0 ? (
           <p className="py-4 text-center text-sm text-slate-500">
             No employees assigned to this sector.
@@ -82,8 +80,8 @@ export default function AttendanceSectorCard({
                     LOCATION HEADER
                 ========================= */}
                 <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600">
-                    <span className="text-xs font-bold">
+                  <div className="flex size-6 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-600">
+                    <span className="text-xs font-semibold tabular-nums">
                       {location.sortOrder}
                     </span>
                   </div>
@@ -101,7 +99,7 @@ export default function AttendanceSectorCard({
                     </p>
                   </div>
 
-                  <div className="h-px flex-1 bg-slate-200" />
+                  <div className="h-px flex-1 bg-slate-100" />
                 </div>
 
                 {/* =========================
@@ -124,7 +122,7 @@ export default function AttendanceSectorCard({
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

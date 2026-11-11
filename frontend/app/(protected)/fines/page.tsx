@@ -9,6 +9,8 @@ import FineSummary from "@/components/fine/FineSummary";
 import FineHistory from "@/components/fine/FineHistory";
 import FineModal from "@/components/fine/FineModal";
 import FineConfirmModal from "@/components/fine/FineConfirmModal";
+import { PageContainer } from "@/components/ui/PageHeader";
+import { ErrorState, LoadingState } from "@/components/ui/States";
 
 import { useMe } from "@/hooks/auth/useMe";
 import { useFines, useCancelFine } from "@/hooks/fine/useFine";
@@ -101,7 +103,7 @@ export default function FinesPage() {
     <ProtectedRoute
       allowedRoles={["developer", "admin", "clerk", "supervisor"]}
     >
-      <main className="space-y-5 p-4 sm:p-6">
+      <PageContainer>
         {/* ====================================================== */}
         {/* HEADER */}
         {/* ====================================================== */}
@@ -123,26 +125,17 @@ export default function FinesPage() {
         {/* LOADING */}
         {/* ====================================================== */}
 
-        {finesLoading && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <p className="text-sm text-slate-500">Loading fines...</p>
-          </div>
-        )}
+        {finesLoading && <LoadingState title="Loading fines..." />}
 
         {/* ====================================================== */}
         {/* ERROR */}
         {/* ====================================================== */}
 
         {finesError && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-            <p className="text-sm font-medium text-red-700">
-              Failed to load fines.
-            </p>
-
-            <p className="mt-1 text-sm text-red-600">
-              {finesErrorData.message}
-            </p>
-          </div>
+          <ErrorState
+            title="Failed to load fines."
+            description={finesErrorData.message}
+          />
         )}
 
         {/* ====================================================== */}
@@ -194,7 +187,7 @@ export default function FinesPage() {
             }
           }}
         />
-      </main>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

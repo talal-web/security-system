@@ -13,42 +13,48 @@ interface MonthlyAttendanceRowProps {
 function getStatusClasses(status: MonthlyAttendanceStatus) {
   switch (status) {
     case "P":
-      return "bg-green-100 text-green-700";
+      return "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
 
     case "L":
-      return "bg-yellow-100 text-yellow-700";
+      return "bg-amber-50 text-amber-700 ring-amber-600/20";
 
     case "A":
-      return "bg-red-100 text-red-700";
+      return "bg-red-50 text-red-700 ring-red-600/20";
 
     default:
-      return "bg-slate-100 text-slate-500";
+      return "bg-slate-50 text-slate-400 ring-slate-500/10";
   }
 }
+
+const stickyTd =
+  "sticky z-30 border border-slate-200 bg-white px-3 py-2 whitespace-nowrap";
+
+const summaryTd =
+  "border border-slate-200 bg-slate-50/80 px-3 py-2 text-center font-semibold tabular-nums";
 
 export default function MonthlyAttendanceRow({
   employee,
   days,
 }: MonthlyAttendanceRowProps) {
   return (
-    <tr className="hover:bg-slate-50">
+    <tr className="hover:bg-slate-50/60">
       {/* ====================================== */}
       {/* STICKY EMPLOYEE INFO */}
       {/* ====================================== */}
 
-      <td className="sticky left-0 z-30 border bg-white px-3 py-2 font-medium whitespace-nowrap">
+      <td className={`${stickyTd} left-0 font-mono text-xs text-slate-600`}>
         {employee.empId}
       </td>
 
-      <td className="sticky left-22.5 z-30 border bg-white px-3 py-2 whitespace-nowrap">
+      <td className={`${stickyTd} left-22.5 font-medium text-slate-900`}>
         {employee.name}
       </td>
 
-      <td className="sticky left-67.5 z-30 border bg-white px-3 py-2 whitespace-nowrap">
+      <td className={`${stickyTd} left-67.5 text-slate-600`}>
         {employee.fatherName}
       </td>
 
-      <td className="sticky left-112.5 z-30 border bg-white px-3 py-2 whitespace-nowrap">
+      <td className={`${stickyTd} left-112.5 text-slate-600`}>
         {formatText(employee.designation?.replace(/_/g, " "))}
       </td>
 
@@ -60,9 +66,9 @@ export default function MonthlyAttendanceRow({
         const status = employee.attendance[day] ?? "-";
 
         return (
-          <td key={day} className="border p-2 text-center">
+          <td key={day} className="border border-slate-200 p-2 text-center">
             <span
-              className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${getStatusClasses(
+              className={`inline-flex size-7 items-center justify-center rounded-md text-xs font-medium ring-1 ring-inset ${getStatusClasses(
                 status,
               )}`}
             >
@@ -76,19 +82,19 @@ export default function MonthlyAttendanceRow({
       {/* SUMMARY */}
       {/* ====================================== */}
 
-      <td className="border bg-green-50 px-3 py-2 text-center font-semibold">
+      <td className={`${summaryTd} text-emerald-700`}>
         {employee.summary.present}
       </td>
 
-      <td className="border bg-yellow-50 px-3 py-2 text-center font-semibold">
+      <td className={`${summaryTd} text-amber-700`}>
         {employee.summary.leave}
       </td>
 
-      <td className="border bg-red-50 px-3 py-2 text-center font-semibold">
+      <td className={`${summaryTd} text-red-700`}>
         {employee.summary.absent}
       </td>
 
-      <td className="border bg-blue-50 px-3 py-2 text-center font-bold">
+      <td className={`${summaryTd} text-slate-900`}>
         {employee.summary.total}
       </td>
     </tr>

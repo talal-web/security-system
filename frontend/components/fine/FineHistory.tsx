@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, Eye, Pencil, UserRound, X, XCircle } from "lucide-react";
+import { Eye, Gavel, Pencil, XCircle } from "lucide-react";
+
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
+import Modal from "@/components/ui/Modal";
+import { EmptyState } from "@/components/ui/States";
 
 import type { Fine } from "@/types/fine";
+import type { StatusTone } from "@/utils/ui/statusColors";
 
 interface FineHistoryProps {
   fines: Fine[];
@@ -12,24 +19,13 @@ interface FineHistoryProps {
   onCancel?: (fine: Fine) => void;
 }
 
-const statusConfig = {
-  pending: {
-    label: "Pending",
-    className: "bg-blue-50 text-blue-700",
-  },
-  partially_deducted: {
-    label: "Partially Deducted",
-    className: "bg-amber-50 text-amber-700",
-  },
-  fully_deducted: {
-    label: "Fully Deducted",
-    className: "bg-emerald-50 text-emerald-700",
-  },
-  cancelled: {
-    label: "Cancelled",
-    className: "bg-slate-100 text-slate-600",
-  },
-} as const;
+const statusConfig: Record<Fine["status"], { label: string; tone: StatusTone }> =
+  {
+    pending: { label: "Pending", tone: "info" },
+    partially_deducted: { label: "Partially Deducted", tone: "warning" },
+    fully_deducted: { label: "Fully Deducted", tone: "success" },
+    cancelled: { label: "Cancelled", tone: "neutral" },
+  };
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-GB", {
@@ -69,76 +65,69 @@ export default function FineHistory({
 
   if (!fines.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-          <XCircle className="h-5 w-5 text-slate-500" />
-        </div>
-
-        <h3 className="mt-4 text-sm font-semibold text-slate-900">
-          No fine records
-        </h3>
-
-        <p className="mt-1 text-sm text-slate-500">
-          No fines have been recorded yet.
-        </p>
-      </div>
+      <EmptyState
+        icon={XCircle}
+        title="No fine records"
+        description="No fines have been recorded yet."
+      />
     );
   }
 
   return (
     <>
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {/* ===================================================== */}
-        {/* HEADER */}
-        {/* ===================================================== */}
+      <Card className="overflow-hidden">
+        <CardHeader
+          title="Fine History"
+          description={`${fines.length} record${fines.length !== 1 ? "s" : ""}`}
+          icon={Gavel}
+        />
 
-        <div className="flex flex-col gap-1 border-b border-slate-200 px-4 py-4 sm:px-6">
-          <h2 className="text-sm font-semibold text-slate-900 sm:text-base">
-            Fine History
-          </h2>
-
-          <p className="text-xs text-slate-500 sm:text-sm">
-            {fines.length} record{fines.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-
-        {/* ===================================================== */}
-        {/* DESKTOP TABLE */}
-        {/* ===================================================== */}
-
+        {/* Desktop table */}
         <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-262.5 text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50">
-              <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                <th className="whitespace-nowrap px-5 py-3">Employee</th>
+            <thead className="bg-slate-50/80 text-left text-xs font-medium text-slate-500">
+              <tr>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  Employee
+                </th>
 
-                <th className="whitespace-nowrap px-4 py-3">Date</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  Date
+                </th>
 
-                <th className="whitespace-nowrap px-4 py-3 text-right">Fine</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right font-medium">
+                  Fine
+                </th>
 
-                <th className="whitespace-nowrap px-4 py-3 text-right">
+                <th className="whitespace-nowrap px-4 py-3 text-right font-medium">
                   Deducted
                 </th>
 
-                <th className="whitespace-nowrap px-4 py-3 text-right">
+                <th className="whitespace-nowrap px-4 py-3 text-right font-medium">
                   Remaining
                 </th>
 
-                <th className="whitespace-nowrap px-4 py-3">Reason</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  Reason
+                </th>
 
-                <th className="whitespace-nowrap px-4 py-3">Status</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  Status
+                </th>
 
-                <th className="whitespace-nowrap px-4 py-3">Created By</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  Created By
+                </th>
 
                 {canEdit && (
-                  <th className="whitespace-nowrap px-5 py-3 text-right">
+                  <th className="whitespace-nowrap px-4 py-3 text-right font-medium">
                     Actions
                   </th>
                 )}
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 border-t border-slate-100">
               {fines.map((fine) => {
                 const deducted = fine.amount - fine.remainingAmount;
                 const config = statusConfig[fine.status];
@@ -150,12 +139,12 @@ export default function FineHistory({
                 return (
                   <tr
                     key={fine._id}
-                    className="transition-colors hover:bg-slate-50/70"
+                    className="transition-colors hover:bg-slate-50/60"
                   >
                     {/* Employee */}
-                    <td className="px-5 py-3.5">
+                    <td className="px-4 py-3">
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-slate-900">
+                        <p className="truncate font-medium text-slate-900">
                           {getEmployeeName(fine)}
                         </p>
 
@@ -174,82 +163,75 @@ export default function FineHistory({
                     </td>
 
                     {/* Date */}
-                    <td className="whitespace-nowrap px-4 py-3.5 text-slate-600">
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                       {formatDate(fine.fineDate)}
                     </td>
 
                     {/* Fine */}
-                    <td className="whitespace-nowrap px-4 py-3.5 text-right font-semibold text-slate-900">
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums text-slate-900">
                       {formatCurrency(fine.amount)}
                     </td>
 
                     {/* Deducted */}
-                    <td className="whitespace-nowrap px-4 py-3.5 text-right text-slate-600">
+                    <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-600">
                       {formatCurrency(deducted)}
                     </td>
 
                     {/* Remaining */}
-                    <td className="whitespace-nowrap px-4 py-3.5 text-right font-semibold text-slate-900">
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums text-slate-900">
                       {formatCurrency(fine.remainingAmount)}
                     </td>
 
                     {/* Reason */}
-                    <td className="px-4 py-3.5">
-                      <button
-                        type="button"
+                    <td className="px-4 py-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setSelectedReason(fine.reason)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+                        className="-ml-2"
                       >
-                        <Eye className="h-3.5 w-3.5" />
+                        <Eye />
                         View Reason
-                      </button>
+                      </Button>
                     </td>
 
                     {/* Status */}
-                    <td className="px-4 py-3.5">
-                      <span
-                        className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${config.className}`}
-                      >
+                    <td className="px-4 py-3">
+                      <Badge tone={config.tone} dot>
                         {config.label}
-                      </span>
+                      </Badge>
                     </td>
 
                     {/* Created By */}
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-1.5 whitespace-nowrap text-slate-700">
-                        <UserRound className="h-3.5 w-3.5 text-slate-400" />
-
-                        <span className="text-xs font-medium">
-                          {getCreatedByName(fine)}
-                        </span>
-                      </div>
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+                      {getCreatedByName(fine)}
                     </td>
 
                     {/* Actions */}
                     {canEdit && (
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3">
                         {canModify && (
-                          <div className="flex justify-end gap-1.5">
+                          <div className="flex justify-end gap-2">
                             {onEdit && (
-                              <button
-                                type="button"
+                              <Button
+                                variant="secondary"
+                                size="sm"
                                 onClick={() => onEdit(fine)}
-                                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                               >
-                                <Pencil className="h-3.5 w-3.5" />
+                                <Pencil />
                                 Edit
-                              </button>
+                              </Button>
                             )}
 
                             {onCancel && (
-                              <button
-                                type="button"
+                              <Button
+                                variant="danger-soft"
+                                size="sm"
                                 onClick={() => onCancel(fine)}
-                                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-red-200 px-2.5 text-xs font-medium text-red-600 transition hover:bg-red-50"
                               >
-                                <XCircle className="h-3.5 w-3.5" />
+                                <XCircle />
                                 Cancel
-                              </button>
+                              </Button>
                             )}
                           </div>
                         )}
@@ -262,10 +244,7 @@ export default function FineHistory({
           </table>
         </div>
 
-        {/* ===================================================== */}
-        {/* MOBILE CARDS */}
-        {/* ===================================================== */}
-
+        {/* Mobile cards */}
         <div className="divide-y divide-slate-100 md:hidden">
           {fines.map((fine) => {
             const deducted = fine.amount - fine.remainingAmount;
@@ -275,7 +254,7 @@ export default function FineHistory({
               fine.status === "pending" && fine.remainingAmount === fine.amount;
 
             return (
-              <article key={fine._id} className="p-4 sm:p-5">
+              <article key={fine._id} className="p-4">
                 {/* Employee / Status */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -284,119 +263,94 @@ export default function FineHistory({
                     </h3>
 
                     {typeof fine.employee !== "string" && (
-                      <div className="mt-1 space-y-0.5">
-                        <p className="text-xs text-slate-500">
-                          {fine.employee.empId}
-                        </p>
-
-                        <p className="truncate text-xs text-slate-400">
-                          {fine.employee.fatherName}
-                        </p>
-                      </div>
+                      <p className="mt-0.5 truncate text-xs text-slate-500">
+                        {fine.employee.empId}
+                        {fine.employee.fatherName && (
+                          <> · {fine.employee.fatherName}</>
+                        )}
+                      </p>
                     )}
                   </div>
 
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${config.className}`}
-                  >
+                  <Badge tone={config.tone} dot className="shrink-0">
                     {config.label}
-                  </span>
+                  </Badge>
                 </div>
 
                 {/* Financial Summary */}
-                <div className="mt-4 grid grid-cols-2 gap-2.5">
-                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Fine
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-slate-100 bg-slate-50/60 p-3">
+                  <div className="min-w-0">
+                    <dt className="text-xs text-slate-500">Fine</dt>
+                    <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums text-slate-900">
                       {formatCurrency(fine.amount)}
-                    </p>
+                    </dd>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Deducted
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-slate-900">
-                      {formatCurrency(deducted)}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Remaining
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                  <div className="min-w-0">
+                    <dt className="text-xs text-slate-500">Remaining</dt>
+                    <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums text-slate-900">
                       {formatCurrency(fine.remainingAmount)}
-                    </p>
+                    </dd>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Fine Date
-                    </p>
+                  <div className="min-w-0">
+                    <dt className="text-xs text-slate-500">Deducted</dt>
+                    <dd className="mt-0.5 truncate text-sm tabular-nums text-slate-700">
+                      {formatCurrency(deducted)}
+                    </dd>
+                  </div>
 
-                    <p className="mt-1 text-sm font-medium text-slate-900">
+                  <div className="min-w-0">
+                    <dt className="text-xs text-slate-500">Fine Date</dt>
+                    <dd className="mt-0.5 truncate text-sm text-slate-700">
                       {formatDate(fine.fineDate)}
-                    </p>
+                    </dd>
                   </div>
-                </div>
+                </dl>
 
-                {/* Meta */}
-                <div className="mt-3 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
-                  {/* Created By */}
-                  <div className="flex min-w-0 items-center gap-2">
-                    <UserRound className="h-4 w-4 shrink-0 text-slate-400" />
+                {/* Footer */}
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <p className="min-w-0 truncate text-xs text-slate-500">
+                    Created by{" "}
+                    <span className="font-medium text-slate-700">
+                      {getCreatedByName(fine)}
+                    </span>
+                  </p>
 
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-                        Created By
-                      </p>
-
-                      <p className="truncate text-xs font-semibold text-slate-700">
-                        {getCreatedByName(fine)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* View Reason */}
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setSelectedReason(fine.reason)}
-                    className="inline-flex h-8 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+                    className="-mr-2"
                   >
-                    <Eye className="h-3.5 w-3.5" />
+                    <Eye />
                     View Reason
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Actions */}
                 {canEdit && canModify && (
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     {onEdit && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => onEdit(fine)}
-                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <Pencil />
                         Edit
-                      </button>
+                      </Button>
                     )}
 
                     {onCancel && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="danger-soft"
+                        size="sm"
                         onClick={() => onCancel(fine)}
-                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-red-200 px-3 text-xs font-medium text-red-600 transition hover:bg-red-50"
                       >
-                        <XCircle className="h-3.5 w-3.5" />
+                        <XCircle />
                         Cancel
-                      </button>
+                      </Button>
                     )}
                   </div>
                 )}
@@ -404,70 +358,35 @@ export default function FineHistory({
             );
           })}
         </div>
-      </section>
+      </Card>
 
-      {/* ===================================================== */}
-      {/* REASON MODAL */}
-      {/* ===================================================== */}
+      {/* Reason modal */}
+      <Modal
+        open={selectedReason !== null}
+        onClose={() => setSelectedReason(null)}
+        title="Fine Reason"
+        contentClassName="p-0"
+      >
+        <div className="space-y-3 px-5 py-4 sm:px-6">
+          <p className="text-xs text-slate-500">Reason for this fine</p>
 
-      {selectedReason !== null && (
-        <div
-          className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setSelectedReason(null);
-            }
-          }}
-        >
-          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3.5 sm:px-5">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
-                  <CalendarDays className="h-4 w-4 text-slate-500" />
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    Fine Reason
-                  </h3>
-
-                  <p className="text-xs text-slate-500">Reason for this fine</p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedReason(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                aria-label="Close reason"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-4 sm:p-5">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6 text-slate-700">
-                  {selectedReason || "No reason provided."}
-                </p>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-5">
-              <button
-                type="button"
-                onClick={() => setSelectedReason(null)}
-                className="h-9 w-full rounded-lg bg-slate-900 px-4 text-xs font-semibold text-white transition hover:bg-slate-800 sm:w-auto sm:min-w-20"
-              >
-                Close
-              </button>
-            </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+            <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6 text-slate-700">
+              {selectedReason || "No reason provided."}
+            </p>
           </div>
         </div>
-      )}
+
+        <div className="flex justify-end border-t border-slate-100 bg-slate-50/60 px-5 py-3 sm:px-6">
+          <Button
+            variant="secondary"
+            onClick={() => setSelectedReason(null)}
+            className="w-full sm:w-auto"
+          >
+            Close
+          </Button>
+        </div>
+      </Modal>
     </>
   );
 }

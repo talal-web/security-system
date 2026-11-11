@@ -1,10 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { Info, UserPen } from "lucide-react";
 import { toast } from "sonner";
 
 import UserForm from "@/components/users/UserForm";
 import ProtectedRoute from "@/components/authentication/ProtectedRoute";
+import { PageContainer, PageHeader } from "@/components/ui/PageHeader";
+import { ErrorState, LoadingState } from "@/components/ui/States";
 import { useUpdateUser, useUser } from "@/hooks/users/useUsers";
 import { useMe } from "@/hooks/auth/useMe";
 import { getApiErrorMessage } from "@/lib/apiError";
@@ -22,27 +25,24 @@ export default function EditUserPage() {
 
   if (query.isLoading || !me) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm font-medium text-slate-600">Loading user...</p>
-      </main>
+      <PageContainer className="max-w-2xl">
+        <LoadingState title="Loading user..." />
+      </PageContainer>
     );
   }
 
   if (query.isError || !query.data?.user) {
     return (
-      <main className="min-h-screen bg-slate-50 p-6">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-red-200 bg-white p-6">
-          <h1 className="text-lg font-semibold text-red-700">
-            Unable to load user
-          </h1>
-
-          <p className="mt-2 text-sm text-red-600">
-            {query.error instanceof Error
+      <PageContainer className="max-w-2xl">
+        <ErrorState
+          title="Unable to load user"
+          description={
+            query.error instanceof Error
               ? query.error.message
-              : "User not found."}
-          </p>
-        </div>
-      </main>
+              : "User not found."
+          }
+        />
+      </PageContainer>
     );
   }
 
@@ -66,41 +66,40 @@ export default function EditUserPage() {
 
   return (
     <ProtectedRoute allowedRoles={["developer", "admin"]}>
-      <main className="min-h-screen bg-slate-50 p-4 sm:p-6">
-        <div className="mx-auto max-w-2xl">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-950">
-              Edit User
-            </h1>
+      <PageContainer className="max-w-2xl">
+        <PageHeader
+          title="Edit User"
+          icon={UserPen}
+          description={
+            isSelf
+              ? "Update your profile name. Your role and account status cannot be changed."
+              : "Update this user's profile, role, and account status."
+          }
+        />
 
-            <p className="mt-1 text-sm text-slate-500">
-              {isSelf
-                ? "Update your profile name. Your role and account status cannot be changed."
-                : "Update this user's profile, role, and account status."}
-            </p>
-          </div>
-
-          {isSelf && (
-            <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+        {isSelf && (
+          <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50/70 px-4 py-3">
+            <Info className="mt-0.5 size-4 shrink-0 text-blue-600" />
+            <div>
               <p className="text-sm font-medium text-blue-800">
                 You are editing your own account.
               </p>
 
-              <p className="mt-1 text-xs text-blue-600">
+              <p className="mt-0.5 text-sm text-blue-700/90">
                 Your role and account status are protected and cannot be changed
                 from your own account.
               </p>
             </div>
-          )}
+          </div>
+        )}
 
-          <UserForm
-            user={query.data.user}
-            isSelf={isSelf}
-            isPending={mutation.isPending}
-            onSubmit={handleSubmit}
-          />
-        </div>
-      </main>
+        <UserForm
+          user={query.data.user}
+          isSelf={isSelf}
+          isPending={mutation.isPending}
+          onSubmit={handleSubmit}
+        />
+      </PageContainer>
     </ProtectedRoute>
   );
 }

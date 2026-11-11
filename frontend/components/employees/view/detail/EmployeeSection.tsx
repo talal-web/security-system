@@ -1,25 +1,25 @@
 import React from "react";
 
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+
 interface EmployeeSectionProps {
   title: string;
+  /** Kept for API compatibility; sections no longer render a colored accent. */
   color?: string;
+  icon?: React.ElementType;
   children: React.ReactNode;
 }
 
 export default function EmployeeSection({
   title,
-  color = "bg-slate-900",
+  icon,
   children,
 }: EmployeeSectionProps) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
-      <div className="mb-4 flex items-center gap-2.5">
-        <div className={`h-5 w-1 rounded-full ${color}`} />
+    <Card>
+      <CardHeader title={title} icon={icon} />
 
-        <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-      </div>
-
-      {children}
-    </section>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }

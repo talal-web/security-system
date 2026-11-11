@@ -3,6 +3,8 @@
 import { motion, type Variants } from "framer-motion";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
+
 const fadeUp: Variants = {
   hidden: {
     opacity: 0,
@@ -32,9 +34,9 @@ interface HeroSectionProps {
 
 export default function HeroSection({ onLoginClick }: HeroSectionProps) {
   return (
-    <section className="relative overflow-hidden bg-linear-to-b from-slate-50 via-slate-100 to-white text-slate-900">
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 opacity-30 bg-[linear-gradient(rgba(15,23,42,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.03)_1px,transparent_1px)] bg-size-[56px_56px]" />
+    <section className="relative overflow-hidden border-b border-slate-200/80 bg-white text-slate-900">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-size-[56px_56px] opacity-60" />
         <motion.div
           animate={{
             scale: [1, 1.08, 1],
@@ -45,7 +47,7 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
             duration: 10,
             repeat: Infinity,
           }}
-          className="absolute -left-16 top-0 h-72 w-72 rounded-full bg-blue-500/15 blur-[100px]"
+          className="absolute -left-16 top-0 h-72 w-72 rounded-full bg-blue-500/10 blur-[100px]"
         />
         <motion.div
           animate={{
@@ -57,7 +59,7 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
             duration: 12,
             repeat: Infinity,
           }}
-          className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-red-500/10 blur-[100px]"
+          className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-sky-400/10 blur-[100px]"
         />
       </div>
 
@@ -69,10 +71,10 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="inline-flex w-full items-center gap-3 rounded-full border border-blue-200 bg-white/90 px-4 py-2.5 shadow-sm sm:w-auto sm:px-5"
+              className="inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-card"
             >
-              <ShieldCheck className="h-5 w-5 text-red-500" />
-              <span className="text-sm font-semibold tracking-wide text-slate-700">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-blue-600" />
+              <span className="text-xs font-medium text-slate-600 sm:text-sm">
                 Professional Security Workforce Management
               </span>
             </motion.div>
@@ -82,11 +84,11 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mt-8 text-4xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl xl:text-7xl"
+              className="mt-6 text-4xl font-semibold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl"
             >
               Baidar <span className="text-blue-600">Security</span>
               <br />
-              <span className="text-red-600">Service</span>
+              <span className="text-slate-500">Service</span>
             </motion.h1>
 
             <motion.p
@@ -94,7 +96,7 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg"
+              className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8"
             >
               A modern platform for managing guards, attendance, deployment
               locations, and reports.
@@ -107,22 +109,23 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               variants={fadeUp}
               className="mt-8 flex flex-col gap-3 sm:flex-row"
             >
-              <button
-                type="button"
+              <Button
+                size="lg"
                 onClick={onLoginClick}
-                className="group inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-blue-600 to-sky-500 px-7 py-3.5 font-semibold text-white shadow-lg shadow-sky-500/20 transition-all duration-300 hover:-translate-y-1 hover:from-blue-700 hover:to-sky-600 sm:w-auto"
+                className="group h-11 w-full px-5 sm:w-auto"
               >
                 Secure Login
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-              </button>
+                <ArrowRight className="transition-transform duration-200 group-hover:translate-x-0.5" />
+              </Button>
 
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={onLoginClick}
-                className="inline-flex w-full items-center justify-center rounded-2xl border border-red-200 bg-white px-7 py-3.5 font-semibold text-slate-900 transition-all duration-300 hover:border-red-300 hover:bg-red-50 sm:w-auto"
+                className="h-11 w-full px-5 sm:w-auto"
               >
                 Open Dashboard
-              </button>
+              </Button>
             </motion.div>
 
             <motion.div
@@ -130,17 +133,17 @@ export default function HeroSection({ onLoginClick }: HeroSectionProps) {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+              className="mt-12 grid grid-cols-2 gap-3 xl:grid-cols-4"
             >
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+                  className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-card sm:p-5"
                 >
-                  <div className="text-2xl font-black text-slate-900">
+                  <div className="text-2xl font-semibold tracking-tight text-slate-900 tabular-nums">
                     {stat.value}
                   </div>
-                  <div className="mt-1 text-sm text-slate-600">
+                  <div className="mt-1 text-sm text-slate-500">
                     {stat.label}
                   </div>
                 </div>

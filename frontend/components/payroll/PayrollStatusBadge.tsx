@@ -1,16 +1,11 @@
 import type { PayrollStatus } from "@/types/payroll";
-import { STATUS_RING_PILL_CLASSES, type StatusTone } from "@/utils/ui/statusColors";
+import type { StatusTone } from "@/utils/ui/statusColors";
+import { Badge } from "@/components/ui/Badge";
 
 const STATUS_TONE: Record<PayrollStatus, StatusTone> = {
   draft: "warning",
   finalized: "info",
   paid: "success",
-};
-
-const styles: Record<PayrollStatus, string> = {
-  draft: STATUS_RING_PILL_CLASSES[STATUS_TONE.draft],
-  finalized: STATUS_RING_PILL_CLASSES[STATUS_TONE.finalized],
-  paid: STATUS_RING_PILL_CLASSES[STATUS_TONE.paid],
 };
 
 export default function PayrollStatusBadge({
@@ -19,10 +14,8 @@ export default function PayrollStatusBadge({
   status: PayrollStatus;
 }) {
   return (
-    <span
-      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${styles[status]}`}
-    >
+    <Badge tone={STATUS_TONE[status]} dot className="capitalize">
       {status}
-    </span>
+    </Badge>
   );
 }

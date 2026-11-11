@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import Modal from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 import { useGenerateMonthlyPayroll } from "@/hooks/payroll/usePayroll";
+
+const fieldClass =
+  "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-card focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/15";
 
 export default function GenerateMonthlyPayrollDialog({
   open,
@@ -47,13 +51,13 @@ export default function GenerateMonthlyPayrollDialog({
             max="2100"
             value={year}
             onChange={(event) => setYear(Number(event.target.value))}
-            className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+            className={fieldClass}
           />
           <select
             aria-label="Month"
             value={month}
             onChange={(event) => setMonth(Number(event.target.value))}
-            className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+            className={fieldClass}
           >
             {Array.from({ length: 12 }, (_, index) => (
               <option key={index + 1} value={index + 1}>
@@ -63,12 +67,9 @@ export default function GenerateMonthlyPayrollDialog({
           </select>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          disabled={mutation.isPending}
-          className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-        >
+        <Button type="submit" disabled={mutation.isPending} className="w-full">
           {mutation.isPending ? "Generating..." : "Generate month"}
-        </button>
+        </Button>
       </form>
     </Modal>
   );

@@ -1,8 +1,12 @@
 "use client";
 
-import { CalendarDays, Pencil, UserRound, XCircle } from "lucide-react";
+import { Pencil, XCircle } from "lucide-react";
+
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 
 import type { Advance } from "@/types/advance";
+import type { StatusTone } from "@/utils/ui/statusColors";
 
 interface AdvanceHistoryMobileCardProps {
   advance: Advance;
@@ -11,28 +15,15 @@ interface AdvanceHistoryMobileCardProps {
   onCancel?: (advance: Advance) => void;
 }
 
-const statusConfig = {
-  active: {
-    label: "Active",
-    className: "bg-blue-50 text-blue-700 ring-blue-600/10",
-    dotClass: "bg-blue-500",
-  },
-  partially_deducted: {
-    label: "Partially Deducted",
-    className: "bg-amber-50 text-amber-700 ring-amber-600/10",
-    dotClass: "bg-amber-500",
-  },
-  fully_deducted: {
-    label: "Fully Deducted",
-    className: "bg-emerald-50 text-emerald-700 ring-emerald-600/10",
-    dotClass: "bg-emerald-500",
-  },
-  cancelled: {
-    label: "Cancelled",
-    className: "bg-slate-100 text-slate-600 ring-slate-500/10",
-    dotClass: "bg-slate-400",
-  },
-} as const;
+const statusConfig: Record<
+  Advance["status"],
+  { label: string; tone: StatusTone }
+> = {
+  active: { label: "Active", tone: "info" },
+  partially_deducted: { label: "Partially Deducted", tone: "warning" },
+  fully_deducted: { label: "Fully Deducted", tone: "success" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
+};
 
 function formatCurrency(value: number) {
   return `Rs. ${value.toLocaleString()}`;
@@ -76,138 +67,102 @@ export default function AdvanceHistoryMobileCard({
     advance.status === "active" && advance.remainingAmount === advance.amount;
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
-      {/* ========================================================= */}
-      {/* Header */}
-      {/* ========================================================= */}
-      <div className="border-b border-slate-100 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                <UserRound className="h-4 w-4 text-slate-500" />
-              </div>
+    <article className="p-4">
+      {/* Employee / Status */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold text-slate-900">
+            {getEmployeeName(advance)}
+          </h3>
 
-              <div className="min-w-0">
-                <h3 className="truncate text-sm font-semibold text-slate-900">
-                  {getEmployeeName(advance)}
-                </h3>
-
-                {typeof advance.employee !== "string" &&
-                  advance.employee.fatherName && (
-                    <p className="mt-0.5 truncate text-xs text-slate-500">
-                      {advance.employee.fatherName}
-                    </p>
-                  )}
-              </div>
-            </div>
-          </div>
-
-          <span
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 ring-inset ${config.className}`}
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${config.dotClass}`} />
-
-            {config.label}
-          </span>
+          {typeof advance.employee !== "string" &&
+            advance.employee.fatherName && (
+              <p className="mt-0.5 truncate text-xs text-slate-500">
+                {advance.employee.fatherName}
+              </p>
+            )}
         </div>
+
+        <Badge tone={config.tone} dot className="shrink-0">
+          {config.label}
+        </Badge>
       </div>
-      {/* ========================================================= */}
+
       {/* Financial Summary */}
-      {/* ========================================================= */}
-      <div className="grid grid-cols-2 gap-px bg-slate-100">
-        <div className="bg-white p-3.5">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-            Advance
-          </p>
-
-          <p className="mt-1 text-sm font-bold text-slate-900">
+      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-slate-100 bg-slate-50/60 p-3">
+        <div className="min-w-0">
+          <dt className="text-xs text-slate-500">Advance</dt>
+          <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums text-slate-900">
             {formatCurrency(advance.amount)}
-          </p>
+          </dd>
         </div>
 
-        <div className="bg-white p-3.5">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-            Remaining
-          </p>
-
-          <p className="mt-1 text-sm font-bold text-slate-900">
+        <div className="min-w-0">
+          <dt className="text-xs text-slate-500">Remaining</dt>
+          <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums text-slate-900">
             {formatCurrency(advance.remainingAmount)}
-          </p>
+          </dd>
         </div>
 
-        <div className="bg-white p-3.5">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-            Deducted
-          </p>
-
-          <p className="mt-1 text-sm font-semibold text-slate-700">
+        <div className="min-w-0">
+          <dt className="text-xs text-slate-500">Deducted</dt>
+          <dd className="mt-0.5 truncate text-sm tabular-nums text-slate-700">
             {formatCurrency(deductedAmount)}
-          </p>
+          </dd>
         </div>
 
-        <div className="bg-white p-3.5">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-            Date
-          </p>
-
-          <div className="mt-1 flex items-center gap-1.5">
-            <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-
-            <p className="text-sm font-medium text-slate-700">
-              {formatDate(advance.advanceDate)}
-            </p>
-          </div>
+        <div className="min-w-0">
+          <dt className="text-xs text-slate-500">Date</dt>
+          <dd className="mt-0.5 truncate text-sm text-slate-700">
+            {formatDate(advance.advanceDate)}
+          </dd>
         </div>
-      </div>
-      {/* ========================================================= */}
+      </dl>
+
       {/* Description */}
-      {/* ========================================================= */}
       {advance.description && (
-        <div className="border-t border-slate-100 px-4 py-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            Description
-          </p>
+        <div className="mt-3">
+          <p className="text-xs font-medium text-slate-500">Description</p>
 
-          <p className="mt-1 text-xs leading-5 text-slate-600">
+          <p className="mt-0.5 break-words text-sm leading-5 text-slate-700">
             {advance.description}
           </p>
         </div>
       )}
-      {/* ========================================================= */}
-      {/* Footer */}
-      {/* ========================================================= */}
-      <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3">
-        <div className="min-w-0">
-          <p className="text-[10px] text-slate-400">Created by</p>
 
-          <p className="truncate text-xs font-medium text-slate-700">
+      {/* Footer */}
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <p className="min-w-0 truncate text-xs text-slate-500">
+          Created by{" "}
+          <span className="font-medium text-slate-700">
             {getCreatedBy(advance)}
-          </p>
-        </div>
+          </span>
+        </p>
 
         {canEdit && canModify && (
           <div className="flex shrink-0 gap-2">
             {onEdit && (
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => onEdit(advance)}
                 aria-label="Edit advance"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 active:scale-95"
               >
-                <Pencil className="h-4 w-4" />
-              </button>
+                <Pencil />
+                Edit
+              </Button>
             )}
 
             {onCancel && (
-              <button
-                type="button"
+              <Button
+                variant="danger-soft"
+                size="sm"
                 onClick={() => onCancel(advance)}
                 aria-label="Cancel advance"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-500 shadow-sm transition hover:bg-red-50 hover:text-red-600 active:scale-95"
               >
-                <XCircle className="h-4 w-4" />
-              </button>
+                <XCircle />
+                Cancel
+              </Button>
             )}
           </div>
         )}

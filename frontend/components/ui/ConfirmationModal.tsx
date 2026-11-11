@@ -2,6 +2,8 @@
 
 import { AlertTriangle, X } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
+
 interface ConfirmationModalProps {
   open: boolean;
   title: string;
@@ -35,7 +37,7 @@ export default function ConfirmationModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-150"
         onClick={isLoading ? undefined : onCancel}
       />
 
@@ -44,61 +46,50 @@ export default function ConfirmationModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirmation-modal-title"
-        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+        className="relative w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-pop animate-in fade-in zoom-in-95 duration-200"
       >
         {/* Close */}
         <button
           type="button"
           onClick={onCancel}
           disabled={isLoading}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Close"
         >
-          <X className="h-5 w-5" />
+          <X className="size-4" />
         </button>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           <div className="flex items-start gap-4">
-            {/* Icon */}
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-100">
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-50 ring-1 ring-inset ring-amber-200">
+              <AlertTriangle className="size-5 text-amber-600" />
             </div>
 
             <div className="pr-6">
               <h2
                 id="confirmation-modal-title"
-                className="text-lg font-semibold text-slate-900"
+                className="text-base font-semibold text-slate-900"
               >
                 {title}
               </h2>
 
-              <p className="mt-2 text-sm leading-6 text-slate-500">
+              <p className="mt-1.5 text-sm leading-6 text-slate-500">
                 {description}
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Actions */}
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={isLoading}
-              className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {cancelText}
-            </button>
+        {/* Actions */}
+        <div className="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3 sm:flex-row sm:justify-end sm:px-6">
+          <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
+            {cancelText}
+          </Button>
 
-            <button
-              type="button"
-              onClick={onConfirm}
-              disabled={isLoading}
-              className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isLoading ? "Processing..." : confirmText}
-            </button>
-          </div>
+          <Button onClick={onConfirm} disabled={isLoading}>
+            {isLoading ? "Processing..." : confirmText}
+          </Button>
         </div>
       </div>
     </div>
