@@ -9,7 +9,10 @@ export function formatCurrency(amount: number): string {
 export function formatDate(date: string): string {
   if (!date) return "";
 
-  const parsedDate = new Date(`${date}T00:00:00`);
+  // Stored dates arrive as ISO timestamps ("2026-11-05T00:00:00.000Z") while
+  // form dates are "2026-11-05". Keep only the calendar date part.
+  const datePart = date.slice(0, 10);
+  const parsedDate = new Date(`${datePart}T00:00:00`);
 
   if (Number.isNaN(parsedDate.getTime())) {
     return date;

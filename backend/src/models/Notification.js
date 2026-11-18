@@ -35,8 +35,18 @@ const notificationSchema = new Schema(
 
     createdBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
 
+    // One entry per user who read it. A read only counts for the day it
+    // happened, so notifications become unread again when a new day starts.
     readBy: {
-      type: [Schema.Types.ObjectId],
+      type: [
+        new Schema(
+          {
+            user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+            readAt: { type: Date, required: true },
+          },
+          { _id: false },
+        ),
+      ],
       default: [],
     },
   },

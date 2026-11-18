@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   confirmInvoicePayment,
   createInvoice,
+  getInvoice,
   getInvoices,
 } from "@/services/invoice.service";
 import type {
@@ -20,6 +21,14 @@ export function useInvoices(status?: InvoiceStatus) {
   return useQuery({
     queryKey: invoiceKeys.list(status),
     queryFn: () => getInvoices(status),
+  });
+}
+
+export function useInvoice(id: string) {
+  return useQuery({
+    queryKey: [...invoiceKeys.all, "detail", id] as const,
+    queryFn: () => getInvoice(id),
+    enabled: Boolean(id),
   });
 }
 

@@ -55,6 +55,20 @@ export async function getInvoices(
 }
 
 // ============================================================================
+// GET ONE INVOICE
+// ============================================================================
+
+export async function getInvoice(invoiceId: string): Promise<StoredInvoice> {
+  try {
+    const res = await api.get(`/invoices/${invoiceId}`);
+
+    return res.data.data;
+  } catch (error) {
+    throw toInvoiceApiError(error);
+  }
+}
+
+// ============================================================================
 // CONFIRM PAYMENT
 // ============================================================================
 

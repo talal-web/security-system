@@ -17,8 +17,10 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: "paid", label: "Paid" },
 ];
 
+// Dates come from the server as ISO timestamps. Use the calendar date part so
+// a timezone shift cannot move the day.
 const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString("en-GB", {
+  new Date(`${value.slice(0, 10)}T00:00:00`).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",

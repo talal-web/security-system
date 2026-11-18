@@ -160,16 +160,22 @@ export default function NotificationsMenu() {
                 const Icon = item.type === "invoice.paid" ? CheckCircle2 : ReceiptText;
                 return (
                   <li key={item._id}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!item.isRead) markRead.mutate(item._id);
-                      }}
-                      className={cn(
-                        "flex w-full gap-3 px-4 py-3 text-left transition hover:bg-slate-50",
-                        !item.isRead && "bg-blue-50/40",
-                      )}
-                    >
+                    <Popover.Close asChild>
+                      <Link
+                        href={getAreaAwareHref(
+                          item.href ||
+                            (item.refModel === "Invoice"
+                              ? `/invoice/${item.refId}`
+                              : "/"),
+                        )}
+                        onClick={() => {
+                          if (!item.isRead) markRead.mutate(item._id);
+                        }}
+                        className={cn(
+                          "flex w-full gap-3 px-4 py-3 text-left transition hover:bg-slate-50",
+                          !item.isRead && "bg-blue-50/40",
+                        )}
+                      >
                       <span
                         className={cn(
                           "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg",
@@ -194,7 +200,8 @@ export default function NotificationsMenu() {
                           {timeAgo(item.createdAt)}
                         </span>
                       </span>
-                    </button>
+                      </Link>
+                    </Popover.Close>
                   </li>
                 );
               })}

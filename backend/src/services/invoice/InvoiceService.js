@@ -7,7 +7,10 @@ import mongoose from "mongoose";
 
 import Invoice from "../../models/Invoice.js";
 import ApiError from "../../utils/ApiError.js";
-import { notifyRole } from "../notification/NotificationService.js";
+import {
+  notifyRole,
+  removeNotificationsForRef,
+} from "../notification/NotificationService.js";
 
 const INVOICE_FIELDS = [
   "invoiceNumber",
@@ -45,8 +48,9 @@ export async function createInvoice({ data, userId }) {
   await notifyRole({
     recipientRole: "admin",
     type: "invoice.issued",
-    title: "Invoice issued",
-    message: `Invoice ${invoice.invoiceNumber} for ${invoice.clientName} (${formatAmount(invoice.amount)}) is awaiting payment.`,
+    title: "Service fee pending",
+    message: `${invoice.clientName} owes ${formatAmount(invoice.amount)} for invoice ${invoice.invoiceNumber}. Payment is pending.`,
+    href: invoiceHref(invoice._id),
     refModel: "Invoice",
     refId: invoice._id,
     createdBy: userId,
@@ -117,11 +121,19 @@ export async function confirmInvoicePayment({
     throw new ApiError(400, "Only pending invoices can be marked as paid");
   }
 
+  // The "awaiting payment" notice is stale now, so it is removed for every admin.
+  await removeNotificationsForRef({
+    refModel: "Invoice",
+    refId: invoice._id,
+    type: "invoice.issued",
+  });
+
   await notifyRole({
     recipientRole: "admin",
     type: "invoice.paid",
-    title: "Payment received",
-    message: `Invoice ${invoice.invoiceNumber} from ${invoice.clientName} (${formatAmount(invoice.amount)}) has been paid.`,
+    title: "Service fee received",
+    message: `${invoice.clientName} paid ${formatAmount(invoice.amount)} for invoice ${invoice.invoiceNumber}.`,
+    href: invoiceHref(invoice._id),
     refModel: "Invoice",
     refId: invoice._id,
     createdBy: userId,
@@ -133,4 +145,9 @@ export async function confirmInvoicePayment({
 // Currency is not stored on invoices, so messages show the bare amount.
 function formatAmount(amount) {
   return Number(amount).toLocaleString("en-US");
+}
+
+// Admins open invoices on the read-only page /invoice/:id.
+function invoiceHref(id) {
+  return `/invoice/${id}`;
 }

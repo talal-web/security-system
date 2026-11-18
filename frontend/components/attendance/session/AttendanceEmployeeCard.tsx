@@ -240,25 +240,28 @@ export default function AttendanceEmployeeCard({
           </div>
 
           {/* Employee Information */}
-          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3">
+          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,auto)] gap-x-3">
             {/* Name + Father Name */}
             <div className="min-w-0">
-              <h3 className="truncate text-[13px] font-semibold leading-4 text-slate-900">
+              <h3
+                className="break-words text-[13px] font-semibold leading-4 text-slate-900"
+                title={employee.name}
+              >
                 {employee.name}
               </h3>
 
-              <p className="mt-0.5 truncate text-[10px] font-medium leading-3.5 text-slate-500">
+              <p className="mt-0.5 break-words text-[10px] font-medium leading-3.5 text-slate-500">
                 {employee.fatherName || "Father name not available"}
               </p>
             </div>
 
             {/* Employee ID + Designation */}
-            <div className="min-w-0 text-right">
-              <p className="truncate font-mono text-[10px] font-semibold leading-4 text-slate-700">
+            <div className="min-w-0 max-w-[9rem] text-right">
+              <p className="break-all font-mono text-[10px] font-semibold leading-4 text-slate-700">
                 {employee.empId}
               </p>
 
-              <p className="mt-0.5 max-w-25 truncate text-[10px] font-medium leading-3.5 text-slate-500">
+              <p className="mt-0.5 break-words text-[10px] font-medium leading-3.5 text-slate-500">
                 {employee.designation || "Employee"}
               </p>
             </div>
@@ -269,7 +272,7 @@ export default function AttendanceEmployeeCard({
             LOCATION
         ========================= */}
         <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <div className="relative">
+          <div className="relative min-w-0">
             <Building2
               size={13}
               className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-slate-400"
@@ -295,7 +298,7 @@ export default function AttendanceEmployeeCard({
             </select>
           </div>
 
-          <div className="relative">
+          <div className="relative min-w-0">
             <MapPin
               size={13}
               className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-slate-400"
