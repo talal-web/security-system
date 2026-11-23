@@ -58,8 +58,12 @@ export const getMonthlyAttendanceReportService = async ({
   // Find Employees in Selected Area
   // ======================================
 
+  // Employees who entered after the last day of the month are excluded.
+  const monthEndDateTime = new Date(`${monthEnd}T23:59:59.999Z`);
+
   const employees = await Employee.find({
     area: areaId,
+    entryDate: { $lte: monthEndDateTime },
     $or: [
       { status: "active" },
       {
