@@ -1,5 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
+import type { FeatureStatus } from "@/utils/ui/featureStatus";
+
 export type Tone = "blue" | "red" | "slate" | "amber" | "emerald" | "violet";
 
 export type ActionItem = {
@@ -39,6 +41,7 @@ export type FinanceModule = {
   tone: Tone;
   href: string;
   label: string;
+  status?: FeatureStatus;
 };
 
 export type ToneStyles = Record<

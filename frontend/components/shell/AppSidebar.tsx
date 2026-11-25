@@ -13,6 +13,7 @@ import {
   isNavItemActive,
 } from "@/components/shell/navigation";
 import UserAvatar from "@/components/shell/UserAvatar";
+import { Badge } from "@/components/ui/Badge";
 
 interface AppSidebarProps {
   collapsed: boolean;
@@ -82,6 +83,11 @@ export default function AppSidebar({
                       )}
                     />
                     {!isCollapsed && <span className="truncate">{item.label}</span>}
+                    {!isCollapsed && item.status && (
+                      <Badge tone={item.status.tone} className="ml-auto px-1.5 py-0 text-[10px]">
+                        {item.status.label}
+                      </Badge>
+                    )}
                   </Link>
                 </li>
               );

@@ -6,6 +6,7 @@ import {
   FileWarning,
   Gift,
   HandCoins,
+  Landmark,
   Map,
   MapPin,
   ReceiptText,
@@ -15,6 +16,8 @@ import {
   Users,
   WalletCards,
 } from "lucide-react";
+
+import { BANK_FEATURE_STATUS } from "@/utils/ui/featureStatus";
 
 import type {
   ActionItem,
@@ -244,6 +247,15 @@ export const managementModules: ManagementModule[] = [
 
 export const financeModules: FinanceModule[] = [
   {
+    title: "Bank & cash flow",
+    description: "Income, payments out, and savings by month",
+    icon: Landmark,
+    tone: "blue",
+    href: "/bank",
+    label: "Open Bank",
+    status: BANK_FEATURE_STATUS,
+  },
+  {
     title: "Payroll",
     description: "Generate, review, finalize, and pay salaries",
     icon: WalletCards,
@@ -364,6 +376,14 @@ export const dashboardHeaderActions = [
     label: "Reports",
     icon: BarChart3,
     variant: "secondary",
+  },
+  // Temporary: remove this entry when the bank feature is released.
+  {
+    href: "/bank",
+    label: "Bank & Cash",
+    icon: Landmark,
+    variant: "secondary",
+    status: BANK_FEATURE_STATUS,
   },
 ] as const;
 

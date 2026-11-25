@@ -8,6 +8,10 @@ import mongoose from "mongoose";
 import Invoice from "../../models/Invoice.js";
 import ApiError from "../../utils/ApiError.js";
 import {
+  runInTransaction,
+  recordInvoiceIncome,
+} from "../bank/BankService.js";
+import {
   notifyRole,
   removeNotificationsForRef,
 } from "../notification/NotificationService.js";
@@ -100,26 +104,34 @@ export async function confirmInvoicePayment({
     throw new ApiError(400, "Invalid invoice ID");
   }
 
-  const invoice = await Invoice.findOneAndUpdate(
-    { _id: id, status: "pending" },
-    {
-      $set: {
-        status: "paid",
-        paymentMethod,
-        paymentReference: paymentReference.trim(),
-        paidOn: paidOn ?? new Date(),
-        paidAt: new Date(),
-        paidBy: userId,
+  // The invoice update and the bank income entry commit together, so a paid
+  // invoice always has its matching bank entry (and vice versa).
+  const invoice = await runInTransaction(async (session) => {
+    const paid = await Invoice.findOneAndUpdate(
+      { _id: id, status: "pending" },
+      {
+        $set: {
+          status: "paid",
+          paymentMethod,
+          paymentReference: paymentReference.trim(),
+          paidOn: paidOn ?? new Date(),
+          paidAt: new Date(),
+          paidBy: userId,
+        },
       },
-    },
-    { new: true },
-  ).lean();
+      { new: true, session },
+    ).lean();
 
-  if (!invoice) {
-    const exists = await Invoice.exists({ _id: id });
-    if (!exists) throw new ApiError(404, "Invoice not found");
-    throw new ApiError(400, "Only pending invoices can be marked as paid");
-  }
+    if (!paid) {
+      const exists = await Invoice.exists({ _id: id }).session(session);
+      if (!exists) throw new ApiError(404, "Invoice not found");
+      throw new ApiError(400, "Only pending invoices can be marked as paid");
+    }
+
+    await recordInvoiceIncome({ invoice: paid, userId, session });
+
+    return paid;
+  });
 
   // The "awaiting payment" notice is stale now, so it is removed for every admin.
   await removeNotificationsForRef({

@@ -4,6 +4,7 @@ import { dashboardHeaderActions } from "@/components/admin/dashboard.config";
 import { useSelectedArea } from "@/components/area/AreaContext";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
+import type { FeatureStatus } from "@/utils/ui/featureStatus";
 
 type DashboardHeaderProps = {
   userName: string;
@@ -19,6 +20,7 @@ type DashboardHeaderProps = {
     label: string;
     icon: React.ElementType;
     variant: "primary" | "secondary";
+    status?: FeatureStatus;
   }[];
 };
 
@@ -66,7 +68,7 @@ export default function DashboardHeader({
       </div>
 
       <div className="flex flex-wrap gap-2 [&>*]:flex-1 sm:[&>*]:flex-none">
-        {actions.map(({ href, label, icon: Icon, variant }) => (
+        {actions.map(({ href, label, icon: Icon, variant, status }) => (
           <ButtonLink
             key={label}
             href={getAreaAwareHref(href)}
@@ -75,6 +77,11 @@ export default function DashboardHeader({
           >
             <Icon />
             {label}
+            {status && (
+              <Badge tone={status.tone} className="px-1.5 py-0 text-[10px]">
+                {status.label}
+              </Badge>
+            )}
           </ButtonLink>
         ))}
       </div>

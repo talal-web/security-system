@@ -15,11 +15,13 @@ import {
   UserCog,
   UserPlus,
   Users,
+  Landmark,
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
 
 import type { UserRole } from "@/types/user";
+import { BANK_FEATURE_STATUS, type FeatureStatus } from "@/utils/ui/featureStatus";
 
 export type NavItem = {
   label: string;
@@ -30,6 +32,8 @@ export type NavItem = {
   /** Extra path prefixes that should mark this item active. */
   match?: string[];
   keywords?: string;
+  /** Optional badge shown beside the label, e.g. "New" or "In progress". */
+  status?: FeatureStatus;
 };
 
 export type NavGroup = {
@@ -118,6 +122,14 @@ export const navGroups: NavGroup[] = [
   {
     label: "Finance",
     items: [
+      {
+        label: "Bank & Cash",
+        href: "/bank",
+        icon: Landmark,
+        roles: ["admin"],
+        keywords: "bank cash income expenses savings",
+        status: BANK_FEATURE_STATUS,
+      },
       {
         label: "Payroll",
         href: "/payroll",

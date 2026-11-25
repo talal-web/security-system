@@ -24,6 +24,7 @@ import areaRoutes from "./areaRoutes.js";
 import authRoutes from "./authRoutes.js";
 import invoiceRoutes from "./invoiceRoutes.js";
 import notificationRoutes from "./notificationRoutes.js";
+import bankRoutes from "./bankRoutes.js";
 
 const router = express.Router();
 
@@ -72,5 +73,6 @@ router.use("/payroll", protect, payrollRoutes);
 router.use("/area", protect, areaRoutes);
 router.use("/invoices", protect, invoiceRoutes);
 router.use("/notifications", protect, notificationRoutes);
+router.use("/bank", protect, bankRoutes);
 
 export default router;

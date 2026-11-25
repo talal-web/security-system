@@ -10,6 +10,10 @@ import Fine from "../../models/Fine.js";
 import Deduction from "../../models/Deduction.js";
 import Bonus from "../../models/Bonus.js";
 import ApiError from "../../utils/ApiError.js";
+import {
+  runInTransaction,
+  recordPayrollSalary,
+} from "../bank/BankService.js";
 
 import { getSalaryForPayrollMonth } from "./PayrollSalaryLookupService.js";
 
@@ -997,22 +1001,29 @@ export async function markPayrollPaid({
   paymentReference,
   areaScope = {},
 }) {
-  const payroll = await findPayrollInScope(payrollId, areaScope);
+  // The payroll status change and the bank salary entry commit together.
+  // If the bank cannot cover the net salary, the whole payment is rolled back
+  // and the payroll stays finalized.
+  return runInTransaction(async (session) => {
+    const payroll = await findPayrollInScope(payrollId, areaScope, session);
 
-  if (payroll.status !== "finalized") {
-    throw new ApiError(400, "Only finalized payroll can be marked as paid");
-  }
+    if (payroll.status !== "finalized") {
+      throw new ApiError(400, "Only finalized payroll can be marked as paid");
+    }
 
-  // paymentMethod enum and paymentReference presence are validated by
-  // markPayrollPaidSchema (http/validators/payrollSchemas.js).
-  payroll.paymentMethod = paymentMethod;
-  payroll.paymentReference = paymentReference.trim();
+    // paymentMethod enum and paymentReference presence are validated by
+    // markPayrollPaidSchema (http/validators/payrollSchemas.js).
+    payroll.paymentMethod = paymentMethod;
+    payroll.paymentReference = paymentReference.trim();
 
-  payroll.status = "paid";
-  payroll.paidAt = new Date();
-  payroll.paidBy = userId;
+    payroll.status = "paid";
+    payroll.paidAt = new Date();
+    payroll.paidBy = userId;
 
-  await payroll.save();
+    await payroll.save({ session });
 
-  return payroll;
+    await recordPayrollSalary({ payroll, userId, session });
+
+    return payroll;
+  });
 }

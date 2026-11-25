@@ -6,6 +6,7 @@ import { ChevronRight, WalletCards } from "lucide-react";
 import { financeModules, toneStyles } from "@/components/admin/dashboard.config";
 import { useSelectedArea } from "@/components/area/AreaContext";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 
 export default function FinanceManagement() {
   const { getAreaAwareHref } = useSelectedArea();
@@ -33,8 +34,15 @@ export default function FinanceManagement() {
                   <Icon className="size-4" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-slate-900">
-                    {module.title}
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="truncate text-sm font-medium text-slate-900">
+                      {module.title}
+                    </span>
+                    {module.status && (
+                      <Badge tone={module.status.tone} className="px-1.5 py-0 text-[10px]">
+                        {module.status.label}
+                      </Badge>
+                    )}
                   </span>
                   <span className="block truncate text-xs text-slate-500">
                     {module.description}

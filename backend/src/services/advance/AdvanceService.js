@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import Employee from "../../models/Employee.js";
 import Advance from "../../models/Advance.js";
 import ApiError from "../../utils/ApiError.js";
+import {
+  runInTransaction,
+  syncAdvanceOutflow,
+} from "../bank/BankService.js";
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -66,15 +70,33 @@ export const createAdvanceService = async (body, user, areaScope = {}) => {
     throw new ApiError(404, "Employee not found in the selected area");
   }
 
-  const advance = await Advance.create({
-    employee: existingEmployee._id,
-    area: existingEmployee.area,
-    amount: advanceAmount,
-    remainingAmount: advanceAmount,
-    advanceDate: parsedAdvanceDate,
-    description: description?.trim() || "",
-    status: "active",
-    createdBy: user.id,
+  // The advance and its bank outflow commit together. If the bank cannot
+  // cover the advance, no advance is created.
+  const advance = await runInTransaction(async (session) => {
+    const [created] = await Advance.create(
+      [
+        {
+          employee: existingEmployee._id,
+          area: existingEmployee.area,
+          amount: advanceAmount,
+          remainingAmount: advanceAmount,
+          advanceDate: parsedAdvanceDate,
+          description: description?.trim() || "",
+          status: "active",
+          createdBy: user.id,
+        },
+      ],
+      { session },
+    );
+
+    await syncAdvanceOutflow({
+      advance: created,
+      userId: user.id,
+      session,
+      createIfMissing: true,
+    });
+
+    return created;
   });
 
   const populatedAdvance = await Advance.findById(advance._id)
@@ -308,7 +330,10 @@ export const updateAdvanceService = async (id, body, user, areaScope = {}) => {
 
   advance.updatedBy = user.id;
 
-  await advance.save();
+  await runInTransaction(async (session) => {
+    await advance.save({ session });
+    await syncAdvanceOutflow({ advance, userId: user.id, session });
+  });
 
   const updatedAdvance = await Advance.findById(advance._id)
     .populate("employee", "empId name fatherName designation status")
@@ -354,7 +379,10 @@ export const cancelAdvanceService = async (id, user, areaScope = {}) => {
   advance.status = "cancelled";
   advance.updatedBy = user.id;
 
-  await advance.save();
+  await runInTransaction(async (session) => {
+    await advance.save({ session });
+    await syncAdvanceOutflow({ advance, userId: user.id, session });
+  });
 
   const cancelledAdvance = await Advance.findById(advance._id)
     .populate("employee", "empId name fatherName designation status")
